@@ -1,4 +1,5 @@
 #include <naiveConsole.h>
+#include <keyboard.h>
 
 #define ZERO_EXCEPTION_ID 0
 #define INVALID_OPCODE_ID 6
@@ -7,7 +8,7 @@ static void zero_division();
 static void invalid_opcode();
 
 typedef void (*Exception)(void);
-static Exception exceptions[]={&zero_division(), 0, 0, 0, 0, 0, &invalid_opcode()};
+static Exception exceptions[]={&zero_division, 0, 0, 0, 0, 0, &invalid_opcode};
 
 void exceptionDispatcher(int exception) {
     Exception ex = exceptions[exception];
@@ -19,7 +20,12 @@ void exceptionDispatcher(int exception) {
 static void zero_division() {
     char * msgError = "Zero Division Exception";
     ncPrint(msgError);
+	ncNewline();
 	print_registers();
+	char c;
+	do{
+		
+	}while((c=getChar())!='\n');
 }
 
 // To do: improve rutines. Ask what we have to do when an exception is thrown.
@@ -29,6 +35,7 @@ static void invalid_opcode(){
     char * msgError = "Invalid Opcode Exception";
 	ncPrint(msgError);
 	print_registers();
+
 }
 
 // Funcion que imprime en formato registro. Deberia incluirse en naiveConsole.c
@@ -45,6 +52,12 @@ void ncPrintRegisterFormat(uint64_t reg){
 	for(int i=0; i<count ;i++){
 		ncPrintChar('0');
 	}
-	ncPrintHexa(reg);
+	ncPrintHex(reg);
 }
+
+//Funcion para probar la excepcion 0
+int divideByZero(){
+	return 1/0; 
+}
+
 

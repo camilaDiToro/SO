@@ -17,10 +17,6 @@ int main() {
 	// 	wait_command();
 	// }
 
-	put_char(2,'C');
-	char c = get_char();
-	put_char(2,c);
-
 	//Test if BSS is properly set up
 	if (var1 == 0 && var2 == 0)
 		return 0xDEADC0DE;
