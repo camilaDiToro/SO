@@ -12,17 +12,10 @@ int main() {
 
 	sprint(1,"Welcome to Userland");
 
-<<<<<<< HEAD
-	// while(1){
-	// 	put_char(2,'>');
-	// 	wait_command();
-	// }
-=======
 	while(1){
 		put_char(2,'>');
 		wait_command();
 	}
->>>>>>> main
 
 	//Test if BSS is properly set up
 	if (var1 == 0 && var2 == 0)
