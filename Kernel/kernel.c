@@ -127,8 +127,6 @@ int main()
 	//print_5secs();
 
 
-
-
 	// int c;
 	// while((c=getScanCode())!=0x1E){
 	// 	ncNewline();
@@ -139,7 +137,6 @@ int main()
 
 	sys_write(1,"Hola",5);
 	ncNewline();
-
 
 	return 0;
 }

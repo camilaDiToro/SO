@@ -1,6 +1,6 @@
 /* sampleCodeModule.c */
 
-#include <naiveConsole.h>
+// #include <naiveConsole.h>
 
 static int var1 = 0;
 static int var2 = 0;
@@ -8,13 +8,13 @@ static int var2 = 0;
 
 int main() {
 
-	ncPrint("Welcome to Userland");
-
-	while(1){
-		ncNewline();
-		ncPrintChar('>');
-		//wait_command();
-	}
+	// //ncPrint("Welcome to Userland");
+	//
+	// while(1){
+	// 	//ncNewline();
+	// 	//ncPrintChar('>');
+	// 	//wait_command();
+	// }
 
 
 	//Test if BSS is properly set up
