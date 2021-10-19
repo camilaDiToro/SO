@@ -108,18 +108,13 @@ int main()
 
 	ncNewline();
 	ncPrintFormat("Hora: ", 0xF3);
-	ncPrintDec(get_hours());
-	ncPrintChar(':');
-	ncPrintDec(get_minutes());
-	ncPrintChar(':');
-	ncPrintDec(get_seconds());
+	char date[11];
+	get_time(date);
+	ncPrint(date);
 	ncNewline();
 	ncPrintFormat("Fecha: ", 0xF3);
-	ncPrintDec(get_day());
-	ncPrintChar('/');
-	ncPrintDec(get_month());
-	ncPrintChar('/');
-	ncPrintDec(get_year());
+	get_date(date);
+	ncPrint(date);
   ncNewline();
 
 

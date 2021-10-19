@@ -4,17 +4,15 @@
 #define LEFT_SHIFT  0x2A
 #define RIGHT_SHIFT 0x36
 
-#define LEFT_SHIFT_FLAG 0b00000001
-#define RIGHT_SHIFT_FLAG 0b00000010
-
 #define BUFFER_LENGHT 256
 
 static char keyMapRow = 0;
 static uint8_t buffer[BUFFER_LENGHT];
 extern unsigned int sys_readKey();
 
-uint16_t start = 0;
-uint16_t end = 0;
+uint16_t buffer_start = 0;
+uint16_t buffer_end = 0;
+uint16_t buffer_current_size = 0;
 
 // Us International QWERTY
 
@@ -60,10 +58,11 @@ unsigned char ctoi(unsigned char mChar){
 // Hay que ver que pasa cuando se llena el buffer
 void addBuffer(uint8_t c){
 
-  buffer[end++] = c;
+  buffer[buffer_end++] = c;
+  buffer_current_size++;
 
-  if(end == BUFFER_LENGHT)
-    end = 0;
+  if(buffer_end == BUFFER_LENGHT)
+    buffer_end = 0;
   return;
 }
 
@@ -78,7 +77,7 @@ void keyboard_handler()
       keyMapRow|=0x01;
     }
     else if(keyMap[keyMapRow][code]!=0){
-      ncPrintChar(keyMap[keyMapRow][code]);
+      //ncPrintChar(keyMap[keyMapRow][code]);
       addBuffer(keyMap[keyMapRow][code]);
     }
 
@@ -91,12 +90,14 @@ void keyboard_handler()
   return;
 }
 
-uint16_t copy_from_buffer(char * buf, uint16_t count) {
+void clear_buffer() {
+  buffer_end = buffer_start = buffer_current_size = 0;
+}
 
-  uint16_t i = 0;
-
-  while (i < count && i< end)  // TODO: Check if we keep the last \n
-    buf[i] = buffer[i++];
-
-  return i;
+int getChar() {
+  if(buffer_current_size == 0){
+    return -1;
+  }
+  --buffer_current_size;
+  return buffer[buffer_start++];
 }

@@ -100,7 +100,7 @@ _sti:
 	ret
 
 picMasterMask:
-	push rbp
+		push rbp
     mov rbp, rsp
     mov ax, di
     out	21h,al
@@ -152,15 +152,7 @@ _sysCallHandler:
 	pushState
 	pop rax
 
-	cli
-
 	call sysCallDispatcher
-
-	; signal pic EOI (End of Interrupt)
-	mov al, 20h
-	out 20h, al
-
-	sti
 
 	push rax
 	popState

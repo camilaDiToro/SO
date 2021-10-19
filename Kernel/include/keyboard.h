@@ -7,6 +7,7 @@ unsigned int getScanCode();
 unsigned char ctoi(unsigned char mChar);
 char tryKeyboard();
 void keyboard_handler();
-uint16_t copy_from_buffer(char * buf, uint16_t count);
+int getChar();
+void clear_buffer();
 
 #endif
