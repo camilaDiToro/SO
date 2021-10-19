@@ -8,6 +8,7 @@
 #include <keyboard.h>
 #include <RTClock.h>
 #include <idtLoader.h>
+#include <exceptions.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -115,10 +116,10 @@ int main()
 	ncPrintFormat("Fecha: ", 0xF3);
 	get_date(date);
 	ncPrint(date);
-  ncNewline();
+  	ncNewline();
 
-
-
+	//print_registers();
+	//divideByZero();
 	//print_5secs();
 
 
@@ -130,8 +131,6 @@ int main()
 	// 	ncPrintChar(ctoi(c));
 	// }
 
-	sys_write(1,"Hola",5);
-	ncNewline();
-
+	
 	return 0;
 }
