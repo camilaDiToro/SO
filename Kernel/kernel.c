@@ -8,7 +8,9 @@
 #include <keyboard.h>
 #include <RTClock.h>
 #include <idtLoader.h>
+#include <graphicMode.h>
 #include <exceptions.h>
+
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -133,6 +135,11 @@ int main()
 	// 	ncPrintChar(ctoi(c));
 	// }
 
-	
+	sys_write(1,"Hola",5);
+	ncNewline();
+
+	printChar('A');
+	prueba();
+
 	return 0;
 }
