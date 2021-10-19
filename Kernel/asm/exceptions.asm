@@ -57,6 +57,7 @@ print_registers:
     call ncPrint
     mov rdi, rax
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -64,6 +65,7 @@ print_registers:
     call ncPrint
     mov rdi, rbx
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -71,6 +73,7 @@ print_registers:
     call ncPrint
     mov rdi, rcx
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -78,6 +81,7 @@ print_registers:
     call ncPrint
     mov rdi, rdx
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -85,6 +89,7 @@ print_registers:
     call ncPrint
     mov rdi, rbp
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -93,6 +98,7 @@ print_registers:
     call ncPrint
     mov rdi, rax
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -100,6 +106,7 @@ print_registers:
     call ncPrint
     mov rdi, rsi
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -107,6 +114,7 @@ print_registers:
     call ncPrint
     mov rdi, rsp                     
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -114,6 +122,7 @@ print_registers:
     call ncPrint
     mov rdi, r8
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -121,6 +130,7 @@ print_registers:
     call ncPrint
     mov rdi, r9
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -128,6 +138,7 @@ print_registers:
     call ncPrint
     mov rdi, r10
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -135,6 +146,7 @@ print_registers:
     call ncPrint
     mov rdi, r11
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -142,6 +154,7 @@ print_registers:
     call ncPrint
     mov rdi, r12
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -149,6 +162,7 @@ print_registers:
     call ncPrint
     mov rdi, r13
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -156,6 +170,7 @@ print_registers:
     call ncPrint
     mov rdi, r14
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     pushRegisters
@@ -163,6 +178,7 @@ print_registers:
     call ncPrint
     mov rdi, r15
     call ncPrintRegisterFormat
+    call ncNewline
     popRegisters
 
     mov rsp, rbp

@@ -88,6 +88,10 @@ int main()
 {
 	load_idt();
 
+	//print_registers();
+	divideByZero();
+	ncNewline();
+
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
@@ -118,8 +122,6 @@ int main()
 	ncPrint(date);
   	ncNewline();
 
-	//print_registers();
-	//divideByZero();
 	//print_5secs();
 
 
