@@ -2,6 +2,7 @@
 #include <naiveConsole.h>
 #include <systemCalls.h>
 #include <keyboard.h>
+#include <RTClock.h>
 
 #define ERR_COLOR 0x04
 #define STD_COLOR 0x0F
@@ -37,10 +38,27 @@ int sys_read(uint64_t fd, char * buffer, uint64_t size) {
     return i;
 }
 
+void sys_date(char * buffer){
+  get_date(buffer);
+}
 
-int sysCallDispatcher(uint64_t fd, char * buffer, uint64_t size, uint64_t syscall_id) {
-    sys_function syscall = syscalls[syscall_id];
-    if (syscall != 0)
-        return syscall(fd, buffer, size);
-    return -1;
+void sys_time(char * buffer){
+  get_time(buffer);
+}
+
+
+int sysCallDispatcher(uint64_t fd, uint64_t buffer, uint64_t size, uint64_t syscall_id) {
+  switch(syscall_id){
+      case 0:
+        return sys_read(fd,buffer,size);
+
+      case 1:
+        return sys_write(fd,buffer,size);
+
+      case 2:
+        get_time(fd);
+        return 0;
+
+  }
+  return -1;
 }
