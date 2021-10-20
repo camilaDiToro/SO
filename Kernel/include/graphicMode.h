@@ -3,6 +3,24 @@
 
 #include <stdint.h>
 
+//#define cursorX(a) (((a)-((a)/COLS)*COLS)*CHAR_WIDTH)
+//#define cursorY(a) (((a)/COLS)*CHAR_HEIGHT)
+//#define CURSOR_WIDTH (CHAR_WIDTH*FONT_SCALE)
+//#define CURSOR_HEIGHT (CHAR_HEIGHT*FONT_SCALE)
+//#define FONT_SCALE 2
+//#define WIN_WIDTH 1024
+//#define WIN_HEIGHT 768
+//#define CURSOR_HEIGHT (CHAR_HEIGHT*FONT_SCALE)
+//#define inBound(x,y) ((x)>=0 && (x)<1024 && (y)>=0 && (y)<768)
+
+typedef struct window{
+    uint8_t current_i; // current pixel
+	uint8_t current_j; // current pixel
+    uint8_t start_i;  // window start pixel
+	uint8_t start_j; // window start pixel
+    uint16_t width, height; // window dimensions
+} window;
+
 
 //https://wiki.osdev.org/VESA_Video_Modes
 struct vbe_mode_info_structure {
@@ -49,10 +67,12 @@ typedef struct color_t{
     uint8_t B;
 }color_t;
 
-void printCharFormat(uint8_t c, color_t charColor, color_t bgColor);
 void printChar(uint8_t c);
-void prueba();
+void printCharFormat(uint8_t c, color_t charColor, color_t bgColor);
+void printCharFormatId(uint8_t screen_id , uint8_t c, color_t charColor, color_t bgColor);
 
+void prueba();
+void initUniqueWindow();
 
 
 #endif /* _GRAPHICMODE_H_ */

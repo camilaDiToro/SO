@@ -89,9 +89,10 @@ void * initializeKernelBinary()
 int main()
 {
 	load_idt();
+	initUniqueWindow();
 
 	//print_registers();
-	divideByZero();
+	//divideByZero();
 	ncNewline();
 
 	ncPrint("[Kernel Main]");
@@ -135,11 +136,109 @@ int main()
 	// 	ncPrintChar(ctoi(c));
 	// }
 
-	sys_write(1,"Hola",5);
-	ncNewline();
+	//sys_write(1,"Hola",5);
+	//ncNewline();
 
 	printChar('A');
-	prueba();
+	newLine(0);
+	printChar('B');
+		newLine(0);
+	printChar('C');
+		newLine(0);
+	printChar('D');
+		newLine(0);
+	printChar('E');
+		newLine(0);
+	printChar('F');
+		newLine(0);
+	printChar('G');
+		newLine(0);
+	printChar('H');
+		newLine(0);
+	printChar('I');
+		newLine(0);
+	printChar('J');
+		newLine(0);
+	printChar('K');
+		newLine(0);
+	printChar('L');
+		newLine(0);
+	printChar('M');	
+		newLine(0);
+	printChar('N');
+		newLine(0);
+	printChar('O');
+		newLine(0);
+	printChar('P');
+	newLine(0);
+	printChar('Q');
+	newLine(0);
+	printChar('R');
+	newLine(0);
+	printChar('S');
+	newLine(0);
+	printChar('T');
+	newLine(0);
+	printChar('U');
+	newLine(0);
+	printChar('V');
+	newLine(0);
+	printChar('W');
+	newLine(0);
+	printChar('X');
+	newLine(0);
+	printChar('Y');
+	newLine(0);
+	printChar('Z');
+	newLine(0);
+	printChar('A');
+	newLine(0);
+	printChar('B');
+		newLine(0);
+	printChar('C');
+		newLine(0);
+	printChar('D');
+		newLine(0);
+	printChar('E');
+		newLine(0);
+	printChar('F');
+		newLine(0);
+	printChar('G');
+		newLine(0);
+	printChar('H');
+		newLine(0);
+	printChar('I');
+		newLine(0);
+	printChar('J');
+		newLine(0);
+	printChar('K');
+		newLine(0);
+	printChar('L');
+		newLine(0);
+	printChar('M');	
+		newLine(0);
+	printChar('N');
+		newLine(0);
+	printChar('O');
+		newLine(0);
+	printChar('P');
+	newLine(0);
+	printChar('Q');
+	newLine(0);
+	printChar('R');
+	newLine(0);
+	printChar('S');
+	newLine(0);
+	printChar('T');
+	newLine(0);
+	printChar('U');
+	newLine(0);
+	printChar('V');
+	newLine(0);
+	printChar('W');
+	newLine(0);
+	printChar('X');
 
+	
 	return 0;
 }
