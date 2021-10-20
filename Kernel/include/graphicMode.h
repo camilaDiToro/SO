@@ -3,45 +3,37 @@
 
 #include <stdint.h>
 
-//#define cursorX(a) (((a)-((a)/COLS)*COLS)*CHAR_WIDTH)
-//#define cursorY(a) (((a)/COLS)*CHAR_HEIGHT)
-//#define CURSOR_WIDTH (CHAR_WIDTH*FONT_SCALE)
-//#define CURSOR_HEIGHT (CHAR_HEIGHT*FONT_SCALE)
-//#define FONT_SCALE 2
-//#define WIN_WIDTH 1024
-//#define WIN_HEIGHT 768
-//#define CURSOR_HEIGHT (CHAR_HEIGHT*FONT_SCALE)
-//#define inBound(x,y) ((x)>=0 && (x)<1024 && (y)>=0 && (y)<768)
 
 typedef struct window{
-    uint8_t current_i; // current pixel
-	uint8_t current_j; // current pixel
-    uint8_t start_i;  // window start pixel
-	uint8_t start_j; // window start pixel
+    uint8_t current_i; 		// current pixel
+	uint8_t current_j; 		// current pixel
+    uint8_t start_i;  		// window start pixel
+	uint8_t start_j; 		// window start pixel
     uint16_t width, height; // window dimensions
 } window;
 
 
-//https://wiki.osdev.org/VESA_Video_Modes
+// Retrieved from https://wiki.osdev.org/VESA_Video_Modes
+
 struct vbe_mode_info_structure {
-	uint16_t attributes;		// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
-	uint8_t window_a;			// deprecated
-	uint8_t window_b;			// deprecated
-	uint16_t granularity;		// deprecated; used while calculating bank numbers
+	uint16_t attributes;			// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
+	uint8_t window_a;				// deprecated
+	uint8_t window_b;				// deprecated
+	uint16_t granularity;			// deprecated; used while calculating bank numbers
 	uint16_t window_size;
 	uint16_t segment_a;
 	uint16_t segment_b;
-	uint32_t win_func_ptr;		// deprecated; used to switch banks from protected mode without returning to real mode
-	uint16_t pitch;			// number of bytes per horizontal line
-	uint16_t width;			// width in pixels
-	uint16_t height;			// height in pixels
-	uint8_t w_char;			// unused...
-	uint8_t y_char;			// ...
+	uint32_t win_func_ptr;			// deprecated; used to switch banks from protected mode without returning to real mode
+	uint16_t pitch;					// number of bytes per horizontal line
+	uint16_t width;					// width in pixels
+	uint16_t height;				// height in pixels
+	uint8_t w_char;					// unused...
+	uint8_t y_char;					// ...
 	uint8_t planes;
-	uint8_t bpp;			// bits per pixel in this mode
-	uint8_t banks;			// deprecated; total number of banks in this mode
+	uint8_t bpp;					// bits per pixel in this mode
+	uint8_t banks;					// deprecated; total number of banks in this mode
 	uint8_t memory_model;
-	uint8_t bank_size;		// deprecated; size of a bank, almost always 64 KB but may be 16 KB...
+	uint8_t bank_size;				// deprecated; size of a bank, almost always 64 KB but may be 16 KB...
 	uint8_t image_pages;
 	uint8_t reserved0;
 
@@ -55,7 +47,7 @@ struct vbe_mode_info_structure {
 	uint8_t reserved_position;
 	uint8_t direct_color_attributes;
 
-	uint32_t framebuffer;		// physical address of the linear frame buffer; write here to draw to the screen
+	uint32_t framebuffer;			// physical address of the linear frame buffer; write here to draw to the screen
 	uint32_t off_screen_mem_off;
 	uint16_t off_screen_mem_size;	// size of memory in the framebuffer but not being displayed on the screen
 	uint8_t reserved1[206];
@@ -67,12 +59,22 @@ typedef struct color_t{
     uint8_t B;
 }color_t;
 
-void printChar(uint8_t c);
-void printCharFormat(uint8_t c, color_t charColor, color_t bgColor);
-void printCharFormatId(uint8_t screen_id , uint8_t c, color_t charColor, color_t bgColor);
 
-void prueba();
+
+
+void printChar(uint8_t c);
+void printCharId(uint8_t c, uint8_t screen_id);
+void printCharFormat(uint8_t c, color_t * charColor, color_t * bgColor);
+void printCharFormatId(uint8_t screen_id , uint8_t c, color_t * charColor, color_t * bgColor);
+void newLine(uint8_t id);
 void initUniqueWindow();
+void initDividedWindow();
+void clearAll(uint8_t id);
+void print(const char * string);
+void printDec(uint64_t value);
+void printHex(uint64_t value);
+void printBin(uint64_t value);
+void printBase(uint64_t value, uint32_t base);
 
 
 #endif /* _GRAPHICMODE_H_ */

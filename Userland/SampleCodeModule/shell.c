@@ -27,14 +27,16 @@ void wait_command(void){
 		put_char(1,c);
 		command[i++] = c;
 	}
+  sprint(2, "\n");
 	command[i] = 0;
 
   //Check if de command is valid.
   // Execute it if its valid
   if(!execute_command(command)){
     //If not valid, show mensage
-    sprint(2, "Invalid command ");
+    sprint(2, "Invalid command \n");
     sprint(2, command);
+    sprint(2, "\n");
   }
 }
 
@@ -49,7 +51,25 @@ int execute_command(char * command){
 }
 
 void help(void){
-  sprint(1, "el unico comando valido por ahora es help");
+  sprint(1, "el unico comando valido por ahora es help \n");
+
+  /*
+    //clear
+	  //sprint(1, "'clear' - Comando para limpiar la pantalla");
+    //inforeg
+    sprint(1, "'inforeg' - Comando para imprime todos los registros.");
+    //printmem c
+    sprint(1, "'printmem' - Comando para realizar un volcado de memoria de 32 bytes a partir del puntero pasado como parametro ");
+    //time
+	  sprint(1, "'time' - Comando utilizado para desplegar el dia y hora del sistema");
+
+    //cronometro
+
+    //sudoku
+
+    //exit
+	  sprint(1, "'exit' - Comando para apagar el sistema");
+    */
 }
 
 void time(void){
@@ -57,4 +77,5 @@ void time(void){
   get_time(time);
   sprint(1, "Hora: ");
   sprint(1, time);
+  sprint(2, "\n");
 }

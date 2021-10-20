@@ -85,7 +85,7 @@ void get_time(char * buffer){
   buffer[i] = 0;
 }
 
-// https://stackoverflow.com/questions/28133020/how-to-convert-bcd-to-decimal
+// Retrieved from https://stackoverflow.com/questions/28133020/how-to-convert-bcd-to-decimal
 static unsigned int bcdToDec(unsigned char time){
     return (time >> 4) * 10 + (time & 0x0F);
 }
