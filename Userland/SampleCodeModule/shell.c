@@ -61,12 +61,11 @@ int execute_command(char * command){
 }
 
 void divide_by_zero(void){
-  int i = 1/0;
+  divideByZero();
 }
 
 void invalid_operation(void){
-  float f;
-  f=f | (1 << 31);
+  invalidOp();
 }
 
 void help(void){

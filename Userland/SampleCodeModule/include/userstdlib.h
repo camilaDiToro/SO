@@ -18,6 +18,8 @@ void clearScreen();
 void restartCursor(uint8_t screen_id);
 void divideWindow();
 void uniqueWindow();
+void divideByZero();
+void invalidOp();
 
 
 /*
