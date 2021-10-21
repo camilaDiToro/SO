@@ -1,7 +1,7 @@
 #include <shell.h>
 #include <userstdlib.h>
 
-#define COMMANDS_QTY 3
+#define COMMANDS_QTY 5
 #define TICKS_PER_SECOND 18
 
 #define CHRONO_SCREEN 1
@@ -17,8 +17,10 @@ typedef struct{
 static void help(void);
 static void time(void);
 static void play(void);
+static void divide_by_zero(void);
+static void invalid_operation(void);
 
-static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}};
+static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"},{&divide_by_zero,"divide"},{&invalid_operation,"invalid"}};
 
 static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
 static void restart(char * chrono);
@@ -56,6 +58,15 @@ int execute_command(char * command){
     }
   }
   return 0;
+}
+
+void divide_by_zero(void){
+  int i = 1/0;
+}
+
+void invalid_operation(void){
+  float f;
+  f=f | (1 << 31);
 }
 
 void help(void){
