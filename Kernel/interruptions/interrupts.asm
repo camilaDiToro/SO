@@ -14,6 +14,7 @@ GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 
 GLOBAL _exception0Handler
+GLOBAL _exception6Handler
 GLOBAL _sysCallHandler
 
 EXTERN irqDispatcher
@@ -146,8 +147,9 @@ _exception0Handler:
 	exceptionHandler 0
 
 
-; 0-write  1-read
-; en q registro viene el parametro?
+_exception6Handler:
+	exceptionHandler 6
+	
 _sysCallHandler:
 	pushState
 	pop rax

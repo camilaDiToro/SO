@@ -89,6 +89,7 @@ void * initializeKernelBinary()
 int main()
 {
 	load_idt();
+	clearAll(0);
 	initUniqueWindow();
 	//initDividedWindow();
 	//print_registers();

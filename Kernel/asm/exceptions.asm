@@ -1,7 +1,10 @@
 GLOBAL print_registers
-EXTERN ncPrint
-EXTERN ncPrintRegisterFormat
-EXTERN ncNewline
+GLOBAL give_control_to_user
+EXTERN print
+EXTERN printRegisterFormat
+EXTERN newLine
+EXTERN main
+EXTERN getStackBase
 section .text
 
 %macro pushRegisters 0
@@ -39,13 +42,15 @@ section .text
 	pop rbx
     pop rax
 %endmacro
+give_control_to_user:
+    call getStackBase	        ; Get thet stack address
+	mov rsp, rax				; Set up the stack with the returned address
+	call main
+    
 
-; Only INTEGER will be contained into registers.
-; ncPrint in the future will be replaced by another function in video mode.
 ; This function is just a first approach of what we must do
 ; We must check how to print the instruction that fails
-; and also google the stack layout when we must handle an exception.
-; TODO: check if the 15 registers are printed.
+; and also google the stack layout when an exception is handled.
 ; https://os.phil-opp.com/handling-exceptions/
 
 print_registers:
@@ -54,131 +59,147 @@ print_registers:
 
     pushRegisters
     mov rdi, registerRAX
-    call ncPrint
+    call print
     mov rdi, rax
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerRBX
-    call ncPrint
+    call print
     mov rdi, rbx
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerRCX
-    call ncPrint
+    call print
     mov rdi, rcx
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerRDX
-    call ncPrint
+    call print
     mov rdi, rdx
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerRBP
-    call ncPrint
+    call print
     mov rdi, rbp
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rax, rdi
     mov rdi, registerRDI
-    call ncPrint
+    call print
     mov rdi, rax
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerRSI
-    call ncPrint
+    call print
     mov rdi, rsi
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerRSP
-    call ncPrint
+    call print
     mov rdi, rsp                     
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR8
-    call ncPrint
+    call print
     mov rdi, r8
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR9
-    call ncPrint
+    call print
     mov rdi, r9
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR10
-    call ncPrint
+    call print
     mov rdi, r10
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR11
-    call ncPrint
+    call print
     mov rdi, r11
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR12
-    call ncPrint
+    call print
     mov rdi, r12
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR13
-    call ncPrint
+    call print
     mov rdi, r13
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR14
-    call ncPrint
+    call print
     mov rdi, r14
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     pushRegisters
     mov rdi, registerR15
-    call ncPrint
+    call print
     mov rdi, r15
-    call ncPrintRegisterFormat
-    call ncNewline
+    call printRegisterFormat
+    mov rdi, 0
+    call newLine
     popRegisters
 
     mov rsp, rbp
@@ -202,3 +223,4 @@ section .data
     registerR13 db " R13= ", 0
     registerR14 db " R14= ", 0
     registerR15 db " R15= ", 0
+
