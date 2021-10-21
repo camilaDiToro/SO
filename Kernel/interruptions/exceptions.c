@@ -1,14 +1,16 @@
-#include <naiveConsole.h>
+#include <graphicMode.h>
 #include <keyboard.h>
-
-#define ZERO_EXCEPTION_ID 0
-#define INVALID_OPCODE_ID 6
-
-static void zero_division();
-static void invalid_opcode();
+#include <exceptions.h>
 
 typedef void (*Exception)(void);
+static void zero_division();
+static void invalid_opcode();
+static void exceptionHandler(char * msg);
+
+
+//								Exception 0						Exception 6
 static Exception exceptions[]={&zero_division, 0, 0, 0, 0, 0, &invalid_opcode};
+static char * message[] = {"Zero Division Exception", "Invalid Opcode Exception"};
 
 void exceptionDispatcher(int exception) {
     Exception ex = exceptions[exception];
@@ -17,29 +19,29 @@ void exceptionDispatcher(int exception) {
 	}
 }
 
-static void zero_division() {
-    char * msgError = "Zero Division Exception";
-    ncPrint(msgError);
-	ncNewline();
-	print_registers();
-	char c;
+static void exceptionHandler(char * msg){
+	print(msg); 		// TO DO: check if we have modified print function for multiple windows
+	newLine(0);
+	print_registers();	// TO DO: Update function to print what we need.
+	print("Press enter to continue");
+	int c;
 	do{
-		
-	}while((c=getChar())!='\n');
+		_hlt();	
+	} while((c=getChar())!='\n');
+	clearAll(0);
+	give_control_to_user();
 }
 
-// To do: improve rutines. Ask what we have to do when an exception is thrown.
-// The main idea is to make a unique function that is called by this functions.
+static void zero_division() {
+	exceptionHandler(message[0]);
+}
 
 static void invalid_opcode(){
-    char * msgError = "Invalid Opcode Exception";
-	ncPrint(msgError);
-	print_registers();
-
+	exceptionHandler(message[1]);
 }
 
-// Funcion que imprime en formato registro. Deberia incluirse en naiveConsole.c
-void ncPrintRegisterFormat(uint64_t reg){
+// Function to print in register format
+void printRegisterFormat(uint64_t reg){
 	
 	int aux = reg;
 	int count =  16;
@@ -50,14 +52,7 @@ void ncPrintRegisterFormat(uint64_t reg){
 	}
 
 	for(int i=0; i<count ;i++){
-		ncPrintChar('0');
+		printChar('0');
 	}
-	ncPrintHex(reg);
+	printHex(reg);
 }
-
-//Funcion para probar la excepcion 0
-int divideByZero(){
-	return 1/0; 
-}
-
-
