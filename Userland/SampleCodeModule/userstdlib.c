@@ -7,9 +7,23 @@
 #define STDOUT 1
 #define STDERR 2
 
-extern int  sys_write(uint64_t fd, char * buffer, uint64_t size);
+extern int  sys_write(uint64_t fd, char * buffer, uint64_t size, uint64_t screen_id);
 extern int  sys_read(uint64_t fd, char * buffer, uint64_t size);
 extern void sys_time(char * buffer);
+extern int sys_tick();
+extern void sys_clear(uint8_t screen_id);
+extern void sys_restartCursor(uint8_t screen_id);
+extern void sys_divide();
+extern void sys_uniqueWindow();
+
+void divideWindow(){
+  sys_divide();
+}
+
+void uniqueWindow(){
+  sys_uniqueWindow();
+}
+
 
 int _strlen(const char * str){
     int i=0;
@@ -24,15 +38,27 @@ int strcmp(char * s1, char * s2) {
 }
 
 int sprint(uint8_t fd, char * str){
-  return sys_write(fd, str, _strlen(str));
+  return sys_write(fd, str, _strlen(str),0);
+}
+
+int sprintId(uint8_t fd, char * str, uint8_t screen_id){
+  return sys_write(fd, str, _strlen(str),screen_id);
 }
 
 int put_char(uint8_t fd, char c){
-  return sys_write(fd, &c, 1);
+  return sys_write(fd, &c, 1,0);
+}
+
+int put_charId(uint8_t fd, char c, uint8_t screen_id){
+  return sys_write(fd, &c, 1,screen_id);
 }
 
 void get_time(char * buffer){
   sys_time(buffer);
+}
+
+int tick(){
+  return sys_tick();
 }
 
 int get_char(){
@@ -45,9 +71,25 @@ int get_char(){
 	  return c;
 }
 
+int read_char(){
+    char c;
+    sys_read(0, &c, 1);
+    return c;
+}
+
+void clearScreen(){
+  sys_clear(0);
+}
+
+void restartCursor(uint8_t screen_id){
+  sys_restartCursor(screen_id);
+}
+
+
+
 // TO DO: Finish functions
 
-/* 
+/*
 void my_printf(const char * frmt, ...)
 {
   char *p;
@@ -120,7 +162,7 @@ char *convert(unsigned int num, int base)
 
 //////////////////////////////////////////
 
-// LAS "FUNCIONES" ESTAS DE stadarg.h 
+// LAS "FUNCIONES" ESTAS DE stadarg.h
 
 
 //    #ifndef _STDARG
@@ -146,7 +188,7 @@ int my_atoi (char* s)
 {
     int j;
     int i = 0;
-    for(j=0; s[j] != 0; j++) 
+    for(j=0; s[j] != 0; j++)
     {
 
         i = i*10 + s[j] - '0';
@@ -154,8 +196,8 @@ int my_atoi (char* s)
     return i;
 }
 
-int my_scanf(const char * frmt, ...) 
-{ 
+int my_scanf(const char * frmt, ...)
+{
   va_list vl;
   int i=0, j=0, ret = 0;
 
@@ -210,7 +252,7 @@ int my_scanf(const char * frmt, ...)
           break;
         }
       }
-    } 
+    }
     else {
       buff[j] =str[i];
       j++;
@@ -219,6 +261,6 @@ int my_scanf(const char * frmt, ...)
   }
   va_end(vl);
   return ret;
-}  
+}
 
 */

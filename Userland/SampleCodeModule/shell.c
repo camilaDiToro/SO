@@ -1,7 +1,11 @@
 #include <shell.h>
 #include <userstdlib.h>
 
-#define COMMANDS_QTY 2
+#define COMMANDS_QTY 3
+#define TICKS_PER_SECOND 18
+
+#define CHRONO_SCREEN 1
+#define TIME_SCREEN 3
 
 typedef void (*void_function)(void);
 
@@ -10,11 +14,15 @@ typedef struct{
   char * name;
 }command;
 
-void help(void);
-void time(void);
-int execute_command(char * command);
+static void help(void);
+static void time(void);
+static void play(void);
 
-static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}};
+static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}};
+
+static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
+static void restart(char * chrono);
+static int execute_command(char * command);
 
 void wait_command(void){
 
@@ -78,4 +86,99 @@ void time(void){
   sprint(1, "Hora: ");
   sprint(1, time);
   sprint(2, "\n");
+}
+
+
+
+void handle_chrono(int tick, int c){
+  static uint8_t paused = 0;
+  static uint8_t ms_ticks = 0;
+  static char chrono[] = {'0',':','0','0',':','0','0',',','0',' ',' ',0};
+
+  if(!paused && tick){
+    ms_ticks = modify_chrono(chrono,++ms_ticks);
+    restartCursor(CHRONO_SCREEN);
+    sprintId(1, chrono,CHRONO_SCREEN);
+  }
+  if(c=='0'){
+    restart(chrono);
+    paused = 1;
+    restartCursor(CHRONO_SCREEN);
+    sprintId(1, chrono,CHRONO_SCREEN);
+  }
+  else if(c == '+'){
+    paused = !paused;
+  }
+
+}
+
+handle_time(int tick, int c){
+  static uint8_t tick_counter = 0;
+  if(tick){
+    if(!(tick_counter%18)){
+      char time[11];
+      get_time(time);
+      restartCursor(TIME_SCREEN);
+      sprintId(1, time,TIME_SCREEN);
+      tick_counter = 0;
+    }
+    ++tick_counter;
+  }
+}
+
+void play(void){
+
+  divideWindow();
+  int c;
+  int t;
+  uint8_t quit = 0;
+
+  while(!quit){
+    c = read_char();
+    t= tick();
+    handle_chrono(t, c);
+    handle_time(t, c);
+    if(c== 'q'){
+      quit = 1;
+    }
+  }
+
+  uniqueWindow();
+}
+
+
+uint8_t modify_chrono(char * chrono, uint8_t ms_ticks){
+
+  if(ms_ticks == TICKS_PER_SECOND){
+    chrono[8] = '0';
+    if(chrono[6] == '9'){
+      chrono[6] = '0';
+      if(chrono[5] == '5'){
+        chrono[5] = '0';
+        if(chrono[3] == '9'){
+          chrono[3] = '0';
+          if(chrono[2] == '5'){
+            chrono[2] = '0';
+            chrono[0]++;
+          }else{
+            chrono[2]++;
+          }
+        }else{
+          chrono[3]++;
+        }
+      }else{
+        chrono[5]++;
+      }
+    }else{
+      chrono[6]++;
+    }
+  }else{
+    chrono[8] = '0' + (ms_ticks * 10)/18;
+  }
+  return ms_ticks%TICKS_PER_SECOND;
+}
+
+void restart(char * chrono){
+  chrono[0] = chrono[2] = chrono[3] = '0';
+  chrono[5] = chrono[6] = chrono[8] = '0';
 }

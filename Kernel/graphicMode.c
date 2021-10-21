@@ -37,10 +37,11 @@ void initUniqueWindow(){
   cw[0].start_j = 0;
   cw[0].width = graphicModeInfo->width / CHAR_WIDTH;
   cw[0].height = graphicModeInfo->height / CHAR_HEIGHT;
+  clearAll(0);
 }
 
 void initDividedWindow(){
-  
+  clearAll(0);
   for(int i = 0 ; i<4 ; ++i){
     cw[i].current_i = 0;
     cw[i].current_j = 0;
@@ -119,7 +120,7 @@ static void scrollUp(uint8_t id){
     }
   }
    cw[id].current_i-=1;
-} 
+}
 
 void printChar(uint8_t c){
   printCharFormat(c,&WHITE,&BLACK);
@@ -145,6 +146,11 @@ void newLine(uint8_t id){
      cw[id].current_i+=1;
 }
 
+void restartCursor(uint8_t id){
+  cw[id].current_i = 0;
+  cw[id].current_j = 0;
+}
+
 void clearAll(uint8_t id){
   cw[id].current_i = 0;
   cw[id].current_j = 0;
@@ -155,7 +161,7 @@ void clearAll(uint8_t id){
   }
   cw[id].current_i = 0;
   cw[id].current_j = 0;
-}  
+}
 
 // TO DO: printBases in divided window mode
 

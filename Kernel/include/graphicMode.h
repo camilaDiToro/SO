@@ -75,6 +75,6 @@ void printDec(uint64_t value);
 void printHex(uint64_t value);
 void printBin(uint64_t value);
 void printBase(uint64_t value, uint32_t base);
-
+void restartCursor(uint8_t id);
 
 #endif /* _GRAPHICMODE_H_ */
