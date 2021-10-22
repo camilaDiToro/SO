@@ -46,181 +46,73 @@ give_control_to_user:
     call getStackBase	        ; Get thet stack address
 	mov rsp, rax				; Set up the stack with the returned address
 	call main
-    
+ 
+  ; Retrieved from https://os.phil-opp.com/handling-exceptions/
+  ; The function recieves the following stack layout:
+  ; SS  RSP  RFLAGS CS RIP RBP from the context that generates the exception.
+  ; RAX RBX RCX RDX RBP RDI RSI R8 R9 R10 R11 R12 R13 R14 R15 (pushRegisters)
 
-; This function is just a first approach of what we must do
-; We must check how to print the instruction that fails
-; and also google the stack layout when an exception is handled.
-; https://os.phil-opp.com/handling-exceptions/
+  ; TO DO: Debug with GDB to check if printing is ok.
+  print_registers:
+      push rbp
+      mov rbp, rsp
+      pushRegisters
 
-print_registers:
-    push rbp
-    mov rbp, rsp
+      xor r10, r10
+      xor rbx, rbx
+      sub rbx, length
 
-    pushRegisters
-    mov rdi, registerRAX
-    call print
-    mov rdi, rax
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
+  .loop_registers:
+      sub r10, 8
+      mov rdi, [registersEnd+r10]
+      call print
+      mov rdi, [rbp+r10]
+      call printRegisterFormat
+      mov rdi, 0
+      call newLine
+      cmp r10, rbx
+      jne .loop_registers
 
-    pushRegisters
-    mov rdi, registerRBX
-    call print
-    mov rdi, rbx
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
+      xor r10, r10
+  .loop_registers2:
+      mov rdi, [registers2+r10]
+      call print
+      add r10, 8
+      mov rdi, [rbp+r10]
+      call printRegisterFormat
+      mov rdi, 0
+      call newLine
+      cmp r10, length2
+      jne .loop_registers2
 
-    pushRegisters
-    mov rdi, registerRCX
-    call print
-    mov rdi, rcx
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerRDX
-    call print
-    mov rdi, rdx
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerRBP
-    call print
-    mov rdi, rbp
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rax, rdi
-    mov rdi, registerRDI
-    call print
-    mov rdi, rax
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerRSI
-    call print
-    mov rdi, rsi
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerRSP
-    call print
-    mov rdi, rsp                     
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR8
-    call print
-    mov rdi, r8
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR9
-    call print
-    mov rdi, r9
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR10
-    call print
-    mov rdi, r10
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR11
-    call print
-    mov rdi, r11
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR12
-    call print
-    mov rdi, r12
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR13
-    call print
-    mov rdi, r13
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR14
-    call print
-    mov rdi, r14
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    pushRegisters
-    mov rdi, registerR15
-    call print
-    mov rdi, r15
-    call printRegisterFormat
-    mov rdi, 0
-    call newLine
-    popRegisters
-
-    mov rsp, rbp
-    pop rbp
-    ret
+      popRegisters
+      mov rsp, rbp
+      pop rbp
+      ret
 
 section .data
-    registerRAX db " RAX= ", 0
-    registerRBX db " RBX= ", 0
-    registerRCX db " RCX= ", 0
-    registerRDX db " RDX= ", 0
-    registerRBP db " RBP= ", 0
-    registerRDI db " RDI= ", 0
-    registerRSI db " RSI= ", 0
-    registerRSP db " RSP= ", 0
-    registerR8 db " R8= ", 0
-    registerR9 db " R9= ", 0
-    registerR10 db " R10= ", 0
-    registerR11 db " R11= ", 0
-    registerR12 db " R12= ", 0
-    registerR13 db " R13= ", 0
-    registerR14 db " R14= ", 0
-    registerR15 db " R15= ", 0
-
+      segmentSS db " SS = ", 0
+      rflags db " RFLAGS = ", 0
+      segmentCS db " CS = ", 0
+      registerRIP db " RIP = ", 0
+      registerRAX db " RAX= ", 0
+      registerRBX db " RBX= ", 0
+      registerRCX db " RCX= ", 0
+      registerRDX db " RDX= ", 0
+      registerRBP db " RBP= ", 0
+      registerRDI db " RDI= ", 0
+      registerRSI db " RSI= ", 0
+      registerRSP db " RSP= ", 0
+      registerR8 db  " R8 = ", 0
+      registerR9 db  " R9 = ", 0
+      registerR10 db " R10= ", 0
+      registerR11 db " R11= ", 0
+      registerR12 db " R12= ", 0
+      registerR13 db " R13= ", 0
+      registerR14 db " R14= ", 0
+      registerR15 db " R15= ", 0
+      registers dq  registerR15, registerR14, registerR13, registerR12, registerR11, registerR10,registerR9, registerR8, registerRSI, registerRDI, registerRBP, registerRDX, registerRCX, registerRBX, registerRAX
+      registersEnd equ $
+      length equ registersEnd-registers
+      registers2 dq registerRIP, segmentCS, rflags, registerRSP, segmentSS
+      length2 equ $-registers2

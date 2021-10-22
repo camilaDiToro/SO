@@ -43,8 +43,8 @@ static void invalid_opcode(){
 // Function to print in register format
 void printRegisterFormat(uint64_t reg){
 	
-	int aux = reg;
-	int count =  16;
+	uint64_t aux = reg;
+	uint64_t count =  16;
 	
 	while(aux){
 		aux = aux>>4;
@@ -54,5 +54,9 @@ void printRegisterFormat(uint64_t reg){
 	for(int i=0; i<count ;i++){
 		printChar('0');
 	}
-	printHex(reg);
+	
+	if(reg){
+		printHex(reg);
+	}
+	
 }
