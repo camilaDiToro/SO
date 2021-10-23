@@ -7,14 +7,21 @@
 #define STDOUT 1
 #define STDERR 2
 
-extern int  sys_write(uint64_t fd, char * buffer, uint64_t size, uint64_t screen_id);
+extern int  sys_write(uint64_t fd, char * buffer, uint64_t size);
 extern int  sys_read(uint64_t fd, char * buffer, uint64_t size);
 extern void sys_time(char * buffer);
 extern int sys_tick();
-extern void sys_clear(uint8_t screen_id);
-extern void sys_restartCursor(uint8_t screen_id);
+extern void sys_clear();
+extern void sys_restartCursor();
 extern void sys_divide();
 extern void sys_uniqueWindow();
+extern void sys_setScreen(uint8_t id);
+extern int sys_printmem(uint64_t * mem_address);
+extern  void sys_date(char * buffer);
+
+void setScreen(uint8_t id){
+  sys_setScreen(id);
+}
 
 void divideWindow(){
   sys_divide();
@@ -23,7 +30,6 @@ void divideWindow(){
 void uniqueWindow(){
   sys_uniqueWindow();
 }
-
 
 int _strlen(const char * str){
     int i=0;
@@ -38,24 +44,23 @@ int strcmp(char * s1, char * s2) {
 }
 
 int sprint(uint8_t fd, char * str){
-  return sys_write(fd, str, _strlen(str),0);
+  return sys_write(fd, str, _strlen(str));
 }
 
-int sprintId(uint8_t fd, char * str, uint8_t screen_id){
-  return sys_write(fd, str, _strlen(str),screen_id);
-}
 
 int put_char(uint8_t fd, char c){
-  return sys_write(fd, &c, 1,0);
+  return sys_write(fd, &c, 1);
 }
 
-int put_charId(uint8_t fd, char c, uint8_t screen_id){
-  return sys_write(fd, &c, 1,screen_id);
-}
 
 void get_time(char * buffer){
   sys_time(buffer);
 }
+
+void get_date(char * buffer){
+  sys_date(buffer);
+}
+
 
 int tick(){
   return sys_tick();
@@ -78,14 +83,49 @@ int read_char(){
 }
 
 void clearScreen(){
-  sys_clear(0);
+  sys_clear();
 }
 
-void restartCursor(uint8_t screen_id){
-  sys_restartCursor(screen_id);
+void restartCursor(){
+  sys_restartCursor();
 }
 
+void printMem(){
+  
+  int counter = 0; char c; uint64_t value = 0; 
+  char * msg_error="Formato hexa invalido"; 
+  char * msg = "Ingrese una dirección de memoria en formato hexadecimal: ";
+  sys_write(1, msg, _strlen(msg));
 
+  while((c=get_char())!='\n'){
+    // TO DO : fix string conversion to number. 
+    if( ( c >= '0' && c <= '9') ){
+       value = value * 10 + (c - '0');
+    } else if( ( c >= 'A' ) && ( c <= 'F' ) ){
+       value = value * 10  + (c - 'A' + 10);
+    } else if( ( c >= 'a') && ( c <= 'f') ){
+       value = value * 10 + (c - 'a' + 10) ;
+    } else {
+      counter += 17;
+    }
+    put_char(1,c);
+    counter++;
+  }
+
+   if(counter > 16){
+      put_char(1,'\n');
+      sys_write(2, msg_error, _strlen(msg_error));
+      put_char(1,'\n');
+      return;
+    }
+
+  put_char(1,'\n');
+  char * msg_error2="Acceso a memoria invalido";
+  if(sys_printmem((uint64_t *)value) == -1){
+    sys_write(2, msg_error2, _strlen(msg_error2));
+    put_char(1,'\n');
+  }
+}
 
 // TO DO: Finish functions
 

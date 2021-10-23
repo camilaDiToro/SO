@@ -89,7 +89,7 @@ void * initializeKernelBinary()
 int main()
 {
 	load_idt();
-	clearAll(0);
+	clearAll();
 	initUniqueWindow();
 	//initDividedWindow();
 	//print_registers();
@@ -126,134 +126,7 @@ int main()
 	ncPrint(date);
   	ncNewline();
 
-	//print_5secs();
 
-
-	// int c;
-	// while((c=getScanCode())!=0x1E){
-	// 	ncNewline();
-	// 	ncPrintHex(c);
-	// 	ncPrintChar('-');
-	// 	ncPrintChar(ctoi(c));
-	// }
-
-	//sys_write(1,"Hola",5);
-	//ncNewline();
-
-	/* printCharId('0', 0);
-	newLine(0);
-	printCharId('0', 0);
-	printCharId('1', 1);
-	newLine(1);
-	printCharId('1', 1);
-	printCharId('2', 2);
-	newLine(2);
-	printCharId('2', 2);
-	printCharId('3', 3);
-	newLine(3);
-	printCharId('3', 3); */
-
-	// printChar('A');
-	// newLine(0);
-	// printChar('B');
-	// 	newLine(0);
-	// printChar('C');
-	// 	newLine(0);
-	// printChar('D');
-	// 	newLine(0);
-	// printChar('E');
-	// 	newLine(0);
-	// printChar('F');
-	// 	newLine(0);
-	// printChar('G');
-	// 	newLine(0);
-	// printChar('H');
-	// 	newLine(0);
-	// printChar('I');
-	// 	newLine(0);
-	// printChar('J');
-	// 	newLine(0);
-	// printChar('K');
-	// 	newLine(0);
-	// printChar('L');
-	// 	newLine(0);
-	// printChar('M');	
-	// 	newLine(0);
-	// printChar('N');
-	// 	newLine(0);
-	// printChar('O');
-	// 	newLine(0);
-	// printChar('P');
-	// newLine(0);
-	// printChar('Q');
-	// newLine(0);
-	// printChar('R');
-	// newLine(0);
-	// printChar('S');
-	// newLine(0);
-	// printChar('T');
-	// newLine(0);
-	// printChar('U');
-	// newLine(0);
-	// printChar('V');
-	// newLine(0);
-	// printChar('W');
-	// newLine(0);
-	// printChar('X');
-	// newLine(0);
-	// printChar('Y');
-	// newLine(0);
-	// printChar('Z');
-	// newLine(0);
-	// clearAll(0);
-	// printChar('A');
-	// newLine(0);
-	// printChar('B');
-	// 	newLine(0);
-	// printChar('C');
-	// 	newLine(0);
-	// printChar('D');
-	// 	newLine(0);
-	// printChar('E');
-	// 	newLine(0);
-	// printChar('F');
-	// 	newLine(0);
-	// printChar('G');
-	// 	newLine(0);
-	// printChar('H');
-	// 	newLine(0);
-	// printChar('I');
-	// 	newLine(0);
-	// printChar('J');
-	// 	newLine(0);
-	// printChar('K');
-	// 	newLine(0);
-	// printChar('L');
-	// 	newLine(0);
-	// printChar('M');	
-	// 	newLine(0);
-	// printChar('N');
-	// 	newLine(0);
-	// printChar('O');
-	// 	newLine(0);
-	// printChar('P');
-	// newLine(0);
-	// printChar('Q');
-	// newLine(0);
-	// printChar('R');
-	// newLine(0);
-	// printChar('S');
-	// newLine(0);
-	// printChar('T');
-	// newLine(0);
-	// printChar('U');
-	// newLine(0);
-	// printChar('V');
-	// newLine(0);
-	// printChar('W');
-	// newLine(0);
-	// printChar('X');
-	// clearAll(0);
 	
 	return 0;
 }

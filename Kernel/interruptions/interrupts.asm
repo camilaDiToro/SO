@@ -73,8 +73,6 @@ SECTION .text
 	iretq
 %endmacro
 
-
-
 %macro exceptionHandler 1
 	pushState
 
@@ -147,6 +145,7 @@ _exception0Handler:
 	exceptionHandler 0
 
 
+;Invalid Operand Exception
 _exception6Handler:
 	exceptionHandler 6
 	

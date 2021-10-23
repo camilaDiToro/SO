@@ -68,7 +68,6 @@ give_control_to_user:
       call print
       mov rdi, [rbp+r10]
       call printRegisterFormat
-      mov rdi, 0
       call newLine
       cmp r10, rbx
       jne .loop_registers
@@ -80,7 +79,6 @@ give_control_to_user:
       add r10, 8
       mov rdi, [rbp+r10]
       call printRegisterFormat
-      mov rdi, 0
       call newLine
       cmp r10, length2
       jne .loop_registers2

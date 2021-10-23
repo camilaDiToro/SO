@@ -7,7 +7,10 @@ GLOBAL sys_restartCursor
 GLOBAL sys_divide
 GLOBAL sys_uniqueWindow
 GLOBAL invalidOp
+GLOBAL sys_setScreen
+GLOBAL sys_date
 
+GLOBAL sys_printmem
 GLOBAL divideByZero
 
 sys_read:
@@ -82,6 +85,25 @@ sys_uniqueWindow:
   pop rbp
   ret
 
+
+sys_setScreen:
+  push rbp
+  mov rbp, rsp
+  mov r8, 9
+  int 80h
+  mov rsp, rbp
+  pop rbp
+  ret
+
+sys_date:
+  push rbp
+  mov rbp, rsp
+  mov r8, 10
+  int 80h
+  mov rsp, rbp
+  pop rbp
+  ret
+
 ; Retrivied from https://mudongliang.github.io/x86/html/file_module_x86_id_318.html
 invalidOp:
     push rbp
@@ -101,6 +123,17 @@ divideByZero:
     mov rax, 0
     div rax
 
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_printmem:
+    push rbp
+    mov rbp, rsp
+    
+    mov r8, 8
+    int 80h
+    
     mov rsp, rbp
     pop rbp
     ret

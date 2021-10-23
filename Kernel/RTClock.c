@@ -28,9 +28,9 @@ unsigned int get_day(){
    unsigned int current_hour = bcdToDec(sys_RTClock(HOURS));
 
    if(current_hour + TIMEZONE < 0){
-     return bcdToDec(sys_RTClock(DAY)) - 1;
-   }else if (current_hour + TIMEZONE > 23 ){
      return bcdToDec(sys_RTClock(DAY)) + 1;
+   }else if (current_hour + TIMEZONE > 23 ){
+     return bcdToDec(sys_RTClock(DAY)) - 1;
    }else{
      return bcdToDec(sys_RTClock(DAY));
    }

@@ -1,7 +1,7 @@
 #include <shell.h>
 #include <userstdlib.h>
 
-#define COMMANDS_QTY 5
+#define COMMANDS_QTY 7
 #define TICKS_PER_SECOND 18
 
 #define CHRONO_SCREEN 1
@@ -16,11 +16,13 @@ typedef struct{
 
 static void help(void);
 static void time(void);
+static void date(void);
 static void play(void);
 static void divide_by_zero(void);
 static void invalid_operation(void);
+static void print_mem(void);
 
-static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"},{&divide_by_zero,"divide"},{&invalid_operation,"invalid"}};
+static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&date,"date"},{&play, "play"},{&divide_by_zero,"divide"},{&invalid_operation,"invalid"}, {&print_mem, "printmem"}};
 
 static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
 static void restart(char * chrono);
@@ -68,6 +70,10 @@ void invalid_operation(void){
   invalidOp();
 }
 
+void print_mem(void){
+  printMem();
+} 
+
 void help(void){
   sprint(1, "el unico comando valido por ahora es help \n");
 
@@ -98,6 +104,14 @@ void time(void){
   sprint(2, "\n");
 }
 
+void date(void){
+  char date[11];
+  get_date(date);
+  sprint(1, "Fecha: ");
+  sprint(1, date);
+  sprint(2, "\n");
+}
+
 
 
 void handle_chrono(int tick, int c){
@@ -105,16 +119,18 @@ void handle_chrono(int tick, int c){
   static uint8_t ms_ticks = 0;
   static char chrono[] = {'0',':','0','0',':','0','0',',','0',' ',' ',0};
 
+  setScreen(CHRONO_SCREEN);
+
   if(!paused && tick){
     ms_ticks = modify_chrono(chrono,++ms_ticks);
-    restartCursor(CHRONO_SCREEN);
-    sprintId(1, chrono,CHRONO_SCREEN);
+    restartCursor();
+    sprint(1, chrono);
   }
   if(c=='0'){
     restart(chrono);
     paused = 1;
-    restartCursor(CHRONO_SCREEN);
-    sprintId(1, chrono,CHRONO_SCREEN);
+    restartCursor();
+    sprint(1, chrono);
   }
   else if(c == '+'){
     paused = !paused;
@@ -123,13 +139,14 @@ void handle_chrono(int tick, int c){
 }
 
 handle_time(int tick, int c){
+  setScreen(TIME_SCREEN);
   static uint8_t tick_counter = 0;
   if(tick){
     if(!(tick_counter%18)){
       char time[11];
       get_time(time);
-      restartCursor(TIME_SCREEN);
-      sprintId(1, time,TIME_SCREEN);
+      restartCursor();
+      sprint(1, time);
       tick_counter = 0;
     }
     ++tick_counter;

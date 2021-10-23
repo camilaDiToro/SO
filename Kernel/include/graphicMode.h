@@ -63,18 +63,17 @@ typedef struct color_t{
 
 
 void printChar(uint8_t c);
-void printCharId(uint8_t c, uint8_t screen_id);
 void printCharFormat(uint8_t c, color_t * charColor, color_t * bgColor);
-void printCharFormatId(uint8_t screen_id , uint8_t c, color_t * charColor, color_t * bgColor);
-void newLine(uint8_t id);
+void newLine();
 void initUniqueWindow();
 void initDividedWindow();
-void clearAll(uint8_t id);
+void clearAll();
 void print(const char * string);
 void printDec(uint64_t value);
 void printHex(uint64_t value);
 void printBin(uint64_t value);
 void printBase(uint64_t value, uint32_t base);
-void restartCursor(uint8_t id);
+void restartCursor();
+void setScreen(uint8_t screen_id);
 
 #endif /* _GRAPHICMODE_H_ */

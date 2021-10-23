@@ -21,14 +21,14 @@ void exceptionDispatcher(int exception) {
 
 static void exceptionHandler(char * msg){
 	print(msg); 		// TO DO: check if we have modified print function for multiple windows
-	newLine(0);
+	newLine();
 	print_registers();	// TO DO: Update function to print what we need.
 	print("Press enter to continue");
 	int c;
 	do{
 		_hlt();	
 	} while((c=getChar())!='\n');
-	clearAll(0);
+	clearAll();
 	give_control_to_user();
 }
 
