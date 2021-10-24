@@ -34,7 +34,7 @@ void wait_command(void){
 	char command[128];
 	int i = 0;
 
-  // Read de command until user presses enter
+  // Read the command until the user presses enter
   while((c=get_char())!='\n'){
 		put_char(1,c);
 		command[i++] = c;
@@ -72,7 +72,7 @@ void invalid_operation(void){
 
 void print_mem(void){
   printMem();
-} 
+}
 
 void help(void){
   sprint(1, "el unico comando valido por ahora es help \n");

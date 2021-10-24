@@ -91,20 +91,20 @@ void restartCursor(){
 }
 
 void printMem(){
-  
-  int counter = 0; char c; uint64_t value = 0; 
-  char * msg_error="Formato hexa invalido"; 
+
+  int counter = 0; char c; uint64_t value = 0;
+  char * msg_error="Formato hexa invalido";
   char * msg = "Ingrese una dirección de memoria en formato hexadecimal: ";
   sys_write(1, msg, _strlen(msg));
 
   while((c=get_char())!='\n'){
-    // TO DO : fix string conversion to number. 
+    // TO DO : fix string conversion to number.
     if( ( c >= '0' && c <= '9') ){
-       value = value * 10 + (c - '0');
+       value = (value << 4) + (c - '0');
     } else if( ( c >= 'A' ) && ( c <= 'F' ) ){
-       value = value * 10  + (c - 'A' + 10);
+       value = (value << 4)  + (c - 'A' + 10);
     } else if( ( c >= 'a') && ( c <= 'f') ){
-       value = value * 10 + (c - 'a' + 10) ;
+       value = (value << 4) + (c - 'a' + 10) ;
     } else {
       counter += 17;
     }
@@ -126,6 +126,9 @@ void printMem(){
     put_char(1,'\n');
   }
 }
+
+
+
 
 // TO DO: Finish functions
 
