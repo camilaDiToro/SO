@@ -10,7 +10,7 @@ static int var2 = 0;
 
 int main() {
 
-	sprint(1,"Welcome to Userland \n");
+	welcome_message();
 
 	/*
 	int i = 65;

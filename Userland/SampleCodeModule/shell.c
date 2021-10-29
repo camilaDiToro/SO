@@ -23,12 +23,18 @@ static void invalid_operation(void);
 static void print_mem(void);
 static void inforeg(void);   // TO DO
 
-static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero,"divideZero"},
-         {&invalid_operation,"invalidOp"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
+static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero, "dividezero"},
+         {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
 
 static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
 static void restart(char * chrono);
 static int execute_command(char * command);
+
+void welcome_message(void){
+  sprint(1,"Welcome to Userland \n");
+  //my_printf("Welcome to Userland \n");
+  help();
+}
 
 void wait_command(void){
 
@@ -117,12 +123,12 @@ void help(void){
     //my_printf("          4. Se podra jugar al ahorcado.\n");
 
     //Division por 0
-    sprint(1, "   'divideZero' - Genera una excepcion causada por dividir por 0.\n");
-    //my_printf("   'divisionByCero'     -  Genera una excepcion causada por dividir por 0 (00).\n");
+    sprint(1, "   'dividezero' - Genera una excepcion causada por dividir por 0.\n");
+    //my_printf("   'dividezero'     -  Genera una excepcion causada por dividir por 0 (00).\n");
 
     //Invalid operation
-    sprint(1, "   'invalidOp'  - Genera una excepcion causada por una operacion invalida.\n");
-    //my_printf("   'invalidOp'     - Genera una excepcion causada por una operacion invalida.\n");
+    sprint(1, "   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
+    //my_printf("   'invalidop'     - Genera una excepcion causada por una operacion invalida.\n");
 
     //exit
 	  //sprint(1, "   'exit'     - Apaga el sistema.\t");
@@ -165,11 +171,11 @@ void handle_chrono(int tick, int c){
   setScreen(CHRONO_SCREEN);
 
   if(!paused && tick){
-    ms_ticks = modify_chrono(chrono,++ms_ticks);
+    ms_ticks = modify_chrono(chrono, ++ms_ticks);
     restartCursor();
     sprint(1, chrono);
   }
-  if(c=='0'){
+  if(c == '0'){
     restart(chrono);
     paused = 1;
     restartCursor();
@@ -185,7 +191,7 @@ handle_time(int tick, int c){
   setScreen(TIME_SCREEN);
   static uint8_t tick_counter = 0;
   if(tick){
-    if(!(tick_counter%18)){
+    if(!(tick_counter % 18)){
       char time[11];
       get_time(time);
       restartCursor();
@@ -205,10 +211,10 @@ void play(void){
 
   while(!quit){
     c = read_char();
-    t= tick();
+    t = tick();
     handle_chrono(t, c);
     handle_time(t, c);
-    if(c== 'q'){
+    if(c == 'q'){
       quit = 1;
     }
   }
@@ -245,7 +251,7 @@ uint8_t modify_chrono(char * chrono, uint8_t ms_ticks){
   }else{
     chrono[8] = '0' + (ms_ticks * 10)/18;
   }
-  return ms_ticks%TICKS_PER_SECOND;
+  return ms_ticks % TICKS_PER_SECOND;
 }
 
 void restart(char * chrono){
