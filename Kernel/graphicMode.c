@@ -76,6 +76,22 @@ void initDividedWindow(){
 
 void printCharFormat(uint8_t c, color_t * charColor, color_t * bgColor){
 
+   // To Do: how can we set a limit?
+   if(c=='\b'){
+    if(cw[cw_id].current_j == 0){        
+      cw[cw_id].current_i-=1;                               
+      cw[cw_id].current_j=cw[cw_id].width-1;
+      printCharFormat(' ', charColor, bgColor);
+      cw[cw_id].current_i-=1;
+      cw[cw_id].current_j=cw[cw_id].width-1;  
+    } else {
+      cw[cw_id].current_j = (cw[cw_id].current_j-1) % cw[cw_id].width;
+      printCharFormat(' ', charColor, bgColor);
+      cw[cw_id].current_j = (cw[cw_id].current_j-1) % cw[cw_id].width;  
+    }
+    return;
+  }
+ 
   checkSpace();
   
   if(c=='\n'){
