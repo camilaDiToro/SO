@@ -1,9 +1,11 @@
 #include <shell.h>
 #include <userstdlib.h>
+#include <sudoku.h>
 
 #define COMMANDS_QTY 7
 #define TICKS_PER_SECOND 18
 
+#define SUDOKU_SCREEN 0
 #define CHRONO_SCREEN 1
 #define TIME_SCREEN 3
 
@@ -138,7 +140,7 @@ void handle_chrono(int tick, int c){
 
 }
 
-handle_time(int tick, int c){
+void handle_time(int tick, int c){
   setScreen(TIME_SCREEN);
   static uint8_t tick_counter = 0;
   if(tick){
@@ -153,6 +155,21 @@ handle_time(int tick, int c){
   }
 }
 
+void handle_sudoku(int tick, int c){
+  setScreen(SUDOKU_SCREEN);
+  restartCursor();
+  // Si se presiono una flecha, movemos al usuario
+  if(c>=37 && c<=40){
+    moveUser(c);
+  }
+  // Si se presiono un numero, lo escribimos en el sudoku
+  else if(c>='1' && c<='9'){
+    writeNumber(c);
+  }
+
+  printSudoku();
+}
+
 void play(void){
 
   divideWindow();
@@ -165,6 +182,7 @@ void play(void){
     t= tick();
     handle_chrono(t, c);
     handle_time(t, c);
+    handle_sudoku(t,c);
     if(c== 'q'){
       quit = 1;
     }
