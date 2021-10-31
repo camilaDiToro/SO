@@ -20,17 +20,25 @@ typedef struct{
 
 static void help(void);
 static void time(void);
-static void date(void);
+//static void date(void);
 static void play(void);
 static void divide_by_zero(void);
 static void invalid_operation(void);
 static void print_mem(void);
+static void inforeg(void);   // TO DO
 
-static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&date,"date"},{&play, "play"},{&divide_by_zero,"divide"},{&invalid_operation,"invalid"}, {&print_mem, "printmem"}};
+static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero, "dividezero"},
+         {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
 
 static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
 static void restart(char * chrono);
 static int execute_command(char * command);
+
+void welcome_message(void){
+  sprint(1,"Welcome to Userland \n");
+  //my_printf("Welcome to Userland \n");
+  help();
+}
 
 void wait_command(void){
 
@@ -78,26 +86,58 @@ void print_mem(void){
   printMem();
 }
 
+void inforeg(void){
+  // TO DO
+}
+
 void help(void){
-  sprint(1, "el unico comando valido por ahora es help \n");
+    sprint(1, "Los comandos disponibles son:\n");
+    //my_printf("Los comandos disponibles son:\n");
 
-  /*
-    //clear
-	  //sprint(1, "'clear' - Comando para limpiar la pantalla");
-    //inforeg
-    sprint(1, "'inforeg' - Comando para imprime todos los registros.");
-    //printmem c
-    sprint(1, "'printmem' - Comando para realizar un volcado de memoria de 32 bytes a partir del puntero pasado como parametro ");
+    //help
+    sprint(1, "   'help'       - Despliega un listado de todos los comandos disponibles.\n");
+    //my_printf("   'help'       - Despliega un listado de todos los comandos disponibles.\n");
+
     //time
-	  sprint(1, "'time' - Comando utilizado para desplegar el dia y hora del sistema");
+	  sprint(1, "   'time'       - Despliega el dia y hora del sistema.\n");
+    //my_printf("   'time'     - Despliega el dia y hora del sistema.\n");
 
-    //cronometro
+    //clear
+	  //sprint(1, "   'clear'     - Limpia la pantalla.\n");
+    //my_printf("   'clear'     - Limpia la pantalla.\n");
 
-    //sudoku
+    //inforeg
+    sprint(1, "   'inforeg'    - Imprime el valor de todos los registros.\n");
+    //my_printf("   'inforeg'     - Imprime el valor de todos los registros.\n");
+
+    //printmem 
+    sprint(1, "   'printmem'   - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
+    //my_printf("   'printmem'     - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
+
+    //play
+    sprint(1, "   'play'       - Divide la pantalla en 4 ventanas, donde:\n");
+    sprint(1, "        1. Se podra visializar la hora, actualizandose permanentemente.\n");
+    sprint(1, "        2. Se dispondra de un cronometro, capaz de ser operado desde el teclado.\n");
+    sprint(1, "        3. Se podra jugar al sudoku.\n");
+    sprint(1, "        4. Se podra jugar al ahorcado.\n");
+    //my_printf("   'play'     - Divide la pantalla en 4 ventanas, donde:\n");
+    //my_printf("          1. Se podra visializar la hora, actualizandose permanentemente.\n");
+    //my_printf("          2. Se dispondrá de un cronómetro, capaz de ser operado desde el teclado.\n");
+    //my_printf("          3. Se podra jugar al sudoku.\n");
+    //my_printf("          4. Se podra jugar al ahorcado.\n");
+
+    //Division por 0
+    sprint(1, "   'dividezero' - Genera una excepcion causada por dividir por 0.\n");
+    //my_printf("   'dividezero'     -  Genera una excepcion causada por dividir por 0 (00).\n");
+
+    //Invalid operation
+    sprint(1, "   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
+    //my_printf("   'invalidop'     - Genera una excepcion causada por una operacion invalida.\n");
 
     //exit
-	  sprint(1, "'exit' - Comando para apagar el sistema");
-    */
+	  //sprint(1, "   'exit'     - Apaga el sistema.\t");
+    //my_printg("   'exit'     - Apaga el sistema.\t");
+    
 }
 
 void time(void){
@@ -106,15 +146,24 @@ void time(void){
   sprint(1, "Hora: ");
   sprint(1, time);
   sprint(2, "\n");
+  //my_printf("\n Hora: %... \n", time);
+
+  char date[11];
+  get_date(date);
+  sprint(1, "Fecha: ");
+  sprint(1, date);
+  sprint(2, "\n");
+  //my_printf("\n Fecha: %... \n", date);
 }
 
+/*
 void date(void){
   char date[11];
   get_date(date);
   sprint(1, "Fecha: ");
   sprint(1, date);
   sprint(2, "\n");
-}
+} */
 
 
 
@@ -126,11 +175,11 @@ void handle_chrono(int tick, int c){
   setScreen(CHRONO_SCREEN);
 
   if(!paused && tick){
-    ms_ticks = modify_chrono(chrono,++ms_ticks);
+    ms_ticks = modify_chrono(chrono, ++ms_ticks);
     restartCursor();
     sprint(1, chrono);
   }
-  if(c=='0'){
+  if(c == '0'){
     restart(chrono);
     paused = 1;
     restartCursor();
@@ -146,7 +195,7 @@ void handle_time(int tick, int c){
   setScreen(TIME_SCREEN);
   static uint8_t tick_counter = 0;
   if(tick){
-    if(!(tick_counter%18)){
+    if(!(tick_counter % 18)){
       char time[11];
       get_time(time);
       restartCursor();
@@ -202,7 +251,7 @@ void play(void){
 
   while(!quit){
     c = read_char();
-    t= tick();
+    t = tick();
     handle_chrono(t, c);
     handle_time(t, c);
     handle_sudoku(t,c);
@@ -244,7 +293,7 @@ uint8_t modify_chrono(char * chrono, uint8_t ms_ticks){
   }else{
     chrono[8] = '0' + (ms_ticks * 10)/18;
   }
-  return ms_ticks%TICKS_PER_SECOND;
+  return ms_ticks % TICKS_PER_SECOND;
 }
 
 void restart(char * chrono){
