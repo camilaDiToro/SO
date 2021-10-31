@@ -23,8 +23,8 @@ static uint8_t scancodeLToAscii[] = {
    '\n',    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
       0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',    0, '*',
       0,  ' ',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,   0,
-      0,    0,   0,   0, '-',   0,   0,   0, '+',   0,   0,   0,    0,   0,
-      0,    0,   0,   0,   0,   0
+      0,    0,   38,   0, '-',   37,   0,   39, '+',   0,   40,   0,    0,   0,
+      0,    0,   0,   0,   0,   0,   0,   0,  0,    0,   0,   0,    0,   0,
 
 };
 
@@ -77,7 +77,6 @@ void keyboard_handler()
       keyMapRow|=0x01;
     }
     else if(keyMap[keyMapRow][code]!=0){
-      //ncPrintChar(keyMap[keyMapRow][code]);
       addBuffer(keyMap[keyMapRow][code]);
     }
 

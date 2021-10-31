@@ -83,13 +83,11 @@ int sys_printmem(uint64_t * mem_address){
   printDec((uint64_t)mem_address);
   printChar('\n');
 
-  // No tiene sentido que el nro sea 480 (512-32)
-  // Entiendi que eran 512MB = 2^9 * 2^20 = 2 * 2^28 = 10000000h
-  // Arranca en 0 entonces podemos acceder hasta 10000000h - 1
-  // Habria que chequear este valor porque no entiendo muy bien
-  // como es el mapeo de los 512MB
 
-  if( (uint64_t) mem_address  > (0x10000000 - 32) ){
+  // Podemos leer hasta 512MB = 2^9 * 2^20 = 2 * 2^28 = 20000000h
+  // Arranca en 0 entonces podemos acceder hasta 20000000h - 1
+
+  if( (uint64_t) mem_address  > (0x20000000 - 32) ){
     return -1;
   }
 

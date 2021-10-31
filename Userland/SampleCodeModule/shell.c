@@ -1,10 +1,14 @@
 #include <shell.h>
+#include <hangman.h>
 #include <userstdlib.h>
+#include <sudoku.h>
 
 #define COMMANDS_QTY 7
 #define TICKS_PER_SECOND 18
 
+#define SUDOKU_SCREEN 0
 #define CHRONO_SCREEN 1
+#define HANGMAN_SCREEN 2
 #define TIME_SCREEN 3
 
 typedef void (*void_function)(void);
@@ -187,7 +191,7 @@ void handle_chrono(int tick, int c){
 
 }
 
-handle_time(int tick, int c){
+void handle_time(int tick, int c){
   setScreen(TIME_SCREEN);
   static uint8_t tick_counter = 0;
   if(tick){
@@ -202,19 +206,57 @@ handle_time(int tick, int c){
   }
 }
 
+void handle_sudoku(int tick, int c){
+  setScreen(SUDOKU_SCREEN);
+  restartCursor();
+  // Si se presiono una flecha, movemos al usuario
+  if(c>=37 && c<=40){
+    moveUser(c);
+  }
+  // Si se presiono un numero, lo escribimos en el sudoku
+  else if(c>='1' && c<='9'){
+    writeNumber(c);
+  }
+
+  printSudoku();
+}
+
+
+void handle_hangman(int tick, int c){
+
+
+  if(c>='a' && c<='z' || c>='A' && c<='Z'){
+    setScreen(HANGMAN_SCREEN);
+    check_letter(c);
+    printHangman();
+  }
+
+
+}
+
 void play(void){
 
   divideWindow();
+  setScreen(SUDOKU_SCREEN);
+  initSudoku();
+  setScreen(HANGMAN_SCREEN);
+  initHangman();
+
   int c;
   int t;
   uint8_t quit = 0;
+
+
+
 
   while(!quit){
     c = read_char();
     t = tick();
     handle_chrono(t, c);
     handle_time(t, c);
-    if(c == 'q'){
+    handle_sudoku(t,c);
+    handle_hangman(t,c);
+    if(c== ' '){
       quit = 1;
     }
   }

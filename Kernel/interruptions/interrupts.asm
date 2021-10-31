@@ -76,6 +76,7 @@ SECTION .text
 %macro exceptionHandler 1
 	pushState
 
+
 	mov rdi, %1 ; pasaje de parametro
 	call exceptionDispatcher
 
@@ -148,7 +149,7 @@ _exception0Handler:
 ;Invalid Operand Exception
 _exception6Handler:
 	exceptionHandler 6
-	
+
 _sysCallHandler:
 	pushState
 	pop rax
