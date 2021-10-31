@@ -12,12 +12,6 @@ int main() {
 
 	welcome_message();
 
-	/*
-	int i = 65;
- 	char str[] = "not printed with printf :D";
-  	my_printf("\nMessage = %s %d %x", str, i, i);
-	*/
-
 	while(1){
 		put_char(2,'>');
 		wait_command();
