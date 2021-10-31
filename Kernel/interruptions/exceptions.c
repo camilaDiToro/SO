@@ -13,7 +13,7 @@ static Exception exceptions[]={&zero_division, 0, 0, 0, 0, 0, &invalid_opcode};
 static char * message[] = {"Zero Division Exception", "Invalid Opcode Exception"};
 
 void exceptionDispatcher(int exception) {
-    Exception ex = exceptions[exception];
+  Exception ex = exceptions[exception];
 	if(ex!=0){
 		ex();
 	}
@@ -26,7 +26,7 @@ static void exceptionHandler(char * msg){
 	print("Press enter to continue");
 	int c;
 	do{
-		_hlt();	
+		_hlt();
 	} while((c=getChar())!='\n');
 	clearAll();
 	give_control_to_user();
@@ -42,10 +42,10 @@ static void invalid_opcode(){
 
 // Function to print in register format
 void printRegisterFormat(uint64_t reg){
-	
+
 	uint64_t aux = reg;
 	uint64_t count =  16;
-	
+
 	while(aux){
 		aux = aux>>4;
 		--count;
@@ -54,9 +54,9 @@ void printRegisterFormat(uint64_t reg){
 	for(int i=0; i<count ;i++){
 		printChar('0');
 	}
-	
+
 	if(reg){
 		printHex(reg);
 	}
-	
+
 }
