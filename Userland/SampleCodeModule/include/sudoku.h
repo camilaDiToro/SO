@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 
-#define ROWS 9
-#define COLS 9
+#define DIM 9
 
-typedef uint8_t t_sudoku[ROWS][COLS];
+typedef uint8_t t_sudoku[DIM][DIM];
 
 void printSudoku(void);
 void moveUser(int direction);
 void writeNumber(int number);
+void initSudoku(void);
 
 #endif /*_SUDOKU_H_*/

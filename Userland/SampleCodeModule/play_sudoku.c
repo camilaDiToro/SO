@@ -16,20 +16,9 @@ static t_sudoku base = { {'-','-','-','2','6','-','7','-','1'},
                          {'-','-','9','3','-','-','-','7','4'},
                          {'-','4','-','-','5','-','-','3','6'},
                          {'7','-','3','-','1','8','-','-','-'}};
-
-static t_sudoku s = { {'-','-','-','2','6','-','7','-','1'},
-                      {'6','8','-','-','7','-','-','9','-'},
-                      {'1','9','-','-','-','4','5','-','-'},
-                      {'8','2','-','1','-','-','-','4','-'},
-                      {'-','-','4','6','-','2','9','-','-'},
-                      {'-','5','-','-','-','3','-','2','8'},
-                      {'-','-','9','3','-','-','-','7','4'},
-                      {'-','4','-','-','5','-','-','3','6'},
-                      {'7','-','3','-','1','8','-','-','-'}};
-
-
-static uint8_t userPosition[2] = {0,0};
-static uint8_t freeSpaces = 45;
+static t_sudoku s;
+static uint8_t userPosition[2];
+static uint8_t freeSpaces;
 
 static void getNextPosition(uint8_t * userPosition, int dirx, int diry);
 static int isUserPosition(int i, int j);
@@ -45,13 +34,13 @@ void printSudoku(){
   static uint8_t pritnUserPosition = 1;
 
   sprint(1,"\n\n\n");
-  for(int i=0 ; i< ROWS ; ++i ){
+  for(int i=0 ; i< DIM ; ++i ){
 
     if(!(i%3)){
       sprint(1,"         -------------------------\n");
     }
     sprint(1,"         ");
-    for(int j=0 ; j<COLS ; ++j){
+    for(int j=0 ; j<DIM ; ++j){
 
        if(!(j%3)){
          put_char(1,'|');
@@ -78,6 +67,27 @@ void printSudoku(){
   sprint(1,"         -------------------------\n");
 
   return;
+}
+
+void initSudoku(void){
+
+ uint8_t userPositionSeted = 0;
+
+  for(int i = 0 ; i < DIM ; ++i){
+    for(int j = 0 ; j < DIM ; ++j){
+      s[i][j] = base[i][j];
+      if(base[i][j] == '-'){
+        ++freeSpaces;
+
+        if(!userPositionSeted){
+          userPosition[0]=i;
+          userPosition[1]=j;
+          userPositionSeted = 1;
+        }
+      }
+    }
+  }
+
 }
 
 static uint8_t validPosition(int nextx, int nexty){
@@ -113,12 +123,12 @@ void writeNumber(int number){
   s[userPosition[0]][userPosition[1]] = number;
   int row = userPosition[0];
   int col = userPosition[1];
-  int rNums[ROWS] = {0};
-  int cNums[ROWS] = {0};
+  int rNums[DIM] = {0};
+  int cNums[DIM] = {0};
 
   int valid = 1;
 
-  for(int i=0 ; i< ROWS && valid; ++i ){
+  for(int i=0 ; i< DIM && valid; ++i ){
     if( s[row][i]!='-' ){
       if(rNums[s[row][i]-'1']){
           valid = 0;
@@ -138,7 +148,7 @@ void writeNumber(int number){
 
   int squareFil = (userPosition[0]/3)*3;
   int squareCol = (userPosition[1]/3)*3;
-  int qNums[ROWS] = {0};
+  int qNums[DIM] = {0};
 
   for(int i=squareFil; i<squareFil+3 && valid; ++i ){
     for(int j=squareCol ; j<squareCol+3 && valid; ++j ){
