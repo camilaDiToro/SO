@@ -102,30 +102,42 @@ void printMem(){
 
   int counter = 0; char c; uint64_t value = 0;
   char * msg_error="Formato hexa invalido";
-  char * msg = "Ingrese una dirección de memoria en formato hexadecimal: ";
-  sys_write(1, msg, _strlen(msg));
+  char * msg = "Ingrese una direccion de memoria en formato hexadecimal: ";
+  my_printf(msg);
 
-  while((c=get_char())!='\n'){
-    // TO DO : fix string conversion to number.
+  uint8_t num[32];
+
+  while((c=get_char())!='\n' && counter < 32){
     if( ( c >= '0' && c <= '9') ){
-       value = (value << 4) + (c - '0');
+       num[counter++] = (c - '0');
     } else if( ( c >= 'A' ) && ( c <= 'F' ) ){
-       value = (value << 4)  + (c - 'A' + 10);
+       num[counter++] = (c - 'A' + 10);
     } else if( ( c >= 'a') && ( c <= 'f') ){
-       value = (value << 4) + (c - 'a' + 10) ;
-    } else {
-      counter += 17;
+        num[counter++] = (c - 'a' + 10) ;
+    } else if(c=='\b' && counter > 0){
+      put_char(1,c);
+      num[--counter] = 0;
+    }else{
+      num[counter++] = 16 + c;
     }
-    put_char(1,c);
-    counter++;
+    if(c !='\b'){
+      put_char(1,c);
+    }
   }
 
    if(counter > 16){
-      put_char(1,'\n');
-      sys_write(2, msg_error, _strlen(msg_error));
-      put_char(1,'\n');
+      my_printf(" \n Las direcciones de memoria no pueden tener mas de 64 bits (16 digitos hexa) \n");
       return;
-    }
+   }
+
+   for(int i = 0 ; i<counter ; ++i){
+     if(num[i] < 16){
+       value = (value<<4) + num[i];
+     }else{
+       my_printf(" \n Formato hexa invalido \n");
+       return;
+     }
+   }
 
   put_char(1,'\n');
   char * msg_error2="Acceso a memoria invalido";
@@ -241,4 +253,4 @@ char *convert(unsigned int num, int base)
   }while(num != 0);
 
   return(ptr);
-} 
+}

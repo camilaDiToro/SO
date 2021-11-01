@@ -76,49 +76,11 @@ void sys_uniqueWindow(){
 }
 
 int sys_printmem(uint64_t * mem_address){
-  printHex(480);
-  printChar(' ');
-  printHex((uint64_t)mem_address);
-  printChar(' ');
-  printDec((uint64_t)mem_address);
-  printChar('\n');
 
-
-  // Podemos leer hasta 512MB = 2^9 * 2^20 = 2 * 2^28 = 20000000h
-  // Arranca en 0 entonces podemos acceder hasta 20000000h - 1
 
   if( (uint64_t) mem_address  > (0x20000000 - 32) ){
     return -1;
   }
-
-  // Primero les digo lo que vi cuando lo corri:
-  // Esta raro el resultado que sale. Se supone que cada linea tiene que
-  // imprimir 1byte y hay nros de muchos digitos hexa
-  // (solo deberiamos ver 1 byte por renglon i.e 2 digitos hexa maximo)
-  // Por que? porque queremos imprimir 32 bytes y deberia haber
-  // 32 renglones de 1byte.
-
-  // El problema de este codigo esta en el manejo de punteros. Esta todo
-  // perfecto pero no se tiene en cuenta que es sumarle 1 a un puntero.
-  // Digo, que es sumarle 1 a mem_address? Para responder a esto hay q
-  // Tener en cuenta que el tipo de dato de mem_address es un int de 8bytes
-  // Entonces, sumarle 1 es avanzar 8 posiciones de memoria y leer su valor
-  // es leer 8 posiciones de memoria (por eso se ven tantos datos)
-
-  // Esto no es lo que queremos ya que en total estariamos leyendo 8*32 = 256B
-  // cuando nos piden un volcado de 32B
-
-  // La solucion a este problema es hacer que mem_address trabaje con la memoria de a
-  // "pedazos" que midan un byte, es decir, que lea un byte y que avance de a un byte
-
-  // Esto lo podemos lograr haciendo un casteo a uint8_t
-
-  // Hice ese cambio y no me andaba pero era porque cambiaron la implementacion
-  // de la conversion de string hexa a decimal
-  // Volvi a dejar la implementacion que estaba antes. Si les confunden los decalajes
-  // vemos de cambiarlos y poner mult pero estamos pasando de base 16 a base 10
-  // Entones, hay q ir multplicando por 16 no por 10. Decalar a derecha 4 posiciones es lo mismo
-  // que multiplicar por 16.
 
   uint8_t * aux = mem_address;
 

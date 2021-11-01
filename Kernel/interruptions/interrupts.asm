@@ -77,12 +77,8 @@ SECTION .text
 %macro exceptionHandler 1
 	pushState
 
-<<<<<<< HEAD
 	call print_registers
-	
-=======
 
->>>>>>> main
 	mov rdi, %1 ; pasaje de parametro
 	call exceptionDispatcher
 
