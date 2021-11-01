@@ -5,7 +5,9 @@
 typedef void (*Exception)(void);
 static void zero_division();
 static void invalid_opcode();
-static void exceptionHandler(char * msg);
+static void excepHandler(char * msg);
+void give_control_to_user();
+void _hlt();
 
 
 //								Exception 0						Exception 6
@@ -19,44 +21,22 @@ void exceptionDispatcher(int exception) {
 	}
 }
 
-static void exceptionHandler(char * msg){
-	print(msg); 		// TO DO: check if we have modified print function for multiple windows
+static void excepHandler(char * msg){
+	print(msg);
 	newLine();
-	print_registers();	// TO DO: Update function to print what we need.
 	print("Press enter to continue");
 	int c;
 	do{
-		_hlt();
+		_hlt();							// Stops machine but interruptions are on.
 	} while((c=getChar())!='\n');
 	clearAll();
 	give_control_to_user();
 }
 
 static void zero_division() {
-	exceptionHandler(message[0]);
+	excepHandler(message[0]);
 }
 
 static void invalid_opcode(){
-	exceptionHandler(message[1]);
-}
-
-// Function to print in register format
-void printRegisterFormat(uint64_t reg){
-
-	uint64_t aux = reg;
-	uint64_t count =  16;
-
-	while(aux){
-		aux = aux>>4;
-		--count;
-	}
-
-	for(int i=0; i<count ;i++){
-		printChar('0');
-	}
-
-	if(reg){
-		printHex(reg);
-	}
-
+	excepHandler(message[1]);
 }

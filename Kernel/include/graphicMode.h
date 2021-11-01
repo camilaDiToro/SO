@@ -73,6 +73,7 @@ void printDec(uint64_t value);
 void printHex(uint64_t value);
 void printBin(uint64_t value);
 void printBase(uint64_t value, uint32_t base);
+void printRegisterFormat(uint64_t reg);
 void restartCursor();
 void setScreen(uint8_t screen_id);
 
