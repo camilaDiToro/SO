@@ -78,7 +78,6 @@ void initSudoku(void){
       s[i][j] = base[i][j];
       if(base[i][j] == '-'){
         ++freeSpaces;
-
         if(!userPositionSeted){
           userPosition[0]=i;
           userPosition[1]=j;
@@ -97,6 +96,7 @@ static uint8_t validPosition(int nextx, int nexty){
 static void getNextPosition(uint8_t * userPosition, int dirx, int diry){
     int nextx = userPosition[0]+dirx;
     int nexty = userPosition[1]+diry;
+    
     while(validPosition(nextx, nexty) && base[nextx][nexty]!='-'){
       nextx += dirx;
       nexty += diry;

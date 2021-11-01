@@ -1,15 +1,15 @@
 #include <hangman.h>
 #include <userstdlib.h>
 
-#define WORDS_QTY 1
+#define WORDS_QTY 4
 #define MAX_WORD_LENGHT 10
 #define TO_MAY_MASK 0xDF
 
 #define TO_MAY(a) ( (a)&TO_MAY_MASK )
 
-static uint8_t  words[WORDS_QTY][MAX_WORD_LENGHT] = {{'P','E','Z',0},{'A','M','I','G','O',0}};
+static uint8_t  words[WORDS_QTY][MAX_WORD_LENGHT] = {{'P','E','Z',0},{'A','M','I','G','O',0},{'A','G','U','A',0},{'K','I','W','I',0}};
 static uint8_t  current_word[MAX_WORD_LENGHT];
-static uint8_t word_idx;
+static uint8_t word_idx = 0;
 static uint8_t lifes;
 static uint8_t left_letters;
 static uint8_t game_finished;
@@ -20,8 +20,7 @@ void printHangman(void){
 
   if(game_finished)
     return;
-  sprint(1,"Vidas: ");
-  put_char(1,lifes+'0');
+  my_printf("Vidas: %d",lifes);
   sprint(1,"\n\n\n");
   sprint(1,"         ");
   for(int i = 0 ; words[word_idx][i] ; ++i){
@@ -37,10 +36,7 @@ void printHangman(void){
 
   if(!lifes){
     sprint(2,"\n\n\n Perdiste, no te quedan mas vidas :( \n");
-    sprint(1,"La palabra era: ");
-    for(int i = 0 ; words[word_idx][i] ; ++i){
-      put_char(1,words[word_idx][i]);
-    }
+    my_printf(1,"La palabra era: %s", words[word_idx]);
     sprint(1,"\n Presiona p para volver a jugar \n");
     game_finished = 1;
   }
@@ -51,7 +47,7 @@ void initHangman(void){
 
   clearScreen();
 
-  word_idx = 0;
+  word_idx = (++word_idx)%WORDS_QTY;
   lifes = 8;
   left_letters = 0;
   game_finished = 0;
