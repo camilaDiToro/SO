@@ -238,3 +238,24 @@ static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base)
 
 	return digits;
 }
+
+// Function to print in register format
+void printRegisterFormat(uint64_t reg){
+	
+	uint64_t aux = reg;
+	uint64_t count =  16;
+	
+	while(aux){
+		aux = aux>>4;
+		--count;
+	}
+
+	for(int i=0; i<count ;i++){
+		printChar('0');
+	}
+	
+	if(reg){
+		printHex(reg);
+	}
+	
+}

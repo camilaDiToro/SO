@@ -44,8 +44,13 @@ void wait_command(void){
 
   // Read the command until the user presses enter
   while((c=get_char())!='\n'){
-		put_char(1,c);
-		command[i++] = c;
+    if(c == '\b' && i>0){
+      put_char(1,c);
+      command[--i] = 0; 
+    } else if(c != '\b'){
+      put_char(1,c);
+      command[i++] = c;
+    }
 	}
   sprint(2, "\n");
 	command[i] = 0;
