@@ -21,6 +21,11 @@ void invalidOp();
 void setScreen(uint8_t id);
 void printMem();
 
+int atoi(char *str);
+char * my_strcpy ( char * destination, char * source);
+char * my_strncpy ( char * destination, char * source, int size);
+void my_printf(const char * frmt, ...);
+char *convert(unsigned int, int);
 
 /*
 void my_printf(const char * frmt, ...);

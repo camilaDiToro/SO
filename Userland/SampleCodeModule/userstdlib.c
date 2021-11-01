@@ -7,6 +7,14 @@
 #define STDOUT 1
 #define STDERR 2
 
+#define ULONG_MAX ((unsigned long)(~0L))      // 0xFFFFFFFF
+#define LONG_MAX ((long)(ULONG_MAX >> 1))     // 0x7FFFFFFF
+#define LONG_MIN ((long)(~LONG_MAX))          // 0x80000000
+#define IS_SPACE(x) ((x) == ' ' || (x) == '\t')
+#define IS_ALPHA(x) (((x) >= 'a' && (x) <= 'z') || ((x) >= 'A' && (x) <= 'Z'))
+#define IS_UPPER(x) (((x) >= 'A' && (x) <= 'Z'))
+#define IS_DIGIT(x) (((x) >= '0' && (x) <= '9'))
+
 extern int  sys_write(uint64_t fd, char * buffer, uint64_t size);
 extern int  sys_read(uint64_t fd, char * buffer, uint64_t size);
 extern void sys_time(char * buffer);
@@ -127,55 +135,87 @@ void printMem(){
   }
 }
 
+int atoi(char *str){
+    int answer = 0;
+    int neg = 1;
+    if(*str == '-'){
+        neg = -1;
+        str++;
+    }
+    while(*str){
+        if(!IS_DIGIT(*str)){
+            return 0;
+        }
+        answer = 10*answer + (*str - '0');
+        str++;
+    }
+    return neg*answer;
+}
 
+char * my_strcpy( char * destination, char * source){
+	return my_strncpy(destination, source, _strlen(source) + 1);
+}
 
+char * my_strncpy( char * destination, char * source, int size){
+	int i = 0;
+	char * ret = destination;
+	while(*source && i < size){
+		*(destination++) = *(source++);
+		i++;
+	}
+	*destination = '\0';
+	return ret;
+}
 
-// TO DO: Finish functions
-
-/*
+//----------------------------------------------------------------
+// https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c
 void my_printf(const char * frmt, ...)
 {
-  char *p;
+  //Module 1: Initializing Myprintf's arguments using stdarg.h
+  va_list arg;   //declares a variable which we use to manipulating the argument list contaning variable arugments
+  va_start(arg, frmt);   //initialize arg with function's last fixed argument, i.e. format
 
-  int i;
+  const char *aux;
+
+  uint64_t i;
   unsigned u;
   char *s;
 
-  //Module 1: Initializing Myprintf's arguments using stdarg.h
-  va_list argp;   //declares a variable which we use to manipulating the argument list contaning variable arugments
-  va_start(argp, frmt);   //initialize argp with function's last fixed argument, i.e. format
-
-  for(p=frmt; *p != '\0'; p++){
-    while(*p != '%'){
-      put_char(1, *p);
-      p++;
+  for(aux=frmt; *aux != '\0'; aux++){
+    while(*aux != '%'){
+      if(*aux == '\0'){
+        va_end(arg);
+        return;
+      }
+      put_char(1, *aux);
+      aux++;
     }
-    p++;
+    aux++;
 
     //Module 2: Fetching and executing arguments
     //va_arg() fetches the next argument from the argument list, where the 2do parameter is the data type expected
     //ONLY accept char*, unsigned int, int or double
-    switch(*p){
-      case 'c' :  i = va_arg(argp, int);  //Fetch char argument
+    switch(*aux){
+      case 'c' :  i = va_arg(arg, int);  //Fetch char argument
                   put_char(1, i);
                   break;
-      case 'd' :  i = va_arg(argp, int);   //Fetch Decimal/Integer argument
+      case 'd' :  i = va_arg(arg, int);   //Fetch Decimal/Integer argument
                   if(i < 0){
                     i = -i;
                     put_char(1, '-');
                   }
                   sprint(1, convert(i,10));
                   break;
-      case 'o':   i = va_arg(argp, unsigned int);   //Fetch Octal representation
+      case 'o':   i = va_arg(arg, unsigned int);   //Fetch Octal representation
                   sprint(1, convert(i,8));
                   break;
-      case 's':   s = va_arg(argp, char *);   //Fetch string
+      case 's':   s = va_arg(arg, char *);   //Fetch string
                   sprint(1, s);
                   break;
-      case 'u':   u = va_arg(argp, unsigned int);   // Fetch Unsigned decimal integer
+      case 'u':   u = va_arg(arg, unsigned int);   // Fetch Unsigned decimal integer
                   sprint(1, convert(u,10));
                   break;
-      case 'x':   u = va_arg(argp, unsigned int);   //Fetch Hexadecimal representation
+      case 'x':   u = va_arg(arg, unsigned int);   //Fetch Hexadecimal representation
                   sprint(1, convert(u,16));
                   break;
       case '%':   put_char(1, '%');
@@ -183,7 +223,7 @@ void my_printf(const char * frmt, ...)
     }
   }
   //Module 3: Closing argument list to necessary clean-up
-  va_end(argp);
+  va_end(arg);
 }
 
 char *convert(unsigned int num, int base)
@@ -201,109 +241,4 @@ char *convert(unsigned int num, int base)
   }while(num != 0);
 
   return(ptr);
-}
-
-//////////////////////////////////////////
-
-// LAS "FUNCIONES" ESTAS DE stadarg.h
-
-
-//    #ifndef _STDARG
-//    #define _STDARG
-
-//    /* type definitions */
-//    typedef char *va_list;
-
-//    /* macros */
-//    #define va_arg(ap, T) (* (T *)(((ap) += _Bnd(T, 3U)) - _Bnd(T, 3U)))
-//    #define va_end(ap) (void)0
-//    #define va_start(ap, A) (void)((ap) = (char *)&(A) + _Bnd(A, 3U))
-//    #define _Bnd(X, bnd) (sizeof (X) + (bnd) & ~(bnd))
-
-//    #endif
-
-// typedef char *va_list;
-// #define va_start(ap, parmn) (void)((ap) = (char*)(&(parmn) + 1))
-// #define va_end(ap) (void)((ap) = 0)
-// #define va_arg(ap, type) (((type*)((ap) = ((ap) + sizeof(type))))[-1])
-/*
-int my_atoi (char* s)
-{
-    int j;
-    int i = 0;
-    for(j=0; s[j] != 0; j++)
-    {
-
-        i = i*10 + s[j] - '0';
-    }
-    return i;
-}
-
-int my_scanf(const char * frmt, ...)
-{
-  va_list vl;
-  int i=0, j=0, ret = 0;
-
-  char buff[100] = {0};
-  char tmp[20];
-  char c;
-
-  char *out_loc;
-  while(c != '\n') {
-    if (fread(&c, 1, 1, stdin)) {
-      buff[i] = c;
-      i++;
-    }
-  }
-
-  va_start( vl, str );
-  i = 0;
-
-  while (str && str[i]) {
-    if (str[i] == '%') {
-      i++;
-      switch (str[i]) {
-        case 'c': {
-          * (char *)va_arg( vl, char* ) = buff[j];
-          j++;
-          ret ++;
-          break;
-        }
-        case 'd': {
-          * (int *)va_arg( vl, int* ) = strtol(&buff[j], &out_loc, 10);
-          j += out_loc -&buff[j];
-          ret++;
-          break;
-        }
-        case 'x': {
-          * (int *)va_arg( vl, int* ) = strtol(&buff[j], &out_loc, 16);
-          j += out_loc -&buff[j];
-          ret++;
-          break;
-        }
-        case 'o': {
-          * (int *)va_arg( vl, int* ) = strtol(&buff[j], &out_loc, 8);
-          j += out_loc -&buff[j];
-          ret++;
-          break;
-        }
-        case 's': {
-          out_loc = (char *)va_arg( vl, char* );
-          strcpy(out_loc, &buff[j]);
-          j += strlen(&buff[j]);
-          ret++;
-          break;
-        }
-      }
-    }
-    else {
-      buff[j] =str[i];
-      j++;
-    }
-    i++;
-  }
-  va_end(vl);
-  return ret;
-}
-
-*/
+} 
