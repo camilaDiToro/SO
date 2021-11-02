@@ -174,7 +174,8 @@ sys_printmem:
     ret
 
     ; When the stack frame is built, the stack layout will be the following one:
-    ; RBP
+    
+    ; RBP   -> stack frame
     ; RAX
     ; R15
     ; R14
@@ -190,7 +191,9 @@ sys_printmem:
     ; RDX
     ; RCX
     ; RBX
-    ; RIP
+    ; RIP   -> next instruction   <------ RSP to print points here. 
+    ; RBP   
+    
 inforeg:
       pushState
       push rbp
@@ -208,6 +211,11 @@ inforeg:
       cmp r10, length
       jne .loop_registers
 
+      mov rdi, registerRSP
+      mov rsi, rbp
+      add rsi, 136         ; 16 + 15*8 -> calculate the value of RSP.
+      call my_printf
+
       mov rsp, rbp
       pop rbp
       popState
@@ -222,7 +230,6 @@ section .data
       registerRBP db " RBP = %x", 10 ,0
       registerRDI db " RDI = %x", 10 ,0
       registerRSI db " RSI = %x", 10 ,0
-      registerRSP db " RSP = %x", 10 ,0
       registerR8 db  " R8 = %x", 10 ,0
       registerR9 db  " R9 = %x", 10 ,0
       registerR10 db " R10 = %x", 10 ,0
@@ -233,3 +240,4 @@ section .data
       registerR15 db " R15 = %x", 10 ,0
       registers dq  registerRAX, registerR15, registerR14, registerR13, registerR12, registerR11, registerR10, registerR9, registerR8, registerRSI, registerRDI, registerRBP, registerRDX, registerRCX, registerRBX, registerRIP
       length equ $-registers
+      registerRSP db " RSP = %x", 10 ,0

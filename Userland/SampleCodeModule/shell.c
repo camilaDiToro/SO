@@ -24,7 +24,8 @@ static void play(void);
 static void divide_by_zero(void);
 static void invalid_operation(void);
 static void print_mem(void);
-extern void inforeg(void); 
+extern void inforeg(void);
+
 
 static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero, "dividezero"},
          {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
@@ -68,12 +69,19 @@ void wait_command(void){
 }
 
 int execute_command(char * command){
+  
+  if(strcmp(command, "inforeg")==0){
+    inforeg();
+    return 1;
+  }
+
   for(int i=0 ; i<COMMANDS_QTY ; ++i){
     if(strcmp(command,valid_commands[i].name) == 0){
       valid_commands[i].action();
       return 1;
     }
   }
+  
   return 0;
 }
 
