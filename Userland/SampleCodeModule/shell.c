@@ -120,10 +120,10 @@ void help(void){
     my_printf("          4. Se podra jugar al ahorcado.\n");
 
     //Division por 0
-    my_printf("   'dividezero'  -  Genera una excepcion causada por dividir por 0 (00).\n");
+    my_printf("   'dividezero'  - Genera una excepcion causada por dividir por 0.\n");
 
     //Invalid operation
-    my_printf("   'invalidop'     - Genera una excepcion causada por una operacion invalida.\n");
+    my_printf("   'invalidop'   - Genera una excepcion causada por una operacion invalida.\n");
 
 }
 
