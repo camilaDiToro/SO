@@ -48,7 +48,7 @@ void wait_command(void){
   while((c=get_char())!='\n'){
     if(c == '\b' && i>0){
       put_char(1,c);
-      command[--i] = 0; 
+      command[--i] = 0;
     } else if(c != '\b'){
       put_char(1,c);
       command[i++] = c;
@@ -145,22 +145,20 @@ void handle_chrono(int tick, int c){
   // If time has passed and the chronometer is not paused, modify the chronometer value
   if(!paused && tick){
     ms_ticks = modify_chrono(chrono, ++ms_ticks);
-    restartCursor();
-    sprint(1, chrono);
   }
 
   // Pause and restart the chronometer if 0 is pressed
   if(c == '0'){
     restart(chrono);
     paused = 1;
-    restartCursor();
-    sprint(1, chrono);
   }
 
   else if(c == '+'){
     paused = !paused;
   }
-
+  
+  restartCursor();
+  sprint(1, chrono);
 }
 
 void handle_time(int tick, int c){
@@ -197,7 +195,7 @@ void handle_sudoku(int tick, int c){
 
 
 void handle_hangman(int tick, int c){
-  if((c>='a' && c<='z') || (c>='A' && c<='Z')){   
+  if((c>='a' && c<='z') || (c>='A' && c<='Z')){
     setScreen(HANGMAN_SCREEN);
     check_letter(c);
     printHangman();
@@ -211,6 +209,7 @@ void play(void){
   initSudoku();
   setScreen(HANGMAN_SCREEN);
   initHangman();
+
 
   int c;
   int t;

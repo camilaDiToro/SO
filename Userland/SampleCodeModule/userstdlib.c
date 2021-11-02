@@ -100,8 +100,8 @@ void restartCursor(){
 
 void printMem(){
 
-  int counter = 0; 
-  char c; 
+  signed int counter = 0;
+  char c;
   uint64_t value = 0;
   my_printf("Ingrese una direccion de memoria en formato hexadecimal: ");
 
@@ -114,9 +114,11 @@ void printMem(){
        num[counter++] = (c - 'A' + 10);
     } else if( ( c >= 'a') && ( c <= 'f') ){
         num[counter++] = (c - 'a' + 10) ;
-    } else if(c=='\b' && counter > 0){
-      put_char(1,c);
-      num[--counter] = 0;
+    } else if(c=='\b'){
+      if(counter > 0){
+        put_char(1,c);
+        num[--counter] = 0;
+      }
     } else{
       num[counter++] = 16 + c;
     }
