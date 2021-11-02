@@ -7,4 +7,4 @@ void printHangman(void);
 void initHangman(void);
 void check_letter(int c);
 
-#endif
+#endif /* __HANGMAN_H */

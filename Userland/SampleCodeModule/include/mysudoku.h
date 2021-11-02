@@ -1,5 +1,5 @@
-#ifndef _SUDOKU_H_
-#define _SUDOKU_H_
+#ifndef _MYSUDOKU_H_
+#define _MYSUDOKU_H_
 
 #include <stdint.h>
 
