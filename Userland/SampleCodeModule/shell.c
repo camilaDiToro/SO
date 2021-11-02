@@ -3,7 +3,7 @@
 #include <userstdlib.h>
 #include <sudoku.h>
 
-#define COMMANDS_QTY 7
+#define COMMANDS_QTY 6
 #define TICKS_PER_SECOND 18
 
 #define SUDOKU_SCREEN 0
@@ -28,7 +28,7 @@ extern void inforeg(void);
 
 
 static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero, "dividezero"},
-         {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
+         {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}};
 
 static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
 static void restart(char * chrono);
