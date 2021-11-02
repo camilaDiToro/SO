@@ -9,10 +9,46 @@ GLOBAL sys_uniqueWindow
 GLOBAL invalidOp
 GLOBAL sys_setScreen
 GLOBAL sys_date
-
+GLOBAL inforeg
+EXTERN my_printf 
 GLOBAL sys_printmem
 GLOBAL divideByZero
 
+%macro pushState 0
+	push rbx
+	push rcx
+	push rdx
+	push rbp
+	push rdi
+	push rsi
+	push r8
+	push r9
+	push r10
+	push r11
+	push r12
+	push r13
+	push r14
+	push r15
+	push rax
+%endmacro
+
+%macro popState 0
+	pop rax
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop r11
+	pop r10
+	pop r9
+	pop r8
+	pop rsi
+	pop rdi
+	pop rbp
+	pop rdx
+	pop rcx
+	pop rbx
+%endmacro
 sys_read:
     push rbp
     mov rbp, rsp
@@ -85,7 +121,6 @@ sys_uniqueWindow:
   pop rbp
   ret
 
-
 sys_setScreen:
   push rbp
   mov rbp, rsp
@@ -137,3 +172,64 @@ sys_printmem:
     mov rsp, rbp
     pop rbp
     ret
+
+    ; When the stack frame is built, the stack layout will be the following one:
+    ; RBP
+    ; RAX
+    ; R15
+    ; R14
+    ; R13
+    ; R12
+    ; R11
+    ; R10
+    ; R9
+    ; R8
+    ; RSI
+    ; RDI
+    ; RBP
+    ; RDX
+    ; RCX
+    ; RBX
+    ; RIP
+inforeg:
+      pushState
+      push rbp
+      mov rbp, rsp
+
+      xor r10, r10
+
+  .loop_registers:
+      
+      mov rdi, [registers+r10]
+      add r10, 8
+      mov rsi, [rbp+r10]
+      call my_printf
+      
+      cmp r10, length
+      jne .loop_registers
+
+      mov rsp, rbp
+      pop rbp
+      popState
+      ret
+
+section .data
+      registerRIP db " RIP = %x", 10 ,0
+      registerRAX db " RAX = %x", 10, 0
+      registerRBX db " RBX = %x", 10, 0
+      registerRCX db " RCX = %x", 10, 0
+      registerRDX db " RDX = %x", 10 ,0
+      registerRBP db " RBP = %x", 10 ,0
+      registerRDI db " RDI = %x", 10 ,0
+      registerRSI db " RSI = %x", 10 ,0
+      registerRSP db " RSP = %x", 10 ,0
+      registerR8 db  " R8 = %x", 10 ,0
+      registerR9 db  " R9 = %x", 10 ,0
+      registerR10 db " R10 = %x", 10 ,0
+      registerR11 db " R11 = %x", 10 ,0
+      registerR12 db " R12 = %x", 10 ,0
+      registerR13 db " R13 = %x", 10 ,0
+      registerR14 db " R14 = %x", 10 ,0
+      registerR15 db " R15 = %x", 10 ,0
+      registers dq  registerRAX, registerR15, registerR14, registerR13, registerR12, registerR11, registerR10, registerR9, registerR8, registerRSI, registerRDI, registerRBP, registerRDX, registerRCX, registerRBX, registerRIP
+      length equ $-registers

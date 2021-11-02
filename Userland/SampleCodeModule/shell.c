@@ -24,7 +24,7 @@ static void play(void);
 static void divide_by_zero(void);
 static void invalid_operation(void);
 static void print_mem(void);
-static void inforeg(void);   // TO DO
+extern void inforeg(void); 
 
 static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero, "dividezero"},
          {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
@@ -87,10 +87,6 @@ void invalid_operation(void){
 
 void print_mem(void){
   printMem();
-}
-
-void inforeg(void){
-  // TO DO
 }
 
 void help(void){
