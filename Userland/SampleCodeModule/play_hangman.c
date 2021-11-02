@@ -36,7 +36,7 @@ void printHangman(void){
 
   if(!lifes){
     sprint(2,"\n\n\n Perdiste, no te quedan mas vidas :( \n");
-    my_printf(1,"La palabra era: %s", words[word_idx]);
+    my_printf("La palabra era: %s", words[word_idx]);
     sprint(1,"\n Presiona p para volver a jugar \n");
     game_finished = 1;
   }
@@ -47,7 +47,7 @@ void initHangman(void){
 
   clearScreen();
 
-  word_idx = (++word_idx)%WORDS_QTY;
+  word_idx = (word_idx + 1) % WORDS_QTY;
   lifes = 8;
   left_letters = 0;
   game_finished = 0;

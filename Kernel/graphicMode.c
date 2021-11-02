@@ -9,11 +9,10 @@ window cw[4];
 
 static color_t WHITE = {0xFF,0xFF,0xFF};
 static color_t BLACK = {0x00,0x00,0x00};
-static color_t RED = {0xFF,0x00,0x00};
 
 uint8_t cw_id = 0;
-uint32_t * font_color = &WHITE;
-uint32_t * bg_color = &BLACK;
+color_t * font_color = &WHITE;  
+color_t * bg_color = &BLACK;    
 
 static const struct vbe_mode_info_structure * graphicModeInfo = (struct vbe_mode_info_structure *) 0x5C00;
 static void getNextPosition();

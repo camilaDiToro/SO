@@ -82,7 +82,7 @@ int sys_printmem(uint64_t * mem_address){
     return -1;
   }
 
-  uint8_t * aux = mem_address;
+  uint8_t * aux = (uint8_t *) mem_address;
 
   for(int i=0; i<32 ; ++i){
       printHex((uint64_t)aux);
@@ -99,13 +99,13 @@ int sys_printmem(uint64_t * mem_address){
 int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8) {
   switch(r8){
       case 0:
-        return sys_read(rdi,rsi,rdx);
+        return sys_read(rdi, (char *)rsi, rdx);   
 
       case 1:
-        return sys_write(rdi,rsi,rdx);
+        return sys_write(rdi, (char *)rsi, rdx); 
 
       case 2:
-        get_time(rdi);
+        get_time((char *)rdi);   
         return 0;
 
       case 3:
@@ -128,7 +128,7 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
 
       case 8:
-       return sys_printmem(rdi);
+        return sys_printmem((uint64_t *) rdi);  
         return 0;
 
       case 9:
@@ -136,7 +136,7 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
 
       case 10:
-        sys_date(rdi);
+        sys_date((char *)rdi);   
         return 0;
 
   }

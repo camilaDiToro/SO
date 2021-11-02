@@ -6,7 +6,7 @@
 
 #define BUFFER_LENGHT 256
 
-static char keyMapRow = 0;
+static uint8_t keyMapRow = 0;
 static uint8_t buffer[BUFFER_LENGHT];
 extern unsigned int sys_readKey();
 
@@ -76,7 +76,7 @@ void keyboard_handler()
     if(code == LEFT_SHIFT || code == RIGHT_SHIFT){
       keyMapRow|=0x01;
     }
-    else if(keyMap[keyMapRow][code]!=0){
+    else if(keyMap[keyMapRow][code] != 0){
       addBuffer(keyMap[keyMapRow][code]);
     }
 

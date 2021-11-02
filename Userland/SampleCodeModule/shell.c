@@ -197,7 +197,7 @@ void handle_sudoku(int tick, int c){
 
 
 void handle_hangman(int tick, int c){
-  if(c>='a' && c<='z' || c>='A' && c<='Z'){
+  if((c>='a' && c<='z') || (c>='A' && c<='Z')){   
     setScreen(HANGMAN_SCREEN);
     check_letter(c);
     printHangman();

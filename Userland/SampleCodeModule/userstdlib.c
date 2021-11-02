@@ -100,14 +100,14 @@ void restartCursor(){
 
 void printMem(){
 
-  int counter = 0; char c; uint64_t value = 0;
-  char * msg_error="Formato hexa invalido";
-  char * msg = "Ingrese una direccion de memoria en formato hexadecimal: ";
-  my_printf(msg);
+  int counter = 0; 
+  char c; 
+  uint64_t value = 0;
+  my_printf("Ingrese una direccion de memoria en formato hexadecimal: ");
 
   uint8_t num[32];
 
-  while((c=get_char())!='\n' && counter < 32){
+  while((c=get_char()) != '\n' && counter < 32){
     if( ( c >= '0' && c <= '9') ){
        num[counter++] = (c - '0');
     } else if( ( c >= 'A' ) && ( c <= 'F' ) ){
@@ -117,32 +117,38 @@ void printMem(){
     } else if(c=='\b' && counter > 0){
       put_char(1,c);
       num[--counter] = 0;
-    }else{
+    } else{
       num[counter++] = 16 + c;
     }
-    if(c !='\b'){
+    if(c != '\b'){
       put_char(1,c);
     }
   }
 
-   if(counter > 16){
-      my_printf(" \n Las direcciones de memoria no pueden tener mas de 64 bits (16 digitos hexa) \n");
-      return;
-   }
+  if(counter > 16){
+    char * msg_error = "La direccion ingresada no puede tener mas de 64 bits (16 digitos hexa)";
+    put_char(1,'\n');
+    sys_write(2, msg_error, _strlen(msg_error));
+    put_char(1,'\n');
+    return;
+  }
 
-   for(int i = 0 ; i<counter ; ++i){
-     if(num[i] < 16){
-       value = (value<<4) + num[i];
-     }else{
-       my_printf(" \n Formato hexa invalido \n");
-       return;
-     }
-   }
+  for(int i=0 ; i < counter ; ++i){
+    if(num[i] < 16){
+      value = (value<<4) + num[i];
+    }else{
+      char * msg_error2 = "Formato hexa invalido";
+      put_char(1,'\n');
+      sys_write(2, msg_error2, _strlen(msg_error2));
+      put_char(1,'\n');
+      return;
+    }
+  }
 
   put_char(1,'\n');
-  char * msg_error2="Acceso a memoria invalido";
+  char * msg_error3 = "Acceso a memoria invalido";
   if(sys_printmem((uint64_t *)value) == -1){
-    sys_write(2, msg_error2, _strlen(msg_error2));
+    sys_write(2, msg_error3, _strlen(msg_error3));
     put_char(1,'\n');
   }
 }
