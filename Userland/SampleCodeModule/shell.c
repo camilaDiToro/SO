@@ -3,7 +3,7 @@
 #include <userstdlib.h>
 #include <sudoku.h>
 
-#define COMMANDS_QTY 7
+#define COMMANDS_QTY 6
 #define TICKS_PER_SECOND 18
 
 #define SUDOKU_SCREEN 0
@@ -24,10 +24,11 @@ static void play(void);
 static void divide_by_zero(void);
 static void invalid_operation(void);
 static void print_mem(void);
-static void inforeg(void);   // TO DO
+extern void inforeg(void);
+
 
 static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"}, {&divide_by_zero, "dividezero"},
-         {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}, {&inforeg, "inforeg"}};
+         {&invalid_operation, "invalidop"}, {&print_mem, "printmem"}};
 
 static uint8_t modify_chrono(char * chrono, uint8_t ms_ticks);
 static void restart(char * chrono);
@@ -68,12 +69,19 @@ void wait_command(void){
 }
 
 int execute_command(char * command){
+  
+  if(strcmp(command, "inforeg")==0){
+    inforeg();
+    return 1;
+  }
+
   for(int i=0 ; i<COMMANDS_QTY ; ++i){
     if(strcmp(command,valid_commands[i].name) == 0){
       valid_commands[i].action();
       return 1;
     }
   }
+  
   return 0;
 }
 
@@ -87,10 +95,6 @@ void invalid_operation(void){
 
 void print_mem(void){
   printMem();
-}
-
-void inforeg(void){
-  // TO DO
 }
 
 void help(void){
