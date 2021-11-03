@@ -7,19 +7,19 @@
 typedef void (*void_function)(void);
 
 typedef struct{
-  void_function action; 
-  char * name;          
+  void_function action;
+  char * name;
 }command;
 
 // usertdlib.asm
-extern void inforeg(void); 
+extern void inforeg(void);
 extern void divideByZero(void);
-extern void invalidOp(void);   
+extern void invalidOp(void);
 
 static int execute_command(char * command);
 static void help(void);
 static void time(void);
-static void print_mem(void);      
+static void print_mem(void);
 
 static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"},
          {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}};
@@ -41,8 +41,8 @@ void wait_command(void){
     if(c == '\b' && i>0){
       put_char(STDOUT, c);
       command[--i] = 0;
-    
-    } 
+
+    }
     else if(c != '\b'){
       put_char(STDOUT, c);
       command[i++] = c;
@@ -62,7 +62,7 @@ void wait_command(void){
 }
 
 int execute_command(char * command){
-  
+
   if(strcmp(command, "inforeg") == 0){
     inforeg();
     return 1;
@@ -89,19 +89,19 @@ void print_mem(void){
   while((c=get_char()) != '\n' && counter < 32){
     if(( c >= '0' && c <= '9')) {
        num[counter++] = (c - '0');
-    } 
+    }
     else if(( c >= 'A' ) && ( c <= 'F' )) {
        num[counter++] = (c - 'A' + 10);
-    } 
+    }
     else if(( c >= 'a') && ( c <= 'f')) {
         num[counter++] = (c - 'a' + 10);
-    } 
+    }
     else if(c == '\b') {
       if(counter > 0){
         put_char(STDOUT, c);
         num[--counter] = 0;
       }
-    } 
+    }
     else {
       num[counter++] = 16 + c;
     }
@@ -156,8 +156,8 @@ void help(void){
 
     //play
     my_printf("   'play'       - Divide la pantalla en 4 ventanas, donde:\n");
-    my_printf("          1. Se podra visializar la hora, actualizandose permanentemente.\n");
-    my_printf("          2. Se dispondrá de un cronometro, capaz de ser operado desde el teclado.\n");
+    my_printf("          1. Se podra visializar la hora actualizandose permanentemente.\n");
+    my_printf("          2. Se dispondra de un cronometro capaz de ser operado desde el teclado.\n");
     my_printf("          3. Se podra jugar al sudoku.\n");
     my_printf("          4. Se podra jugar al ahorcado.\n");
 

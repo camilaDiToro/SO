@@ -24,7 +24,7 @@ void exceptionDispatcher(int exception) {
 static void excepHandler(char * msg){
 	print(msg);
 	newLine();
-	print("Press enter to continue");
+	print("Presione enter para continuar");
 	int c;
 	do{
 		_hlt();		// halts the central processing unit until the next external interrupt is fired.
