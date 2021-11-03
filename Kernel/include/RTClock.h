@@ -1,7 +1,6 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
-
 unsigned int get_seconds();
 unsigned int get_minutes();
 unsigned int get_hours();
@@ -11,4 +10,4 @@ unsigned int get_year();
 void get_date(char * buffer);
 void get_time(char * buffer);
 
-#endif
+#endif  /* CLOCK_H */

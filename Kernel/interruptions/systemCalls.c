@@ -6,96 +6,88 @@
 #include <time.h>
 #include <RTClock.h>
 
-color_t STD = {0xFF,0xFF,0xFF};
-color_t BG = {0x00,0x00,0x00};
-color_t ERR = {0xFF,0x00,0x00};
 
 int sys_write(uint64_t fd, char * buffer, uint64_t size) {
-  if (buffer == 0 || size == 0 || fd > 2)
-      return -1;
+    if (buffer == 0 || size == 0 || fd > 2){
+        return -1;
+    }
 
-  color_t col = ((fd == STDERR) ? ERR : STD);
-
-  uint64_t i = 0;
-  while(i < size && buffer[i])
-    printCharFormat(buffer[i++],&col, &BG);
-  return i;
+    color_t col = ((fd == STDERR) ? RED : WHITE);
+    uint64_t i = 0;
+    while(i < size && buffer[i]){
+      printCharFormat(buffer[i++],&col, &BLACK);
+    }
+    return i;
 }
 
 int sys_read(uint64_t fd, char * buffer, uint64_t size) {
-  if (buffer == 0 || size == 0 || fd != 0)
+    if (buffer == 0 || size == 0 || fd != 0){
       return -1;
-
+    }
     uint8_t i = 0;
     int c;
 
-    while( i<size  &&  ((c = getChar()) != -1)  ){
+    while(i<size && ((c = getChar()) != -1)){
       buffer[i++] = c;
     }
     return i;
 }
 
 void sys_date(char * buffer){
-  get_date(buffer);
+    get_date(buffer);
 }
 
 void sys_time(char * buffer){
-  get_time(buffer);
+    get_time(buffer);
 }
-
-
-
 
 int sys_hasTicked(){
     static unsigned long last_tick = 0;
     unsigned long current_tick = ticks_elapsed();
-    if(last_tick == current_tick)
+    if(last_tick == current_tick){
         return 0;
+    }
     last_tick = current_tick;
     return 1;
 }
 
 void sys_clearWindow(){
-   clearAll();
+    clearAll();
 }
 
 void sys_restartCursor(){
-  restartCursor();
+    restartCursor();
 }
 
 void sys_setScreen(uint8_t id){
-  setScreen(id);
+    setScreen(id);
 }
 
 void sys_divide(){
-  initDividedWindow();
+    initDividedWindow();
 }
 
 void sys_uniqueWindow(){
-  initUniqueWindow();
+    initUniqueWindow();
 }
 
 int sys_printmem(uint64_t * mem_address){
+    if((uint64_t) mem_address > (0x20000000 - 32)){
+      return -1;
+    }
 
-
-  if( (uint64_t) mem_address  > (0x20000000 - 32) ){
-    return -1;
-  }
-
-  uint8_t * aux = (uint8_t *) mem_address;
-
-  for(int i=0; i<32 ; ++i){
-      printHex((uint64_t)aux);
-      print(" = ");
-      printHex(*aux);
-      newLine();
-      ++aux;
-  }
-
-  return 0;
+    uint8_t * aux = (uint8_t *) mem_address;
+    for(int i=0; i < 32 ; ++i){
+        printHex((uint64_t) aux);
+        print(" = ");
+        printHex(*aux);
+        newLine();
+        ++aux;
+    }
+    return 0;
 }
 
-// Note: r10 & r8 are used for screend_id and syscall_id respectively.
+// Note: r10 & r8 are used for screen id and syscall id respectively.
 int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8) {
   switch(r8){
       case 0:
@@ -109,7 +101,7 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
 
       case 3:
-         return sys_hasTicked();
+        return sys_hasTicked();
 
       case 4:
         sys_clearWindow();
@@ -129,7 +121,6 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
 
       case 8:
         return sys_printmem((uint64_t *) rdi);  
-        return 0;
 
       case 9:
         sys_setScreen(rdi);
@@ -138,7 +129,6 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
       case 10:
         sys_date((char *)rdi);   
         return 0;
-
   }
   return -1;
 }

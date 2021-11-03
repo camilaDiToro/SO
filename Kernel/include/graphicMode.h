@@ -3,18 +3,15 @@
 
 #include <stdint.h>
 
-
 typedef struct window{
-    uint8_t current_i; 		// current pixel
-	uint8_t current_j; 		// current pixel
-    uint8_t start_i;  		// window start pixel
-	uint8_t start_j; 		// window start pixel
-    uint16_t width, height; // window dimensions
-} window;
-
+    uint8_t current_i; 				// current pixel
+	uint8_t current_j; 				// current pixel
+    uint8_t start_i;  				// window start pixel
+	uint8_t start_j; 				// window start pixel
+    uint16_t width, height; 		// window dimensions
+} window;	
 
 // Retrieved from https://wiki.osdev.org/VESA_Video_Modes
-
 struct vbe_mode_info_structure {
 	uint16_t attributes;			// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
 	uint8_t window_a;				// deprecated
@@ -59,22 +56,24 @@ typedef struct color_t{
     uint8_t B;
 }color_t;
 
-
-
+static color_t RED = {0xFF,0x00,0x00};
+static color_t WHITE = {0xFF,0xFF,0xFF};
+static color_t BLACK = {0x00,0x00,0x00};
 
 void printChar(uint8_t c);
 void printCharFormat(uint8_t c, color_t * charColor, color_t * bgColor);
-void newLine();
-void initUniqueWindow();
-void initDividedWindow();
-void clearAll();
 void print(const char * string);
 void printDec(uint64_t value);
 void printHex(uint64_t value);
 void printBin(uint64_t value);
 void printBase(uint64_t value, uint32_t base);
 void printRegisterFormat(uint64_t reg);
+
+void initUniqueWindow();
+void initDividedWindow();
 void restartCursor();
 void setScreen(uint8_t screen_id);
+void clearAll();
+void newLine();
 
 #endif /* _GRAPHICMODE_H_ */

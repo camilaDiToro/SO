@@ -3,4 +3,4 @@
 
 void exceptionDispatcher(int exception);
 
-#endif
+#endif /* __EXCEPTIONS_H__ */

@@ -1,4 +1,3 @@
-
 GLOBAL _cli
 GLOBAL _sti
 GLOBAL picMasterMask
@@ -8,8 +7,8 @@ GLOBAL _hlt
 
 GLOBAL _irq00Handler
 GLOBAL _irq01Handler
-GLOBAL _irq02Handler
-GLOBAL _irq03Handler
+GLOBAL _irq02Handler	
+GLOBAL _irq03Handler	
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 
@@ -21,7 +20,6 @@ EXTERN irqDispatcher
 EXTERN sysCallDispatcher
 EXTERN print_registers
 EXTERN exceptionDispatcher
-
 SECTION .text
 
 %macro pushState 0
@@ -72,6 +70,7 @@ SECTION .text
 
 	popState
 	iretq
+
 %endmacro
 
 %macro exceptionHandler 1
@@ -84,31 +83,25 @@ SECTION .text
 
 	popState
 	iretq
+
 %endmacro
-
-
 _hlt:
 	sti
 	hlt
 	ret
-
 _cli:
 	cli
 	ret
-
-
 _sti:
 	sti
 	ret
-
 picMasterMask:
-		push rbp
+	push rbp
     mov rbp, rsp
     mov ax, di
     out	21h,al
     pop rbp
     retn
-
 picSlaveMask:
 	push    rbp
     mov     rbp, rsp
@@ -117,8 +110,7 @@ picSlaveMask:
     pop     rbp
     retn
 
-
-;8254 Timer (Timer Tick)
+; 8254 Timer (Timer Tick)
 _irq00Handler:
 	irqHandlerMaster 0
 
@@ -161,8 +153,6 @@ _sysCallHandler:
 	push rax
 	popState
 	iretq
-
-
 haltcpu:
 	cli
 	hlt

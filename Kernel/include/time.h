@@ -4,6 +4,5 @@
 void timer_handler();
 int ticks_elapsed();
 int seconds_elapsed();
-void print_5secs();
 
-#endif
+#endif  /* _TIME_H_ */

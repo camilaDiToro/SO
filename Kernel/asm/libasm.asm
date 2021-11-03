@@ -1,7 +1,6 @@
 GLOBAL cpuVendor
 GLOBAL sys_RTClock
 GLOBAL sys_readKey
-
 section .text
 
 sys_RTClock:
@@ -15,7 +14,7 @@ sys_RTClock:
 	mov rsp, rbp
 	pop rbp
 	ret
-
+	
 sys_readKey:
 	push rbp
 	mov rbp, rsp

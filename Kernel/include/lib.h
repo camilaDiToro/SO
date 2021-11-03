@@ -10,4 +10,4 @@ unsigned int sys_readKey();
 
 char *cpuVendor(char *result);
 
-#endif
+#endif  /* LIB_H */

@@ -1,20 +1,23 @@
 #include <keyboard.h>
-#include <naiveConsole.h>
 
 #define LEFT_SHIFT  0x2A
 #define RIGHT_SHIFT 0x36
-
 #define BUFFER_LENGHT 256
+
+extern unsigned int sys_readKey();
+static unsigned int getScanCode();
 
 static uint8_t keyMapRow = 0;
 static uint8_t buffer[BUFFER_LENGHT];
-extern unsigned int sys_readKey();
+
 
 uint16_t buffer_start = 0;
 uint16_t buffer_end = 0;
 uint16_t buffer_current_size = 0;
 
 // Us International QWERTY
+// https://stanislavs.org/helppc/make_codes.html
+// https://stanislavs.org/helppc/scan_codes.html
 
 static uint8_t scancodeLToAscii[] = {
 
@@ -42,48 +45,37 @@ static uint8_t scancodeUToAscii[] = {
 
 static uint8_t * keyMap[] = {scancodeLToAscii, scancodeUToAscii};
 
-
-
-unsigned int getScanCode(){
+// When a key is pressed the keyboard sends the corresponding keyboard scancode to the keyboard controller.
+static unsigned int getScanCode(){
   return sys_readKey();
 }
 
-// Funcion provisoria para ver si funca la conversion
-unsigned char ctoi(unsigned char mChar){
-    return keyMap[0][mChar];
-}
-
-// El buffer va a ser una lista circular implementada con arrays como vimos en eda
-// Ahora es una pedorrada pero por eso hay un start y un end
-// Hay que ver que pasa cuando se llena el buffer
-void addBuffer(uint8_t c){
+static void addBuffer(uint8_t c){
 
   buffer[buffer_end++] = c;
   buffer_current_size++;
 
-  if(buffer_end == BUFFER_LENGHT)
+  if(buffer_end == BUFFER_LENGHT){
     buffer_end = 0;
+  }
   return;
 }
 
-// Implementacion en proceso para detectar combinacion de shift y tecla.
-// Por ahora leemos 20 cosas, en un futuro vamos a ir leyendo y llenando el buffer
-// Usando una interrupcion
-void keyboard_handler()
-{
+void keyboard_handler(){
+
 	unsigned char code = sys_readKey();
 	if(code < 0x80){    // Key pressed
     if(code == LEFT_SHIFT || code == RIGHT_SHIFT){
-      keyMapRow|=0x01;
+      keyMapRow |= 0x01;
     }
     else if(keyMap[keyMapRow][code] != 0){
       addBuffer(keyMap[keyMapRow][code]);
     }
 
-	} else {               // Key released
-    code-=0x80;
+	} else {            // Key released
+    code -= 0x80;
     if(code == LEFT_SHIFT || code == RIGHT_SHIFT){
-      keyMapRow&=0xFE;
+      keyMapRow &= 0xFE;
     }
 	}
   return;
