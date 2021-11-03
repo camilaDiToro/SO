@@ -1,19 +1,18 @@
 #include <myhman.h>
 #include <userstdlib.h>
 
-#define WORDS_QTY 4
+#define WORDS_QTY 6
 #define MAX_WORD_LENGHT 10
 #define TO_MAY_MASK 0xDF
 
 #define TO_MAY(a) ( (a)&TO_MAY_MASK )
 
-static uint8_t words[WORDS_QTY][MAX_WORD_LENGHT] = { {'P', 'E', 'Z', 0},
+static uint8_t words[WORDS_QTY][MAX_WORD_LENGHT + 1] = { {'P', 'E', 'Z', 0},
                                                      {'A', 'M', 'I', 'G', 'O', 0},
                                                      {'A', 'G', 'U', 'A', 0},
                                                      {'K', 'I', 'W', 'I', 0},
                                                      {'I', 'N', 'T', 'E', 'L', 0},
-                                                     {'P', 'R', 'O', 'C', 'E', 'S', 'A', 'D', 'O', 'R', 0},
-                                                     {'C', 'A', 'L', 'I', 'F', 'R', 'A', 'G', 'I', 'L', 'I', 'S', 'T', 'I', 'C', 'O', 0}};
+                                                     {'P', 'R', 'O', 'C', 'E', 'S', 'A', 'D', 'O', 'R', 0}};
 
 static uint8_t current_word[MAX_WORD_LENGHT];
 static uint8_t word_idx = 0;

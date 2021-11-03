@@ -1,14 +1,14 @@
 #include <_play.h>
 
- #define SUDOKU_SCREEN 0
+#define SUDOKU_SCREEN 0
 #define CHRONO_SCREEN 1
 #define HANGMAN_SCREEN 2
 #define TIME_SCREEN 3
 
 static void handle_chrono(int tick, int c);
-static void handle_time(int tick, int c);
-static void handle_sudoku(int tick, int c);
-static void handle_hangman(int tick, int c);
+static void handle_time(int tick);
+static void handle_sudoku(int c);
+static void handle_hangman(int c);
 
 void play(void){
 
@@ -29,9 +29,9 @@ void play(void){
     c = read_char();
     t = tick();
     handle_chrono(t, c);
-    handle_time(t, c);
-    handle_sudoku(t,c);
-    handle_hangman(t,c);
+    handle_time(t);
+    handle_sudoku(c);
+    handle_hangman(c);
     if(c == ' '){
       quit = 1;
     }
@@ -66,7 +66,7 @@ void handle_chrono(int tick, int c){
   my_printf(chrono);
 }
 
-void handle_time(int tick, int c){
+void handle_time(int tick){
   
   static uint8_t tick_counter = 0;
   
@@ -87,7 +87,7 @@ void handle_time(int tick, int c){
   }
 }
 
-void handle_sudoku(int tick, int c){
+void handle_sudoku(int c){
   setScreen(SUDOKU_SCREEN);
   restartCursor();
   // Move the user if an arrow has been pressed
@@ -103,11 +103,9 @@ void handle_sudoku(int tick, int c){
 }
 
 
-void handle_hangman(int tick, int c){
-  if(tick){
+void handle_hangman(int c){
     if((c>='a' && c<='z') || (c>='A' && c<='Z')){
       setScreen(HANGMAN_SCREEN);
       check_letter(c);
     }
-  }
 }
