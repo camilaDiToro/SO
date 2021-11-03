@@ -35,7 +35,10 @@ static int checkCompleteSudoku(void);
 static int checkRowCol(int row, int col);
 //Checks if the subsquare started at [row,col] is vaild
 static int checkSquare(int row, int col);
-static int isUserPosition(int i, int j);
+
+static int isUserPosition(int i, int j){
+  return userPosition[0] == i && userPosition[1] == j;
+}
 
 
 void printSudoku(){
