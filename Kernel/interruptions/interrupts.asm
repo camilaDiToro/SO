@@ -11,7 +11,6 @@ GLOBAL _irq02Handler
 GLOBAL _irq03Handler	
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
-
 GLOBAL _exception0Handler
 GLOBAL _exception6Handler
 GLOBAL _sysCallHandler
@@ -59,6 +58,7 @@ SECTION .text
 %endmacro
 
 %macro irqHandlerMaster 1
+	push rsp
 	pushState
 
 	mov rdi, %1 ; pasaje de parametro
@@ -69,8 +69,8 @@ SECTION .text
 	out 20h, al
 
 	popState
+	pop rsp
 	iretq
-
 %endmacro
 
 %macro exceptionHandler 1
@@ -114,33 +114,33 @@ picSlaveMask:
 _irq00Handler:
 	irqHandlerMaster 0
 
-;Keyboard
+; Keyboard
 _irq01Handler:
 	irqHandlerMaster 1
 
-;Cascade pic never called
+; Cascade pic never called
 _irq02Handler:
 	irqHandlerMaster 2
 
-;Serial Port 2 and 4
+; Serial Port 2 and 4
 _irq03Handler:
 	irqHandlerMaster 3
 
-;Serial Port 1 and 3
+; Serial Port 1 and 3
 _irq04Handler:
 	irqHandlerMaster 4
 
-;USBsysCallDispatcher
+; USBsysCallDispatcher
 _irq05Handler:
 	irqHandlerMaster 5
 
 
-;Zero Division Exception
+; Zero Division Exception
 _exception0Handler:
 	exceptionHandler 0
 
 
-;Invalid Operand Exception
+; Invalid Operand Exception
 _exception6Handler:
 	exceptionHandler 6
 
@@ -153,6 +153,7 @@ _sysCallHandler:
 	push rax
 	popState
 	iretq
+
 haltcpu:
 	cli
 	hlt

@@ -3,9 +3,12 @@
 #define LEFT_SHIFT  0x2A
 #define RIGHT_SHIFT 0x36
 #define BUFFER_LENGHT 256
+#define CAPTURE_REGISTERS '-'
 
+// libasm.asm
+extern void save_registers();
 extern unsigned int sys_readKey();
-static unsigned int getScanCode();
+
 
 static uint8_t keyMapRow = 0;
 static uint8_t buffer[BUFFER_LENGHT];
@@ -45,11 +48,6 @@ static uint8_t scancodeUToAscii[] = {
 
 static uint8_t * keyMap[] = {scancodeLToAscii, scancodeUToAscii};
 
-// When a key is pressed the keyboard sends the corresponding keyboard scancode to the keyboard controller.
-static unsigned int getScanCode(){
-  return sys_readKey();
-}
-
 static void addBuffer(uint8_t c){
 
   buffer[buffer_end++] = c;
@@ -67,6 +65,11 @@ void keyboard_handler(){
 	if(code < 0x80){    // Key pressed
     if(code == LEFT_SHIFT || code == RIGHT_SHIFT){
       keyMapRow |= 0x01;
+    }
+     // Inforeg - if it's the special key that save registers
+    else if(keyMap[keyMapRow][code] == CAPTURE_REGISTERS ){   // hasta aca llega con 12 direcciones encima -> 12 * 8
+        save_registers();
+        return;
     }
     else if(keyMap[keyMapRow][code] != 0){
       addBuffer(keyMap[keyMapRow][code]);

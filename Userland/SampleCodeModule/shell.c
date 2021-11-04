@@ -2,7 +2,6 @@
 #include <userstdlib.h>
 #include <_play.h>
 
-#define COMMANDS_QTY 6
 
 typedef void (*void_function)(void);
 
@@ -12,7 +11,6 @@ typedef struct{
 }command;
 
 // usertdlib.asm
-extern void inforeg(void);
 extern void divideByZero(void);
 extern void invalidOp(void);
 
@@ -21,8 +19,8 @@ static void help(void);
 static void time(void);
 static void print_mem(void);
 
-static command valid_commands[COMMANDS_QTY] = {{&help,"help"}, {&time,"time"}, {&play, "play"},
-         {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}};
+static command valid_commands[] = {{&help,"help"}, {&time,"time"}, {&play, "play"},
+         {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}, {&infoReg, "inforeg"}, {0,0}};
 
 void welcome_message(void){
   my_printf("Welcome to Userland \n");
@@ -63,12 +61,7 @@ void wait_command(void){
 
 int execute_command(char * command){
 
-  if(strcmp(command, "inforeg") == 0){
-    inforeg();
-    return 1;
-  }
-
-  for(int i=0 ; i<COMMANDS_QTY ; ++i){
+  for(int i=0 ; valid_commands[i].name  ; ++i){
     if(strcmp(command,valid_commands[i].name) == 0){
       valid_commands[i].action();
       return 1;

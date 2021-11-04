@@ -16,7 +16,7 @@ static const struct vbe_mode_info_structure * graphicModeInfo = (struct vbe_mode
 static void getNextPosition();
 static void checkSpace();
 static void scrollUp();
-static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base);
+
 
 
 static uint8_t * getPixelAddress(int i, int j) {
@@ -199,7 +199,7 @@ void printBase(uint64_t value, uint32_t base){
     print(buffer);
 }
 
-static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base){
+uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base){
     char *p = buffer;
     char *p1;
     char *p2;

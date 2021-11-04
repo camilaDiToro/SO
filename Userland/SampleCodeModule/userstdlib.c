@@ -16,7 +16,11 @@ extern void sys_uniqueWindow();
 extern void sys_setScreen(uint8_t id);
 extern int  sys_printmem(uint64_t * mem_address);
 extern void sys_date(char * buffer);
+extern void sys_infoReg();
 
+void infoReg(){
+  sys_infoReg();
+}
 
 void setScreen(uint8_t id){
   sys_setScreen(id);

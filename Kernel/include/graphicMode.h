@@ -68,6 +68,7 @@ void printHex(uint64_t value);
 void printBin(uint64_t value);
 void printBase(uint64_t value, uint32_t base);
 void printRegisterFormat(uint64_t reg);
+uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base);
 
 void initUniqueWindow();
 void initDividedWindow();

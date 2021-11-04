@@ -1,5 +1,5 @@
-target remote 172.30.217.14:1234
-# 172.30.217.14 -> Ivi
+target remote 172.22.78.173:1234
+# 172.24.229.39 -> Ivi
 add-symbol-file Kernel/kernel.elf 0x100000
 add-symbol-file Userland/0000-sampleCodeModule.elf 0x400000
 

@@ -20,6 +20,8 @@ void sys_divide();
 void sys_uniqueWindow();
 int sys_printmem(uint64_t * mem_address);
 void sys_setScreen(uint8_t id);
+void store_registers(uint64_t * start);
+void sys_infoReg();
 
 
 #endif /* SYSTEMCALLS_H_ */

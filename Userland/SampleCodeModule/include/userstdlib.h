@@ -36,5 +36,6 @@ void restartCursor();
 void divideWindow();
 void uniqueWindow();
 void setScreen(uint8_t id);
+void infoReg();
 
 #endif /* _USERSTDLIB_H_*/

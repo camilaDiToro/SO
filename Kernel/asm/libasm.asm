@@ -1,6 +1,11 @@
 GLOBAL cpuVendor
 GLOBAL sys_RTClock
 GLOBAL sys_readKey
+GLOBAL save_registers
+
+; systemCalls.c
+EXTERN store_registers
+
 section .text
 
 sys_RTClock:
@@ -52,5 +57,18 @@ cpuVendor:
 	pop rbx
 
 	mov rsp, rbp
+	pop rbp
+	ret
+
+; Save registers for inforeg
+save_registers:
+	push rbp
+	mov rbp, rsp
+
+	mov rdi, rsp
+	add rdi, 112		; 14*8 = 112
+	call store_registers
+
+    mov rsp, rbp
 	pop rbp
 	ret
