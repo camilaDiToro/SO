@@ -1,5 +1,5 @@
 target remote 172.22.78.173:1234
-# 172.24.229.39 -> Ivi
+# 172.22.78.173 -> Ivan
 add-symbol-file Kernel/kernel.elf 0x100000
 add-symbol-file Userland/0000-sampleCodeModule.elf 0x400000
 
