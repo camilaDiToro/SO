@@ -23,7 +23,7 @@ static command valid_commands[] = {{&help,"help"}, {&time,"time"}, {&play, "play
          {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}, {&infoReg, "inforeg"}, {0,0}};
 
 void welcome_message(void){
-  my_printf("Welcome to Userland \n");
+  my_printf("Bienvenido a Userland \n");
   help();
 }
 
@@ -142,7 +142,8 @@ void help(void){
 	  my_printf("   'time'       - Despliega el dia y hora del sistema.\n");
 
     //inforeg
-    my_printf("   'inforeg'    - Imprime el valor de todos los registros.\n");
+    my_printf("   'inforeg'    - Imprime el valor de todos los registros. \n");
+    my_printf("                  Se debe presionar '-' para guardar el estado de los reistros. \n");
 
     //printmem
     my_printf("   'printmem'   - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
@@ -155,10 +156,10 @@ void help(void){
     my_printf("          4. Se podra jugar al ahorcado.\n");
 
     //Division by 0
-    my_printf("   'dividezero'  - Genera una excepcion causada por dividir por 0.\n");
+    my_printf("   'dividezero' - Genera una excepcion causada por dividir por 0.\n");
 
     //Invalid operation
-    my_printf("   'invalidop'   - Genera una excepcion causada por una operacion invalida.\n");
+    my_printf("   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
 }
 
 void time(void){

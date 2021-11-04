@@ -89,7 +89,7 @@ int sys_printmem(uint64_t * mem_address){
 
 static char store[900];
 void store_registers(uint64_t * start){
-  
+
   char * reg_text[] = {"RAX: 0x", "R15: 0x", "R14: 0x", "R13: 0x", "R12: 0x", "R11: 0x", "R10: 0x", "R9:  0x",
                        "R8:  0x", "RSI: 0x", "RDI: 0x", "RBP: 0x", "RDX: 0x", "RCX: 0x", "RBX: 0x", "RSP: 0x", 0};
   uint32_t j = 0; //store counter
@@ -114,8 +114,6 @@ void store_registers(uint64_t * start){
 
     if(start[i]){
       j += uintToBase(start[i], store+j, 16);
-    }else{
-      store[j++] = '0';
     }
     store[j++] = '\n';
   }
@@ -123,6 +121,9 @@ void store_registers(uint64_t * start){
 }
 
 void sys_infoReg(){
+  if(!store[0]){
+    print("Debes presionar '-' para guardar el estado de los registros en un momento especifico \n");
+  }
   print(store);
 }
 
@@ -130,13 +131,13 @@ void sys_infoReg(){
 int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8) {
   switch(r8){
       case 0:
-        return sys_read(rdi, (char *)rsi, rdx);   
+        return sys_read(rdi, (char *)rsi, rdx);
 
       case 1:
-        return sys_write(rdi, (char *)rsi, rdx); 
+        return sys_write(rdi, (char *)rsi, rdx);
 
       case 2:
-        get_time((char *)rdi);   
+        get_time((char *)rdi);
         return 0;
 
       case 3:
@@ -159,14 +160,14 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
 
       case 8:
-        return sys_printmem((uint64_t *) rdi);  
+        return sys_printmem((uint64_t *) rdi);
 
       case 9:
         sys_setScreen(rdi);
         return 0;
 
       case 10:
-        sys_date((char *)rdi);   
+        sys_date((char *)rdi);
         return 0;
 
       case 11:
