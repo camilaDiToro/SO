@@ -6,7 +6,7 @@
 #define DAY 0x07
 #define MONTH 0x08
 #define YEAR 0x09
-#define TIMEZONE -3
+
 
 static unsigned int bcdToDec(unsigned char time);
 extern unsigned int sys_RTClock(unsigned char mode);
@@ -20,21 +20,11 @@ unsigned int get_minutes(){
 }
 
 unsigned int get_hours(){
-    return (bcdToDec(sys_RTClock(HOURS)) + 24 + TIMEZONE) % 24;
+    return bcdToDec(sys_RTClock(HOURS));
 }
 
 unsigned int get_day(){
-
-   unsigned int current_hour = bcdToDec(sys_RTClock(HOURS));
-
-   if(current_hour + TIMEZONE < 0){
-     return bcdToDec(sys_RTClock(DAY)) + 1;
-   }else if (current_hour + TIMEZONE > 23 ){
-     return bcdToDec(sys_RTClock(DAY)) - 1;
-   }else{
      return bcdToDec(sys_RTClock(DAY));
-   }
-
 }
 
 unsigned int get_month(){
