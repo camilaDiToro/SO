@@ -67,7 +67,7 @@ void keyboard_handler(){
       keyMapRow |= 0x01;
     }
      // Inforeg - if it's the special key that save registers
-    else if(keyMap[keyMapRow][code] == CAPTURE_REGISTERS ){   // hasta aca llega con 12 direcciones encima -> 12 * 8
+    else if(keyMap[keyMapRow][code] == CAPTURE_REGISTERS ){   
         save_registers();
         return;
     }
