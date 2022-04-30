@@ -1,14 +1,12 @@
 #include <shell.h>
 #include <userstdlib.h>
-#include <_play.h>
-
 
 typedef void (*void_function)(void);
 
 typedef struct{
   void_function action;
   char * name;
-}command;
+} TCommand;
 
 // usertdlib.asm
 extern void divideByZero(void);
@@ -19,8 +17,7 @@ static void help(void);
 static void time(void);
 static void print_mem(void);
 
-static command valid_commands[] = {{&help,"help"}, {&time,"time"}, {&play, "play"},
-         {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}, {&infoReg, "inforeg"}, {0,0}};
+static TCommand valid_commands[] = {{&help,"help"}, {&time,"time"}, {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}, {&infoReg, "inforeg"}, {0,0}};
 
 void welcome_message(void){
   my_printf("Bienvenido a Userland \n");
@@ -147,13 +144,6 @@ void help(void){
 
     //printmem
     my_printf("   'printmem'   - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
-
-    //play
-    my_printf("   'play'       - Divide la pantalla en 4 ventanas, donde:\n");
-    my_printf("          1. Se podra visializar la hora actualizandose permanentemente.\n");
-    my_printf("          2. Se dispondra de un cronometro capaz de ser operado desde el teclado.\n");
-    my_printf("          3. Se podra jugar al sudoku.\n");
-    my_printf("          4. Se podra jugar al ahorcado.\n");
 
     //Division by 0
     my_printf("   'dividezero' - Genera una excepcion causada por dividir por 0.\n");

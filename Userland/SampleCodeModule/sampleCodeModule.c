@@ -1,11 +1,5 @@
-/* sampleCodeModule.c */
-
-// #include <naiveConsole.h>
 #include <userstdlib.h>
 #include <shell.h>
-
-static int var1 = 0;
-static int var2 = 0;
 
 int main() {
 
@@ -15,9 +9,4 @@ int main() {
 		wait_command();
 	}
 
-
-	if (var1 == 0 && var2 == 0){
-		return 0xDEADC0DE;
-	}
-	return 0xDEADBEEF;
 }
