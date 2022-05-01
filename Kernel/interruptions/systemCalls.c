@@ -5,6 +5,7 @@
 #include <keyboard.h>
 #include <time.h>
 #include <RTClock.h>
+#include <memoryManager.h>
 
 
 int sys_write(uint64_t fd, char * buffer, uint64_t size) {
@@ -127,6 +128,16 @@ void sys_infoReg(){
   print(store);
 }
 
+void * sys_mm_malloc(uint64_t size){
+  return mm_malloc(size);
+}
+
+int sys_mm_free(void* ptr){
+  return mm_free(ptr);
+}
+
+
+
 // Note: r10 & r8 are used for screen id and syscall id respectively.
 int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8) {
   switch(r8){
@@ -173,6 +184,12 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
       case 11:
         sys_infoReg();
         return 0;
-  }
+      
+      case 12:
+        return sys_mm_malloc(rdi);
+
+      case 13:
+        return sys_mm_free((void*) rdi);
+      }
   return -1;
 }

@@ -29,6 +29,8 @@ int tick();
 // stdlib.h
 int printMem(uint64_t * value);
 int atoi(char * str);
+int mm_free(void* ptr);
+void* mm_malloc(uint64_t size);
 
 // screen.h
 void clearScreen();

@@ -17,6 +17,8 @@ extern void sys_setScreen(uint8_t id);
 extern int  sys_printmem(uint64_t * mem_address);
 extern void sys_date(char * buffer);
 extern void sys_infoReg();
+extern void * sys_mm_malloc(uint64_t size);
+extern int  sys_mm_free(void* ptr);
 
 void infoReg(){
   sys_infoReg();
@@ -124,6 +126,14 @@ char * my_strncpy( char * destination, char * source, int size){
 	}
 	*destination = '\0';
 	return ret;
+}
+
+void* mm_malloc(uint64_t size){
+  return sys_mm_malloc(size);
+}
+
+int mm_free(void* ptr){
+  return sys_mm_free(ptr);
 }
 
 // https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c

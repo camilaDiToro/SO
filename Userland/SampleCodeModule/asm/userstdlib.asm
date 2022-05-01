@@ -14,6 +14,8 @@ EXTERN my_printf
 GLOBAL sys_printmem
 GLOBAL divideByZero
 GLOBAL sys_infoReg
+GLOBAL sys_mm_malloc
+GLOBAL sys_mm_free
 
 %macro pushState 0
 	push rbx
@@ -50,6 +52,7 @@ GLOBAL sys_infoReg
 	pop rcx
 	pop rbx
 %endmacro
+
 sys_read:
     push rbp
     mov rbp, rsp
@@ -144,6 +147,24 @@ sys_infoReg:
     push rbp
     mov rbp, rsp
     mov r8, 11
+    int 80h
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_mm_malloc:
+    push rbp
+    mov rbp, rsp
+    mov r8, 12
+    int 80h
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_mm_free:
+    push rbp
+    mov rbp, rsp
+    mov r8, 13
     int 80h
     mov rsp, rbp
     pop rbp

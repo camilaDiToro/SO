@@ -25,6 +25,7 @@ void * memcpy(void * destination, const void * source, uint64_t length)
 	* the compiler to be reasonably intelligent about optimizing
 	* the divides and modulos out. Fortunately, it is.
 	*/
+
 	uint64_t i;
 
 	if ((uint64_t)destination % sizeof(uint32_t) == 0 &&
