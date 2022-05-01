@@ -9,7 +9,7 @@ int main() {
 		int * p;
 		++i;
 		p = malloc(i * sizeof(int));
-		my_printf("dir: %x - aloc: %d ", p, i*sizeof(int));
+		my_printf("dir: %d - aloc: %d ", p, i*sizeof(int));
 		wait_command();
 		free(p);
 	}

@@ -6,6 +6,11 @@
 #include <stddef.h>
 
 /**
+ * @brief Word aligns the given integer value up to the nearest multiple of 8.
+ */
+#define WORD_ALIGN_UP(value) (((size_t)value + 7) & (~(size_t)0x07))
+
+/**
 * @brief fills the first n bytes of the memory area pointed to by s with the constant byte c
 * 
 * @param s memory area
@@ -31,7 +36,7 @@ void * memcpy(void * dest, const void * src, size_t n);
 * @brief reads 8042 status register
 * @return unsigned int read from output register 60h 
 */
-unsigned int sys_readKey();
+unsigned int sys_readKey(); // TODO: YEET
 
 /**
 * @brief Returns he output from executing the cpuid instruction (a 12-character representation of the processor’s manufacturer)
