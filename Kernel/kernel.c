@@ -1,11 +1,12 @@
 #include <stdint.h>
+#include <stddef.h>
 #include <string.h>
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include <graphicMode.h>
 #include <idtLoader.h>
-#include "memoryManager.h"
+#include <memoryManager.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -56,7 +57,7 @@ void * initializeKernelBinary()
 int main()
 {
 	load_idt();
-	mm_init(startHeapAddres, (uint64_t)(endHeapAddres - startHeapAddres));
+	mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
 	clearAll();
 	initUniqueWindow();
 

@@ -1,20 +1,20 @@
 #include "memoryManager.h"
 
-
 static void* next;
-static uint64_t remainingSize;
+static size_t remainingSize;
 
-void mm_init(void* memoryStart, uint64_t memorySize) {
-    next = memoryStart;
-    remainingSize = memorySize;
+void mm_init(void* memoryStart, size_t memorySize) {
+    // word-allig memoryStart by rounding up to a multiple of 8.
+    next = (void*)(((size_t)memoryStart + 7) & (~(size_t)0x07));
+    remainingSize = memorySize - (next - memoryStart);
 }
 
-void * mm_malloc(uint64_t size) {
+void* mm_malloc(size_t size) {
     if (remainingSize < size)
         return NULL;
     
-    // Word allignment (64 bits)
-    next = (void*)(((uint64_t)next + 7) & (~(uint64_t)0x07));
+    // word-allig size by rounding up to a multiple of 8.
+    size = (void*)(((size_t)size + 7) & (~(size_t)0x07));
 
     void* p = next;
     next += size;

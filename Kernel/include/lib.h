@@ -14,7 +14,7 @@
 *
 * @return a pointer to the memory area s
 */
-void * memset(void * s, int32_t c, uint64_t n);
+void * memset(void * s, int32_t c, size_t n);
 
 /**
 * @brief copies n bytes from memory area source to memory area destination. The memory areas must not overlap
@@ -25,7 +25,7 @@ void * memset(void * s, int32_t c, uint64_t n);
 *
 * @return a pointer to dest
 */
-void * memcpy(void * dest, const void * src, uint64_t n);
+void * memcpy(void * dest, const void * src, size_t n);
 
 /**
 * @brief reads 8042 status register

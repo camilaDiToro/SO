@@ -8,10 +8,10 @@ int main() {
 		put_char(2, '>');
 		int * p;
 		++i;
-		p = mm_malloc(i * sizeof(int));
+		p = malloc(i * sizeof(int));
 		my_printf("dir: %x - aloc: %d ", p, i*sizeof(int));
 		wait_command();
-		mm_free(p);
+		free(p);
 	}
 
 }

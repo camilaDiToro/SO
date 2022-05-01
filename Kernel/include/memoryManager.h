@@ -3,6 +3,7 @@
 
 /* Standard library */
 #include <stdint.h>
+#include <stddef.h>
 
 /* Local headers */
 #include "lib.h"
@@ -13,7 +14,7 @@
  * @param memoryStart the starting address of the segment of memory to be used by the memory manager 
  * @param memorySize the amount of bytes available for the memory manager from initial address
  */
-void mm_init(void* memoryStart, uint64_t memorySize);
+void mm_init(void* memoryStart, size_t memorySize);
 
 /**
  * @brief Request the memory manager to reserve a chunk of memory.
@@ -22,7 +23,7 @@ void mm_init(void* memoryStart, uint64_t memorySize);
  *
  * @return pointer to the reserved memory, or NULL if the operation failed
  */
-void* mm_malloc(uint64_t size);
+void* mm_malloc(size_t size);
 
 /**
  * @brief Instructs the memory manager that a chunk of memory previously reserved by mm_malloc() 

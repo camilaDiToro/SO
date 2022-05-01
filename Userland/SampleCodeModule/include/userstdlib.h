@@ -2,6 +2,7 @@
 #define _USERSTDLIB_H_
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define STDIN 0
 #define STDOUT 1
@@ -29,8 +30,8 @@ int tick();
 // stdlib.h
 int printMem(uint64_t * value);
 int atoi(char * str);
-int mm_free(void* ptr);
-void* mm_malloc(uint64_t size);
+int free(void* ptr);
+void* malloc(size_t size);
 
 // screen.h
 void clearScreen();
