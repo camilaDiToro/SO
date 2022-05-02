@@ -6,9 +6,15 @@
 #include <stddef.h>
 
 /**
+ * @brief Word aligns the given integer value down to the nearest multiple of 8.
+ */
+#define WORD_ALIGN_DOWN(value) ((value) & (~(size_t)0x07))
+
+/**
  * @brief Word aligns the given integer value up to the nearest multiple of 8.
  */
-#define WORD_ALIGN_UP(value) (((size_t)value + 7) & (~(size_t)0x07))
+#define WORD_ALIGN_UP(value) (WORD_ALIGN_DOWN((size_t)(value) + 7))
+
 
 /**
 * @brief fills the first n bytes of the memory area pointed to by s with the constant byte c

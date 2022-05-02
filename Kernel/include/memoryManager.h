@@ -35,4 +35,6 @@ void* mm_malloc(size_t size);
  */
 int mm_free(void* ptr);
 
+void mm_printDebug();
+
 #endif

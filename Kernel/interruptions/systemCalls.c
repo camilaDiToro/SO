@@ -128,11 +128,11 @@ void sys_infoReg(){
   print(store);
 }
 
-void * sys_mm_malloc(uint64_t size){
+void * sys_malloc(uint64_t size){
   return mm_malloc(size);
 }
 
-int sys_mm_free(void* ptr){
+int sys_free(void* ptr){
   return mm_free(ptr);
 }
 
@@ -186,10 +186,10 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
       
       case 12:
-        return sys_mm_malloc(rdi);
+        return sys_malloc(rdi);
 
       case 13:
-        return sys_mm_free((void*) rdi);
+        return sys_free((void*) rdi);
       }
   return -1;
 }
