@@ -1,6 +1,6 @@
-#ifndef __IDT_LOADER_H__
-#define __IDT_LOADER_H__
+#ifndef _IDT_LOADER_H_
+#define _IDT_LOADER_H_
 
 void load_idt();
 
-#endif /* __IDT_LOADER_H__ */
+#endif

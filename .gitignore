@@ -16,6 +16,7 @@
 
 #Visual Studio files
 .vs
+.vscode
 [Bb]in/
 [Oo]bj/
 

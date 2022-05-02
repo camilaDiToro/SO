@@ -4,7 +4,7 @@
 
 /**
  * Represents a structure prepended to all allocated memory chunks to track said memory chunks.
- * 
+ *
  * The size of this struct must be a multiple of 8 in order to preserve word-alignment.
  */
 typedef struct memoryBlockNode {
@@ -89,7 +89,7 @@ int mm_free(void* ptr) {
         return 0;
 
     TMemoryBlockNode* node = (TMemoryBlockNode*)(ptr - sizeof(TMemoryBlockNode));
-    
+
     size_t checksum;
     calcNodeChecksum(node, &checksum);
     if (checksum != node->checksum)
@@ -124,15 +124,22 @@ void mm_printDebug() {
         print(", ");
         printDec(node->leftoverSize);
         print(", ");
-        if (node->previous == NULL) print("NULL"); else printDec(node->previous->size);
+        if (node->previous == NULL)
+            print("NULL");
+        else
+            printDec(node->previous->size);
         print(", ");
-        if (node->next == NULL) print("NULL"); else printDec(node->next->size);
+        if (node->next == NULL)
+            print("NULL");
+        else
+            printDec(node->next->size);
         printChar(']');
 
         if (i > 16) {
             print("\n...\n");
             TMemoryBlockNode* prev;
-            for (; node != NULL; prev = node, node = node->next, i++);
+            for (; node != NULL; prev = node, node = node->next, i++)
+                ;
             i--;
             node = prev;
             printDec(i);
@@ -141,13 +148,18 @@ void mm_printDebug() {
             print(", ");
             printDec(node->leftoverSize);
             print(", ");
-            if (node->previous == NULL) print("NULL"); else printDec(node->previous->size);
+            if (node->previous == NULL)
+                print("NULL");
+            else
+                printDec(node->previous->size);
             print(", ");
-            if (node->next == NULL) print("NULL"); else printDec(node->next->size);
+            if (node->next == NULL)
+                print("NULL");
+            else
+                printDec(node->next->size);
             printChar(']');
 
             break;
         }
     }
 }
-

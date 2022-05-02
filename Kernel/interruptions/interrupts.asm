@@ -85,16 +85,20 @@ SECTION .text
 	iretq
 
 %endmacro
+
 _hlt:
 	sti
 	hlt
 	ret
+
 _cli:
 	cli
 	ret
+
 _sti:
 	sti
 	ret
+
 picMasterMask:
 	push rbp
     mov rbp, rsp
@@ -102,6 +106,7 @@ picMasterMask:
     out	21h,al
     pop rbp
     retn
+
 picSlaveMask:
 	push    rbp
     mov     rbp, rsp
@@ -138,7 +143,6 @@ _irq05Handler:
 ; Zero Division Exception
 _exception0Handler:
 	exceptionHandler 0
-
 
 ; Invalid Operand Exception
 _exception6Handler:

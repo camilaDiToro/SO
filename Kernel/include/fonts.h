@@ -2,15 +2,15 @@
 // License AGPLv3: GNU Affero General Public License version 3
 // Retrived from: https://github.com/pixelmatix/bdf2c & https://sourceforge.net/projects/bdf2c/
 
-#ifndef FONT_H
-#define FONT_H
+#ifndef _FONTS_H_
+#define _FONTS_H_
 
 #include <stdint.h>
 
 #define CHAR_WIDTH 8
 #define CHAR_HEIGHT 16
 
-uint8_t * getCharMapping(uint8_t c);
+uint8_t* getCharMapping(uint8_t c);
 
 #define ________ 0x00
 #define _______X 0x01
@@ -268,6 +268,5 @@ uint8_t * getCharMapping(uint8_t c);
 #define XXXXXX_X 0xFD
 #define XXXXXXX_ 0xFE
 #define XXXXXXXX 0xFF
-
 
 #endif

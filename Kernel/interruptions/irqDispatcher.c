@@ -19,8 +19,7 @@ void int_21() {
 
 void irqDispatcher(uint64_t irq) {
     void_function interruption = interruptions[irq];
-    if (interruption != 0){
+    if (interruption != 0) {
         interruption();
     }
-    return;
 }
