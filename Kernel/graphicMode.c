@@ -5,10 +5,11 @@
 window cw[4];
 
 
+const TColor RED = {0xFF,0x00,0x00};
+const TColor WHITE = {0xFF,0xFF,0xFF};
+const TColor BLACK = {0x00,0x00,0x00};
 
-uint8_t cw_id = 0;              // current screen
-color_t * font_color = &WHITE;  // default font_color
-color_t * bg_color = &BLACK;    // default bg_color
+static uint8_t cw_id = 0;              // current screen
 
 static char buffer[64] = { '0' };
 static const struct vbe_mode_info_structure * graphicModeInfo = (struct vbe_mode_info_structure *) 0x5C00;
@@ -17,13 +18,11 @@ static void getNextPosition();
 static void checkSpace();
 static void scrollUp();
 
-
-
-static uint8_t * getPixelAddress(int i, int j) {
-    return (uint8_t *) (graphicModeInfo->framebuffer+3*(graphicModeInfo->width*i+j));
+static void* getPixelAddress(int i, int j) {
+    return  (void*)((uint64_t)graphicModeInfo->framebuffer + 3*(graphicModeInfo->width*i+j));
 }
 
-static void drawPixel(int i, int j, color_t * color){
+static void drawPixel(int i, int j, const TColor* color){
     uint8_t * pixel = getPixelAddress(i,j);
     pixel[0] = color->B;
     pixel[1] = color->G;
@@ -74,7 +73,7 @@ void initDividedWindow(){
     }
 }
 
-void printCharFormat(uint8_t c, color_t * charColor, color_t * bgColor){
+void printCharFormat(char c, const TColor* charColor, const TColor* bgColor){
    
     // Backspace
     if(c == '\b'){
@@ -145,7 +144,7 @@ static void scrollUp(){
     cw[cw_id].current_i -= 1;
 }
 
-void printChar(uint8_t c){
+void printChar(char c){
     printCharFormat(c, &WHITE, &BLACK);
 }
 

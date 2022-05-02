@@ -50,25 +50,25 @@ struct vbe_mode_info_structure {
 	uint8_t reserved1[206];
 } __attribute__ ((packed));
 
-typedef struct color_t{
+typedef struct {
     uint8_t R;
     uint8_t G;
     uint8_t B;
-}color_t;
+} TColor;
 
-static color_t RED = {0xFF,0x00,0x00};
-static color_t WHITE = {0xFF,0xFF,0xFF};
-static color_t BLACK = {0x00,0x00,0x00};
+extern const TColor RED;
+extern const TColor WHITE;
+extern const TColor BLACK;
 
-void printChar(uint8_t c);
-void printCharFormat(uint8_t c, color_t * charColor, color_t * bgColor);
+void printChar(char c);
+void printCharFormat(char c, const TColor* charColor, const TColor* bgColor);
 void print(const char * string);
 void printDec(uint64_t value);
 void printHex(uint64_t value);
 void printBin(uint64_t value);
 void printBase(uint64_t value, uint32_t base);
 void printRegisterFormat(uint64_t reg);
-uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base);
+uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
 
 void initUniqueWindow();
 void initDividedWindow();

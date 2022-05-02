@@ -1,10 +1,11 @@
-#include <userstdlib.h>
 #include <shell.h>
+#include <userstdlib.h>
+#include <syscalls.h>
 
 int main() {
 	welcome_message();
 	while(1){
-		put_char(2, '>');
+		putChar(STDERR, '>');
 		wait_command();
 	}
 }

@@ -1,45 +1,42 @@
 #include <shell.h>
+#include <syscalls.h>
 #include <userstdlib.h>
+#include <string.h>
 
 typedef void (*void_function)(void);
 
-typedef struct{
-  void_function action;
-  char * name;
+typedef struct {
+    void_function action;
+    const char* name;
 } TCommand;
 
-// usertdlib.asm
-extern void divideByZero(void);
-extern void invalidOp(void);
-
 static int execute_command(char * command);
-static void help(void);
-static void time(void);
-static void print_mem(void);
+static void help();
+static void time();
+static void print_mem();
 
-static TCommand valid_commands[] = {{&help,"help"}, {&time,"time"}, {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}, {&infoReg, "inforeg"}, {0,0}};
+static TCommand valid_commands[] = {{&help,"help"}, {&time,"time"}, {&divideByZero, "dividezero"}, {&invalidOp, "invalidop"}, {&print_mem, "printmem"}, {&sys_inforeg, "inforeg"}, {0,0}};
 
-void welcome_message(void){
-  my_printf("Bienvenido a Userland \n");
-  help();
+void welcome_message() {
+    printf("Bienvenido a Userland\n");
+    help();
 }
 
-void wait_command(void){
-
+void wait_command() {
   char c = 0;
 	char command[128];
 	int i = 0;
 
   // Read the command until the user presses enter
-  while((c=get_char()) != '\n'){
+  while((c=getChar()) != '\n'){
     // Just delete what the user has written
     if(c == '\b' && i>0){
-      put_char(STDOUT, c);
+      putChar(STDOUT, c);
       command[--i] = 0;
 
     }
     else if(c != '\b'){
-      put_char(STDOUT, c);
+      putChar(STDOUT, c);
       command[i++] = c;
     }
 	}
@@ -72,11 +69,11 @@ void print_mem(void){
   signed int counter = 0;
   char c;
   uint64_t value = 0;
-  my_printf("Ingrese una direccion de memoria en formato hexadecimal: ");
+  printf("Ingrese una direccion de memoria en formato hexadecimal: ");
 
   uint8_t num[32];
 
-  while((c=get_char()) != '\n' && counter < 32){
+  while((c=getChar()) != '\n' && counter < 32){
     if(( c >= '0' && c <= '9')) {
        num[counter++] = (c - '0');
     }
@@ -88,7 +85,7 @@ void print_mem(void){
     }
     else if(c == '\b') {
       if(counter > 0){
-        put_char(STDOUT, c);
+        putChar(STDOUT, c);
         num[--counter] = 0;
       }
     }
@@ -96,15 +93,15 @@ void print_mem(void){
       num[counter++] = 16 + c;
     }
     if(c != '\b'){
-      put_char(STDOUT, c);
+      putChar(STDOUT, c);
     }
   }
 
   if(counter > 16){
     char * msg_error = "La direccion ingresada no puede tener mas de 64 bits (16 digitos hexa).";
-    put_char(STDOUT, '\n');
+    putChar(STDOUT, '\n');
     sprint(STDERR, msg_error);
-    put_char(STDOUT, '\n');
+    putChar(STDOUT, '\n');
     return;
   }
 
@@ -114,50 +111,50 @@ void print_mem(void){
     }
     else{
       char * msg_error2 = "Formato hexa invalido.";
-      put_char(STDOUT, '\n');
+      putChar(STDOUT, '\n');
       sprint(STDERR, msg_error2);
-      put_char(STDOUT, '\n');
+      putChar(STDOUT, '\n');
       return;
     }
   }
 
-  put_char(STDOUT, '\n');
+  putChar(STDOUT, '\n');
   char * msg_error3 = "Acceso a memoria invalido.";
-  if(printMem((uint64_t *)value) == -1){
+  if(sys_printmem((void*)value) == -1){
     sprint(STDERR, msg_error3);
-    put_char(STDOUT, '\n');
+    putChar(STDOUT, '\n');
   }
 }
 
 void help(void){
-    my_printf("Los comandos disponibles son:\n");
+    printf("Los comandos disponibles son:\n");
 
     //help
-    my_printf("   'help'       - Despliega un listado de todos los comandos disponibles.\n");
+    printf("   'help'       - Despliega un listado de todos los comandos disponibles.\n");
 
     //time
-	  my_printf("   'time'       - Despliega el dia y hora del sistema.\n");
+	  printf("   'time'       - Despliega el dia y hora del sistema.\n");
 
     //inforeg
-    my_printf("   'inforeg'    - Imprime el valor de todos los registros. \n");
-    my_printf("                  Se debe presionar '-' para guardar el estado de los reistros. \n");
+    printf("   'inforeg'    - Imprime el valor de todos los registros. \n");
+    printf("                  Se debe presionar '-' para guardar el estado de los reistros. \n");
 
     //printmem
-    my_printf("   'printmem'   - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
+    printf("   'printmem'   - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
 
     //Division by 0
-    my_printf("   'dividezero' - Genera una excepcion causada por dividir por 0.\n");
+    printf("   'dividezero' - Genera una excepcion causada por dividir por 0.\n");
 
     //Invalid operation
-    my_printf("   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
+    printf("   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
 }
 
 void time(void){
   char time[11];
-  get_time(time);
-  my_printf("\n Hora: %s \n", time);
+  sys_time(time);
+  printf("\n Hora: %s \n", time);
 
   char date[11];
-  get_date(date);
-  my_printf("\n Fecha: %s \n", date);
+  sys_date(date);
+  printf("\n Fecha: %s \n", date);
 }

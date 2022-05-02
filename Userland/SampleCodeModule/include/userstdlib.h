@@ -4,41 +4,22 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define STDIN 0
-#define STDOUT 1
-#define STDERR 2
+int getChar();
 
-// stdio.h
-int sprint(uint8_t fd, char * str);
-void my_printf(const char * frmt, ...);
-char *convert(unsigned int, int);
+int putChar(int fd, char c);
 
-// string.h
-char * my_strcpy(char * destination, char * source);
-char * my_strncpy(char * destination, char * source, int size);
-int _strlen(const char * str);
-int strcmp(char * s1, char * s2);
-int put_char(uint8_t fd, char c);
-int get_char();
-int read_char();
+int readChar();
 
-// time.h
-void get_time(char * buffer);
-void get_date(char * buffer);
-int tick();
+int sprint(int fd, const char* str);
 
-// stdlib.h
-int printMem(uint64_t * value);
-int atoi(char * str);
-int free(void* ptr);
-void* malloc(size_t size);
+void printf(const char* frmt, ...);
 
-// screen.h
-void clearScreen();
-void restartCursor();
-void divideWindow();
-void uniqueWindow();
-void setScreen(uint8_t id);
-void infoReg();
+char* convert(unsigned int num, unsigned int base);
 
-#endif /* _USERSTDLIB_H_*/
+int atoi(const char* str);
+
+void invalidOp();
+
+void divideByZero();
+
+#endif

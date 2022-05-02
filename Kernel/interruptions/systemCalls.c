@@ -1,4 +1,6 @@
 #include <stdint.h>
+#include <stddef.h>
+#include <sys/types.h>
 #include <naiveConsole.h>
 #include <graphicMode.h>
 #include <systemCalls.h>
@@ -8,20 +10,20 @@
 #include <memoryManager.h>
 
 
-int sys_write(uint64_t fd, char * buffer, uint64_t size) {
+ssize_t sys_write(int fd, const char* buffer, size_t size) {
     if (buffer == 0 || size == 0 || fd > 2){
         return -1;
     }
 
-    color_t col = ((fd == STDERR) ? RED : WHITE);
-    uint64_t i = 0;
+    const TColor* col = ((fd == STDERR) ? &RED : &WHITE);
+    size_t i = 0;
     while(i < size && buffer[i]){
-      printCharFormat(buffer[i++],&col, &BLACK);
+      printCharFormat(buffer[i++], col, &BLACK);
     }
     return i;
 }
 
-int sys_read(uint64_t fd, char * buffer, uint64_t size) {
+ssize_t sys_read(int fd, char* buffer, size_t size) {
     if (buffer == 0 || size == 0 || fd != 0){
       return -1;
     }
@@ -72,18 +74,17 @@ void sys_uniqueWindow(){
     initUniqueWindow();
 }
 
-int sys_printmem(uint64_t * mem_address){
-    if((uint64_t) mem_address > (0x20000000 - 32)){
+int sys_printmem(void* address){
+    if((uint64_t) address > (0x20000000 - 32)){
       return -1;
     }
 
-    uint8_t * aux = (uint8_t *) mem_address;
     for(int i=0; i < 32 ; ++i){
-        printHex((uint64_t) aux);
+        printHex((uint64_t) address);
         print(" = ");
-        printHex(*aux);
+        printHex(*((uint8_t*)address));
         newLine();
-        ++aux;
+        address++;
     }
     return 0;
 }
@@ -128,7 +129,7 @@ void sys_infoReg(){
   print(store);
 }
 
-void * sys_malloc(uint64_t size){
+void* sys_malloc(size_t size){
   return mm_malloc(size);
 }
 
@@ -139,13 +140,13 @@ int sys_free(void* ptr){
 
 
 // Note: r10 & r8 are used for screen id and syscall id respectively.
-int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8) {
+uint64_t sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, uint64_t r8) {
   switch(r8){
       case 0:
-        return sys_read(rdi, (char *)rsi, rdx);
+        return (uint64_t) sys_read(rdi, (char*)rsi, rdx);
 
       case 1:
-        return sys_write(rdi, (char *)rsi, rdx);
+        return (uint64_t) sys_write(rdi, (const char*)rsi, rdx);
 
       case 2:
         get_time((char *)rdi);
@@ -171,7 +172,7 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
 
       case 8:
-        return sys_printmem((uint64_t *) rdi);
+        return sys_printmem((void*)rdi);
 
       case 9:
         sys_setScreen(rdi);
@@ -186,10 +187,11 @@ int sysCallDispatcher(uint64_t rdi, uint64_t rsi, uint64_t rdx, uint64_t r10, ui
         return 0;
       
       case 12:
-        return sys_malloc(rdi);
+        return (uint64_t) sys_malloc(rdi);
 
       case 13:
         return sys_free((void*) rdi);
       }
+  
   return -1;
 }
