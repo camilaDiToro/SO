@@ -14,71 +14,71 @@ GLOBAL sys_malloc
 GLOBAL sys_free
 
 sys_read:
-    mov r8, 0
+    mov rax, 0
     int 80h
     ret
 
 sys_write:
-    mov r8, 1
+    mov rax, 1
     int 80h
     ret
 
 sys_time:
-    mov r8, 2
+    mov rax, 2
     int 80h
     ret
 
 sys_tick:
-    mov r8, 3
+    mov rax, 3
     int 80h
     ret
 
 sys_clear:
-    mov r8, 4
+    mov rax, 4
     int 80h
     ret
 
 sys_restartCursor:
-    mov r8, 5
+    mov rax, 5
     int 80h
     ret
 
 sys_divide:
-    mov r8, 6
+    mov rax, 6
     int 80h
     ret
 
 sys_uniqueWindow:
-    mov r8, 7
-    int 80h
-    ret
-
-sys_setScreen:
-    mov r8, 9
-    int 80h
-    ret
-
-sys_date:
-    mov r8, 10
-    int 80h
-    ret
-
-sys_inforeg:
-    mov r8, 11
-    int 80h
-    ret
-
-sys_malloc:
-    mov r8, 12
-    int 80h
-    ret
-
-sys_free:
-    mov r8, 13
+    mov rax, 7
     int 80h
     ret
 
 sys_printmem:
-    mov r8, 8
+    mov rax, 8
+    int 80h
+    ret
+
+sys_setScreen:
+    mov rax, 9
+    int 80h
+    ret
+
+sys_date:
+    mov rax, 10
+    int 80h
+    ret
+
+sys_inforeg:
+    mov rax, 11
+    int 80h
+    ret
+
+sys_malloc:
+    mov rax, 12
+    int 80h
+    ret
+
+sys_free:
+    mov rax, 13
     int 80h
     ret

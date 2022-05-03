@@ -136,7 +136,7 @@ _irq03Handler:
 _irq04Handler:
 	irqHandlerMaster 4
 
-; USBsysCallDispatcher
+; USB
 _irq05Handler:
 	irqHandlerMaster 5
 
@@ -150,13 +150,9 @@ _exception6Handler:
 	exceptionHandler 6
 
 _sysCallHandler:
-	pushState
-	pop rax
-
+	mov rcx, r10
+	mov r9, rax
 	call sysCallDispatcher
-
-	push rax
-	popState
 	iretq
 
 haltcpu:
