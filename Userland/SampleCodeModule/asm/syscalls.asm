@@ -38,28 +38,8 @@ sys_clear:
     int 80h
     ret
 
-sys_restartCursor:
-    mov rax, 5
-    int 80h
-    ret
-
-sys_divide:
-    mov rax, 6
-    int 80h
-    ret
-
-sys_uniqueWindow:
-    mov rax, 7
-    int 80h
-    ret
-
 sys_printmem:
     mov rax, 8
-    int 80h
-    ret
-
-sys_setScreen:
-    mov rax, 9
     int 80h
     ret
 

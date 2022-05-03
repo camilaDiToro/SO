@@ -64,26 +64,6 @@ int sys_clearWindow_handler() {
     return 0;
 }
 
-int sys_restartCursor_handler() {
-    scr_restartCursor();
-    return 0;
-}
-
-int sys_setScreen_handler(uint8_t id) {
-    scr_print("no.\n");
-    return 0;
-}
-
-int sys_divide_handler() {
-    scr_print("no.\n");
-    return 0;
-}
-
-int sys_uniqueWindow_handler() {
-    scr_init();
-    return 0;
-}
-
 int sys_printmem_handler(void* address) {
     if ((uint64_t)address > (0x20000000 - 32))
         return -1;
@@ -153,11 +133,11 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /*  2 */ (TSyscallHandlerFunction) sys_time_handler,
     /*  3 */ (TSyscallHandlerFunction) sys_hasTicked_handler,
     /*  4 */ (TSyscallHandlerFunction) sys_clearWindow_handler,
-    /*  5 */ (TSyscallHandlerFunction) sys_restartCursor_handler,
-    /*  6 */ (TSyscallHandlerFunction) sys_divide_handler,
-    /*  7 */ (TSyscallHandlerFunction) sys_uniqueWindow_handler,
+    /*  5 */ (TSyscallHandlerFunction) NULL,
+    /*  6 */ (TSyscallHandlerFunction) NULL,
+    /*  7 */ (TSyscallHandlerFunction) NULL,
     /*  8 */ (TSyscallHandlerFunction) sys_printmem_handler,
-    /*  9 */ (TSyscallHandlerFunction) sys_setScreen_handler,
+    /*  9 */ (TSyscallHandlerFunction) NULL,
     /* 10 */ (TSyscallHandlerFunction) sys_date_handler,
     /* 11 */ (TSyscallHandlerFunction) sys_infoReg_handler,
     /* 12 */ (TSyscallHandlerFunction) sys_malloc_handler,

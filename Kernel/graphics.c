@@ -25,7 +25,7 @@ struct vbe_mode_info_structure {
     uint8_t bpp;
     uint8_t banks;
     uint8_t memory_model;
-    uint8_t bank_size; 
+    uint8_t bank_size;
     uint8_t image_pages;
     uint8_t reserved0;
 
@@ -45,25 +45,12 @@ struct vbe_mode_info_structure {
     uint8_t reserved1[206];
 } __attribute__((packed));
 
-/**
- * @struct screen
- * @brief represents the shell screen
- * 
- * @note this struct allows scaling from a single screen to multiple screens
- */
-typedef struct {
-    uint8_t current_i;      /// < Current i pixel
-    uint8_t current_j;      /// < Current j pixel
-    uint8_t start_i;        /// < Screen start i pixel
-    uint8_t start_j;        /// < Screen start j pixel
-    uint16_t width, height; /// < Screen dimensions
-} TScreen;
-
 const TColor RED = {0xFF, 0x00, 0x00};
 const TColor WHITE = {0xFF, 0xFF, 0xFF};
 const TColor BLACK = {0x00, 0x00, 0x00};
 
-static TScreen screen;
+static uint8_t current_i, current_j;
+static uint8_t width, height;
 
 static char buffer[64] = {'0'};
 static const struct vbe_mode_info_structure* graphicModeInfo = (struct vbe_mode_info_structure*)0x5C00;
@@ -73,7 +60,7 @@ static void checkSpace();
 static void scrollUp();
 
 static void* getPixelAddress(int i, int j) {
-    return (void*)((uint64_t)graphicModeInfo->framebuffer + 3 * (graphicModeInfo->width * i + j));
+    return (void*)((size_t)graphicModeInfo->framebuffer + 3 * (graphicModeInfo->width * i + j));
 }
 
 static void drawPixel(int i, int j, const TColor* color) {
@@ -85,12 +72,10 @@ static void drawPixel(int i, int j, const TColor* color) {
 
 // Default screen
 void scr_init() {
-    screen.current_i = 0;
-    screen.current_j = 0;
-    screen.start_i = 0;
-    screen.start_j = 0;
-    screen.width = graphicModeInfo->width / CHAR_WIDTH;
-    screen.height = graphicModeInfo->height / CHAR_HEIGHT;
+    current_i = 0;
+    current_j = 0;
+    width = graphicModeInfo->width / CHAR_WIDTH;
+    height = graphicModeInfo->height / CHAR_HEIGHT;
     scr_clear();
 }
 
@@ -98,16 +83,16 @@ void scr_printCharFormat(char c, const TColor* charColor, const TColor* bgColor)
 
     // Backspace
     if (c == '\b') {
-        if (screen.current_j == 0) {
-            screen.current_i -= 1;
-            screen.current_j = screen.width - 1;
+        if (current_j == 0) {
+            current_i -= 1;
+            current_j = width - 1;
             scr_printCharFormat(' ', charColor, bgColor);
-            screen.current_i -= 1;
-            screen.current_j = screen.width - 1;
+            current_i -= 1;
+            current_j = width - 1;
         } else {
-            screen.current_j = (screen.current_j - 1) % screen.width;
+            current_j = (current_j - 1) % width;
             scr_printCharFormat(' ', charColor, bgColor);
-            screen.current_j = (screen.current_j - 1) % screen.width;
+            current_j = (current_j - 1) % width;
         }
         return;
     }
@@ -123,8 +108,8 @@ void scr_printCharFormat(char c, const TColor* charColor, const TColor* bgColor)
     uint8_t* character = getCharMapping(c);
 
     // Upper left pixel of the current character
-    uint16_t write_i = (screen.start_i + screen.current_i) * CHAR_HEIGHT;
-    uint16_t write_j = (screen.start_j + screen.current_j) * CHAR_WIDTH;
+    uint16_t write_i = (current_i)*CHAR_HEIGHT;
+    uint16_t write_j = (current_j)*CHAR_WIDTH;
 
     uint8_t mask;
 
@@ -152,25 +137,23 @@ void scr_print(const char* string) {
 }
 
 void scr_printLine() {
-    screen.current_j = 0;
-    screen.current_i += 1;
+    current_j = 0;
+    current_i += 1;
 }
 
 void scr_restartCursor() {
-    screen.current_i = 0;
-    screen.current_j = 0;
+    current_i = 0;
+    current_j = 0;
 }
 
 void scr_clear() {
-    screen.current_i = 0;
-    screen.current_j = 0;
-    for (int i = 0; i < screen.height; ++i) {
-        for (int j = 0; j < screen.width; ++j) {
-            scr_printCharFormat(' ', &WHITE, &BLACK);
-        }
-    }
-    screen.current_i = 0;
-    screen.current_j = 0;
+    uint8_t* p = (void*)(size_t)graphicModeInfo->framebuffer;
+    size_t total = (size_t)graphicModeInfo->width * graphicModeInfo->height * 3;
+    for (; total; total--, p++)
+        *p = 0;
+    
+    current_i = 0;
+    current_j = 0;
 }
 
 void scr_printDec(uint64_t value) {
@@ -211,25 +194,25 @@ void scr_printRegisterFormat(uint64_t reg) {
 }
 
 static void getNextPosition() {
-    screen.current_i += ((screen.current_j + 1) == screen.width) ? 1 : 0;
-    screen.current_j = (screen.current_j + 1) % screen.width;
+    current_i += ((current_j + 1) == width) ? 1 : 0;
+    current_j = (current_j + 1) % width;
 }
 
 static void checkSpace() {
-    if (screen.current_i == screen.height) {
+    if (current_i == height) {
         scrollUp();
     }
 }
 
 static void scrollUp() {
-    for (int i = 1; i < screen.height * CHAR_HEIGHT; ++i) {
+    for (int i = 1; i < height * CHAR_HEIGHT; ++i) {
 
-        uint8_t* start = getPixelAddress(screen.start_i + i, screen.start_j);
-        uint8_t* next = getPixelAddress(screen.start_i + CHAR_HEIGHT + i, screen.start_j);
+        uint8_t* start = getPixelAddress(i, 0);
+        uint8_t* next = getPixelAddress(CHAR_HEIGHT + i, 0);
 
-        for (int j = 0; j < screen.width * CHAR_WIDTH * 3; ++j) {
+        for (int j = 0; j < width * CHAR_WIDTH * 3; ++j) {
             start[j] = next[j];
         }
     }
-    screen.current_i -= 1;
+    current_i -= 1;
 }

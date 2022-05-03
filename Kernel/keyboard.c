@@ -6,7 +6,7 @@
 
 #define LEFT_SHIFT 0x2A
 #define RIGHT_SHIFT 0x36
-#define BUFFER_LENGHT 256
+#define BUFFER_LENGTH 256
 #define CAPTURE_REGISTERS '-'
 
 // libasm.asm
@@ -14,7 +14,7 @@ extern void save_registers();
 extern unsigned int kbd_readKey();
 
 static uint8_t keyMapRow = 0;
-static uint8_t buffer[BUFFER_LENGHT];
+static uint8_t buffer[BUFFER_LENGTH];
 
 uint16_t buffer_start = 0;
 uint16_t buffer_end = 0;
@@ -25,23 +25,23 @@ uint16_t buffer_current_size = 0;
 // https://stanislavs.org/helppc/scan_codes.html
 
 static uint8_t scancodeLToAscii[] = {
-      0,   27, '1', '2', '3', '4', '5', '6', '7', '8', '9',  '0', '-', '=',
+    0,   27, '1', '2', '3', '4', '5', '6', '7', '8', '9',  '0', '-', '=',
    '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',
    '\n',    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
-      0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',    0, '*',
-      0,  ' ',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,   0,
-      0,    0,   38,   0, '-',   37,   0,   39, '+',   0,   40,   0,    0,   0,
-      0,    0,   0,   0,   0,   0,   0,   0,  0,    0,   0,   0,    0,   0,
+    0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',    0, '*',
+    0,  ' ',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,    0,   0,
+    0,    0,   38,   0, '-',   37,   0,   39, '+',   0,   40,   0,    0,   0,
+    0,    0,   0,   0,   0,   0,   0,   0,  0,    0,   0,   0,    0,   0,
 };
 
 static uint8_t scancodeUToAscii[] = {
-      0,   27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
+    0,   27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',
    '\b', '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}',
    '\n',    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
-      0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',   0, '*',
-      0, ' ',    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-      0,   0,    0,   0, '-',   0,   0,   0, '+',   0,   0,   0,   0,   0,
-      0,   0,    0,   0,   0,   0
+    0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',   0, '*',
+    0, ' ',    0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    0,   0,    0,   0, '-',   0,   0,   0, '+',   0,   0,   0,   0,   0,
+    0,   0,    0,   0,   0,   0
 };
 
 static uint8_t* keyMap[] = {scancodeLToAscii, scancodeUToAscii};
@@ -51,7 +51,7 @@ static void addBuffer(uint8_t c) {
     buffer[buffer_end++] = c;
     buffer_current_size++;
 
-    if (buffer_end == BUFFER_LENGHT) {
+    if (buffer_end == BUFFER_LENGTH) {
         buffer_end = 0;
     }
     return;
