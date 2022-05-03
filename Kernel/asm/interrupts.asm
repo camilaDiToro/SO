@@ -19,6 +19,7 @@ EXTERN irqDispatcher
 EXTERN sysCallDispatcher
 EXTERN print_registers
 EXTERN exceptionDispatcher
+
 SECTION .text
 
 %macro pushState 0

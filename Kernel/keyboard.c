@@ -1,3 +1,7 @@
+/* Standard library */
+#include <stdint.h>
+
+/* Local headers */
 #include <keyboard.h>
 
 #define LEFT_SHIFT 0x2A
@@ -7,7 +11,7 @@
 
 // libasm.asm
 extern void save_registers();
-extern unsigned int sys_readKey();
+extern unsigned int kbd_readKey();
 
 static uint8_t keyMapRow = 0;
 static uint8_t buffer[BUFFER_LENGHT];
@@ -53,9 +57,9 @@ static void addBuffer(uint8_t c) {
     return;
 }
 
-void keyboard_handler() {
+void kbd_interruptHandler() {
 
-    unsigned char code = sys_readKey();
+    unsigned char code = kbd_readKey();
     if (code < 0x80) { // Key pressed
         if (code == LEFT_SHIFT || code == RIGHT_SHIFT) {
             keyMapRow |= 0x01;
@@ -77,14 +81,14 @@ void keyboard_handler() {
     return;
 }
 
-void clear_buffer() {
+void kbd_clearBuffer() {
     buffer_end = buffer_start = buffer_current_size = 0;
 }
 
-int getChar() {
-    if (buffer_current_size == 0) {
+int kbd_getChar() {
+    if (buffer_current_size == 0)
         return -1;
-    }
-    --buffer_current_size;
+
+    buffer_current_size--;
     return buffer[buffer_start++];
 }

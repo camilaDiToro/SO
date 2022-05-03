@@ -1,4 +1,7 @@
+/* Standard library */
 #include <stdint.h>
+
+/* Local headers */
 #include <lib.h>
 #include <moduleLoader.h>
 

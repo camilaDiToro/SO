@@ -1,6 +1,9 @@
 #ifndef _INTERRUPTS_H_
 #define _INTERRUPTS_H_
 
+/* Standard library */
+#include <stdint.h>
+
 void _irq00Handler(void);
 void _irq01Handler(void);
 void _irq02Handler(void);

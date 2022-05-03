@@ -1,6 +1,7 @@
+/* Local headers */
 #include <memoryManager.h>
 #include <lib.h>
-#include <graphicMode.h>
+#include <graphics.h>
 
 /**
  * Represents a structure prepended to all allocated memory chunks to track said memory chunks.
@@ -114,50 +115,50 @@ int mm_free(void* ptr) {
 }
 
 void mm_printDebug() {
-    print("\nMM debug:");
+    scr_print("\nMM debug:");
     int i = 0;
     for (TMemoryBlockNode* node = firstBlock; node != NULL; node = node->next, i++) {
-        printChar('\n');
-        printDec(i);
-        printChar('[');
-        printDec(node->size);
-        print(", ");
-        printDec(node->leftoverSize);
-        print(", ");
+        scr_printChar('\n');
+        scr_printDec(i);
+        scr_printChar('[');
+        scr_printDec(node->size);
+        scr_print(", ");
+        scr_printDec(node->leftoverSize);
+        scr_print(", ");
         if (node->previous == NULL)
-            print("NULL");
+            scr_print("NULL");
         else
-            printDec(node->previous->size);
-        print(", ");
+            scr_printDec(node->previous->size);
+        scr_print(", ");
         if (node->next == NULL)
-            print("NULL");
+            scr_print("NULL");
         else
-            printDec(node->next->size);
-        printChar(']');
+            scr_printDec(node->next->size);
+        scr_printChar(']');
 
         if (i > 16) {
-            print("\n...\n");
+            scr_print("\n...\n");
             TMemoryBlockNode* prev;
             for (; node != NULL; prev = node, node = node->next, i++)
                 ;
             i--;
             node = prev;
-            printDec(i);
-            printChar('[');
-            printDec(node->size);
-            print(", ");
-            printDec(node->leftoverSize);
-            print(", ");
+            scr_printDec(i);
+            scr_printChar('[');
+            scr_printDec(node->size);
+            scr_print(", ");
+            scr_printDec(node->leftoverSize);
+            scr_print(", ");
             if (node->previous == NULL)
-                print("NULL");
+                scr_print("NULL");
             else
-                printDec(node->previous->size);
-            print(", ");
+                scr_printDec(node->previous->size);
+            scr_print(", ");
             if (node->next == NULL)
-                print("NULL");
+                scr_print("NULL");
             else
-                printDec(node->next->size);
-            printChar(']');
+                scr_printDec(node->next->size);
+            scr_printChar(']');
 
             break;
         }

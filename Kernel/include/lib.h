@@ -38,14 +38,12 @@ void* memset(void* s, int32_t c, size_t n);
 void* memcpy(void* dest, const void* src, size_t n);
 
 /**
- * @brief reads 8042 status register
- * @return unsigned int read from output register 60h
- */
-unsigned int sys_readKey(); // TODO: YEET
-
-/**
  * @brief Returns he output from executing the cpuid instruction (a 12-character representation of the processor’s manufacturer)
  */
 char* cpuVendor(char* result);
+
+uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
+
+uint8_t bcdToDec(uint8_t time);
 
 #endif

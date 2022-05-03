@@ -1,3 +1,4 @@
+/* Standard library */
 #include <string.h>
 
 size_t strlen(const char* s) {

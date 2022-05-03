@@ -1,4 +1,7 @@
+/* Standard library */
 #include <stdint.h>
+
+/* Local headers */
 #include <idtLoader.h>
 #include <defs.h>
 #include <interrupts.h>

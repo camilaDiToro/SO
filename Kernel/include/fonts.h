@@ -5,6 +5,7 @@
 #ifndef _FONTS_H_
 #define _FONTS_H_
 
+/* Standard library */
 #include <stdint.h>
 
 #define CHAR_WIDTH 8

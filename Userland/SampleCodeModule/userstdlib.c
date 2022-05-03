@@ -1,9 +1,12 @@
-#include <userstdlib.h>
+/* Standard library */
 #include <stdint.h>
 #include <stddef.h>
 #include <stdarg.h>
-#include <syscalls.h>
 #include <string.h>
+
+/* Local headers */
+#include <userstdlib.h>
+#include <syscalls.h>
 
 #define IS_DIGIT(x) (((x) >= '0' && (x) <= '9'))
 

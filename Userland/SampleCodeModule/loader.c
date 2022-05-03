@@ -1,4 +1,4 @@
-/* _loader.c */
+/* Standard library */
 #include <stdint.h>
 #include <stddef.h>
 

@@ -1,7 +1,11 @@
+/* Standard library */
+#include <string.h>
+
+/* Local headers */
 #include <shell.h>
 #include <syscalls.h>
 #include <userstdlib.h>
-#include <string.h>
+
 
 typedef void (*TVoidFunction)(void);
 

@@ -2,11 +2,7 @@
 #define _MEMORY_MANAGER_H_
 
 /* Standard library */
-#include <stdint.h>
 #include <stddef.h>
-
-/* Local headers */
-#include "lib.h"
 
 /**
  * @brief Initializes the memory manager with a given memory segment

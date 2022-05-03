@@ -1,6 +1,7 @@
 #ifndef _SYSCALLS_H_
 #define _SYSCALLS_H_
 
+/* Standard library */
 #include <stdint.h>
 #include <stddef.h>
 #include <sys/types.h>

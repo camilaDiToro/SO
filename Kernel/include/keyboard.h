@@ -1,10 +1,11 @@
-#ifndef _KEYBOARD_H
-#define _KEYBOARD_H
+#ifndef _KEYBOARD_H_
+#define _KEYBOARD_H_
 
-#include <stdint.h>
 
-void keyboard_handler();
-int getChar();
-void clear_buffer();
+void kbd_interruptHandler();
+
+int kbd_getChar();
+
+void kbd_clearBuffer();
 
 #endif

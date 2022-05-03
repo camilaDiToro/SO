@@ -1,9 +1,12 @@
+/* Standard library */
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+
+/* Local headers */
 #include <lib.h>
 #include <moduleLoader.h>
-#include <graphicMode.h>
+#include <graphics.h>
 #include <idtLoader.h>
 #include <memoryManager.h>
 
@@ -47,9 +50,8 @@ void* initializeKernelBinary() {
 
 int main() {
     load_idt();
+    scr_init();
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
-    clearAll();
-    initUniqueWindow();
 
     ((EntryPoint)sampleCodeModuleAddress)();
 
