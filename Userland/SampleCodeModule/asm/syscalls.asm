@@ -12,6 +12,7 @@ GLOBAL sys_printmem
 GLOBAL sys_inforeg
 GLOBAL sys_malloc
 GLOBAL sys_free
+GLOBAL sys_realloc
 
 sys_read:
     mov rax, 0
@@ -60,5 +61,10 @@ sys_malloc:
 
 sys_free:
     mov rax, 13
+    int 80h
+    ret
+
+sys_realloc:
+    mov rax, 14
     int 80h
     ret

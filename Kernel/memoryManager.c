@@ -85,6 +85,48 @@ void* mm_malloc(size_t size) {
     return (void*)newNode + sizeof(TMemoryBlockNode);
 }
 
+void* mm_realloc(void* ptr, size_t size) {
+    size = WORD_ALIGN_UP(size);
+
+    if (ptr == NULL)
+        return mm_malloc(size);
+
+    if (size == 0) {
+        mm_free(ptr);
+        return NULL;
+    }
+
+    TMemoryBlockNode* node = (TMemoryBlockNode*)(ptr - sizeof(TMemoryBlockNode));
+
+    size_t checksum;
+    calcNodeChecksum(node, &checksum);
+    if (checksum != node->checksum)
+        return NULL;
+
+    if (node->size == size)
+        return ptr;
+
+    if (size < node->size) {
+        node->leftoverSize += node->size - size;
+        node->size = size;
+        calcNodeChecksum(node, &node->checksum);
+        return ptr;
+    }
+
+    size_t extraRequiredSize = size - node->size;
+    if (node->leftoverSize >= extraRequiredSize) {
+        node->leftoverSize -= extraRequiredSize;
+        node->size = size;
+        calcNodeChecksum(node, &node->checksum);
+        return ptr;
+    }
+
+    void* newPtr = mm_malloc(size);
+    if (newPtr != NULL)
+        mm_free(ptr);
+    return newPtr;
+}
+
 int mm_free(void* ptr) {
     if (ptr == NULL)
         return 0;

@@ -127,6 +127,10 @@ int sys_free_handler(void* ptr) {
     return mm_free(ptr);
 }
 
+void* sys_realloc_handler(void* ptr, size_t size) {
+    return mm_realloc(ptr, size);
+}
+
 static TSyscallHandlerFunction syscallHandlers[] = {
     /*  0 */ (TSyscallHandlerFunction) sys_read_handler,
     /*  1 */ (TSyscallHandlerFunction) sys_write_handler,
@@ -141,7 +145,8 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 10 */ (TSyscallHandlerFunction) sys_date_handler,
     /* 11 */ (TSyscallHandlerFunction) sys_infoReg_handler,
     /* 12 */ (TSyscallHandlerFunction) sys_malloc_handler,
-    /* 13 */ (TSyscallHandlerFunction) sys_free_handler
+    /* 13 */ (TSyscallHandlerFunction) sys_free_handler,
+    /* 14 */ (TSyscallHandlerFunction) sys_realloc_handler
 };
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {
