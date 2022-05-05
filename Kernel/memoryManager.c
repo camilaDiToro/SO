@@ -122,8 +122,10 @@ void* mm_realloc(void* ptr, size_t size) {
     }
 
     void* newPtr = mm_malloc(size);
-    if (newPtr != NULL)
+    if (newPtr != NULL) {
+        memcpy(newPtr, ptr, node->size);
         mm_free(ptr);
+    }
     return newPtr;
 }
 
