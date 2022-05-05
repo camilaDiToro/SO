@@ -19,6 +19,7 @@ EXTERN irqDispatcher
 EXTERN sysCallDispatcher
 EXTERN print_registers
 EXTERN exceptionDispatcher
+EXTERN sch_switchProcess
 
 SECTION .text
 
@@ -62,7 +63,7 @@ SECTION .text
 	push rsp
 	pushState
 
-	mov rdi, %1 ; pasaje de parametro
+	mov rdi, %1 
 	call irqDispatcher
 
 	; signal pic EOI (End of Interrupt)
@@ -79,7 +80,7 @@ SECTION .text
 
 	call print_registers
 
-	mov rdi, %1 ; pasaje de parametro
+	mov rdi, %1 
 	call exceptionDispatcher
 
 	popState
@@ -104,21 +105,37 @@ picMasterMask:
 	push rbp
     mov rbp, rsp
     mov ax, di
-    out	21h,al
+    out	21h, al
     pop rbp
     retn
 
 picSlaveMask:
-	push    rbp
-    mov     rbp, rsp
-    mov     ax, di  ; ax = mascara de 16 bits
-    out	0A1h,al
-    pop     rbp
+	push rbp
+    mov rbp, rsp
+    mov ax, di  ; ax is a 16 bits mask
+    out	0A1h, al
+    pop rbp
     retn
 
 ; 8254 Timer (Timer Tick)
 _irq00Handler:
-	irqHandlerMaster 0
+	push rsp
+	pushState
+
+	mov rdi, 0
+	call irqDispatcher
+	
+	mov rdi, rsp
+	call sch_switchProcess
+	mov rsp, rax
+
+	; signal pic EOI (End of Interrupt)
+	mov al, 20h
+	out 20h, al
+	
+	popState
+	pop rsp
+	iretq
 
 ; Keyboard
 _irq01Handler:
@@ -139,7 +156,6 @@ _irq04Handler:
 ; USB
 _irq05Handler:
 	irqHandlerMaster 5
-
 
 ; Zero Division Exception
 _exception0Handler:

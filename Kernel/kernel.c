@@ -9,6 +9,7 @@
 #include <graphics.h>
 #include <idtLoader.h>
 #include <memoryManager.h>
+#include <scheduler.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -52,8 +53,7 @@ int main() {
     load_idt();
     scr_init();
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
-
-    ((EntryPoint)sampleCodeModuleAddress)();
+    sch_init((uint64_t)sampleCodeModuleAddress, 0, 0, NULL); // TO DO: Check priority
 
     return 0;
 }
