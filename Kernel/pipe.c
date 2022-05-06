@@ -84,14 +84,11 @@ ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
     size_t writeOffset = (pipe->readOffset + pipe->remainingBytes) % pipe->bufferSize;
     size_t spaceAvailable = pipe->bufferSize - pipe->remainingBytes;
 
-    /* TODO:
-    while (spaceAvailable == 0) {
-        block();
-        spaceAvailable = pipe->bufferSize - pipe->remainingBytes;
-    }*/
-
     // Calculate the amount of bytes to write as min(spaceAvailable, count).
     size_t bytesToWrite = count < spaceAvailable ? count : spaceAvailable;
+
+    if (bytesToWrite == 0)
+        return 0;
 
     // A pipe's buffer is treated as circular, so the write may be split into two memcpy()s.
     size_t firstWriteSize = pipe->bufferSize - writeOffset;
@@ -107,17 +104,13 @@ ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
 }
 
 ssize_t pipe_read(TPipe pipe, void* buf, size_t count) {
-    /* TODO:
-    while (pipe->remainingBytes == 0) {
-        block();
-    }*/
-    if (pipe->bufferSize == 0)
-        return 0;
-
     // Calculate the amount of bytes to read as min(remainingBytes, count).
     size_t bytesToRead = pipe->remainingBytes;
     if (bytesToRead > count)
         bytesToRead = count;
+
+    if (bytesToRead == 0)
+        return 0;
 
     // A pipe's buffer is treated as circular, so the read may be split into two memcpy()s.
     size_t firstReadSize = pipe->bufferSize - pipe->readOffset;
