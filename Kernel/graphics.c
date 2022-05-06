@@ -147,11 +147,8 @@ void scr_restartCursor() {
 }
 
 void scr_clear() {
-    uint8_t* p = (void*)(size_t)graphicModeInfo->framebuffer;
-    size_t total = (size_t)graphicModeInfo->width * graphicModeInfo->height * 3;
-    for (; total; total--, p++)
-        *p = 0;
-    
+    void* p = (void*)(size_t)graphicModeInfo->framebuffer;
+    memset(p, 0, (size_t)graphicModeInfo->width * graphicModeInfo->height * 3);
     current_i = 0;
     current_j = 0;
 }

@@ -15,6 +15,8 @@
  */
 #define WORD_ALIGN_UP(value) (WORD_ALIGN_DOWN((size_t)(value) + 7))
 
+size_t strlen(const char* s);
+
 /**
  * @brief fills the first n bytes of the memory area pointed to by s with the constant byte c
  *
