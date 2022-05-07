@@ -119,7 +119,6 @@ picSlaveMask:
 
 ; 8254 Timer (Timer Tick)
 _irq00Handler:
-	push rsp
 	pushState
 
 	mov rdi, 0
@@ -134,7 +133,6 @@ _irq00Handler:
 	out 20h, al
 	
 	popState
-	pop rsp
 	iretq
 
 ; Keyboard

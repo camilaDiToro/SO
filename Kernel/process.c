@@ -9,12 +9,15 @@
 #include <scheduler.h>
 #include <graphics.h>
 
+#define FD_TABLE_CHUNK_SIZE 8
+
 /**
  * Defines an entry on a process' file descriptor table.
+ * Setting "pipe" to null determines the whole structure as empty or unused.
  */
 typedef struct {
-    int fd;
     TPipe pipe;
+    int isReadEnd;
 } TFileDescriptorTableEntry;
 
 /**
@@ -28,6 +31,7 @@ typedef struct {
     void* stackStart;
 
     TFileDescriptorTableEntry* fdTable;
+    unsigned int fdTableSize;
 } TProcessContext;
 
 static TProcessContext processes[MAX_PROCESSES];
@@ -55,8 +59,9 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
         return -1;
 
     process->stackStart = process->stackEnd + PROCESS_STACK_SIZE;
-    process->fdTable == NULL;
-    
+    process->fdTable = NULL;
+    process->fdTableSize = 0;
+
     void* currentRSP = process->stackStart;
 
     // TODO: Copy arguments onto the stack
@@ -70,7 +75,7 @@ int prc_kill(TPid pid) {
     TProcessContext* process;
     if (!tryGetProcessFromPid(pid, &process))
         return 1;
-    
+
     sch_onProcessKilled(pid);
 
     // TODO: Dispose of all file descriptor resources.
@@ -80,26 +85,56 @@ int prc_kill(TPid pid) {
     process->stackEnd = NULL;
     process->stackStart = NULL;
     process->fdTable = NULL;
+    process->fdTableSize = 0;
 
     return 0;
 }
 
-int prc_mapFd(TPid pid, TPipe pipe) {
+int prc_mapFd(TPid pid, TPipe pipe, int isReadEnd) {
     TProcessContext* process;
     if (!tryGetProcessFromPid(pid, &process))
-        return 1;
+        return -1;
 
-    // TODO
+    int fd;
+    for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].pipe != NULL; fd++);
 
-    return 1;
+    if (fd == process->fdTableSize) {
+        size_t newFdTableSize = process->fdTableSize + FD_TABLE_CHUNK_SIZE;
+        TFileDescriptorTableEntry* newFdTable = mm_realloc(process->fdTable, sizeof(TFileDescriptorTableEntry) * newFdTableSize);
+        if (newFdTable == NULL)
+            return -1;
+
+        process->fdTable = newFdTable;
+        process->fdTableSize = newFdTableSize;
+    }
+
+    process->fdTable[fd].pipe = pipe;
+    process->fdTable[fd].isReadEnd = isReadEnd;
+
+    // TODO: process tracking? "Who is using each pipe" so we know when to dispose them
+
+    return fd;
 }
 
 int prc_unmapFd(TPid pid, int fd) {
     TProcessContext* process;
-    if (!tryGetProcessFromPid(pid, &process))
+    if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd)
         return 1;
 
-    // TODO
+    // TODO: process tracking? "Who is using each pipe" so we know when to dispose them
 
-    return 1;
+    process->fdTable[fd].pipe = NULL;
+
+    return 0;
+}
+
+TPipe prc_getFdMapping(TPid pid, int fd, int* outIsReadEnd) {
+    TProcessContext* process;
+    if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd)
+        return NULL;
+
+    TFileDescriptorTableEntry* entry = &process->fdTable[fd];
+    if (entry->pipe != NULL)
+        *outIsReadEnd = entry->isReadEnd;
+    return entry->pipe;
 }
