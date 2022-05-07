@@ -1,38 +1,45 @@
+/* Standard library */
 #include <stdint.h>
 
+/* Local headers */
 #include <process.h>
+
+typedef enum status { READY = 0, BLOCKED, KILLED } TProcessStatus;
+
+typedef int8_t TPriority;
+
+#define DEFAULT_PRIORITY 0
 
 void sch_init();
 
 /**
  * @brief Called by process.c whenever a new process is created.
  */
-void sch_onProcessCreated(TProcess process);
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP);
 
 /**
  * @brief Called by process.c whenever a process is being killed.
  */
-void sch_onProcessKilled(TProcess process);
+int sch_onProcessKilled(TPid pid);
 
 /**
  * @brief Instructs the scheduler that a given process should not run until it is unblocked.
  */
-void sch_blockProcess(TPid process);
+int sch_blockProcess(TPid pid);
 
 /**
  * @brief Instructs the scheduler that a process may be marked as ready and run.
  */
-void sch_unblockProcess(TPid process);
+int sch_unblockProcess(TPid pid);
 
 /**
  * @brief Gets the PID of the currently-running or last was-running process,
  * or -1 if no process is currently running.
  */
-int sch_getCurrentPID();
+TPid sch_getCurrentPID();
+
+int sch_getProcessPriority(TPid pid, TPriority* outPriority);
+
+int sch_setProcessPriority(TPid pid, TPriority priority);
 
 void* sch_switchProcess(void* currentRSP);
-
-/**
- * @brief ((nice))
- */
-int sch_nice(TPid pid, TPriority priority);

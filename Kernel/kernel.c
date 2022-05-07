@@ -54,7 +54,7 @@ int main() {
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
     sch_init();
 
-    prc_create((EntryPoint)sampleCodeModuleAddress, 0, NULL);
+    prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
 
     return 0;
 }
