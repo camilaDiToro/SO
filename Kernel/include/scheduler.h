@@ -1,11 +1,38 @@
 #include <stdint.h>
 
-void sch_init(void* functionAddress, uint8_t priority, int argc, const char * argv[]);
-void* sch_switchProcess(void * currentRSP);
-int sch_loadProcess(void * functionAddress, uint8_t priority, int argc, const char * argv[]);
-uint8_t sch_getCurrentPID();
-int sch_kill(uint8_t pid);
-int sch_block(uint8_t pid);
-int sch_unblock(uint8_t pid);
-void sch_getProcesses();
-int sch_nice(uint8_t pid, uint8_t priority);
+#include <process.h>
+
+void sch_init();
+
+/**
+ * @brief Called by process.c whenever a new process is created.
+ */
+void sch_onProcessCreated(TProcess process);
+
+/**
+ * @brief Called by process.c whenever a process is being killed.
+ */
+void sch_onProcessKilled(TProcess process);
+
+/**
+ * @brief Instructs the scheduler that a given process should not run until it is unblocked.
+ */
+void sch_blockProcess(TPid process);
+
+/**
+ * @brief Instructs the scheduler that a process may be marked as ready and run.
+ */
+void sch_unblockProcess(TPid process);
+
+/**
+ * @brief Gets the PID of the currently-running or last was-running process,
+ * or -1 if no process is currently running.
+ */
+int sch_getCurrentPID();
+
+void* sch_switchProcess(void* currentRSP);
+
+/**
+ * @brief ((nice))
+ */
+int sch_nice(TPid pid, TPriority priority);

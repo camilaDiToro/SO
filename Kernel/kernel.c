@@ -9,6 +9,7 @@
 #include <graphics.h>
 #include <idtLoader.h>
 #include <memoryManager.h>
+#include <process.h>
 #include <scheduler.h>
 
 extern uint8_t text;
@@ -24,8 +25,6 @@ static void* const sampleCodeModuleAddress = (void*)0x400000;
 static void* const sampleDataModuleAddress = (void*)0x500000;
 static void* const startHeapAddres = (void*)0xF00000;
 static void* const endHeapAddres = (void*)0x2000000;
-
-typedef int (*EntryPoint)();
 
 void clearBSS(void* bssAddress, uint64_t bssSize) {
     memset(bssAddress, 0, bssSize);
@@ -53,7 +52,9 @@ int main() {
     load_idt();
     scr_init();
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
-    sch_init((uint64_t)sampleCodeModuleAddress, 0, 0, NULL); // TO DO: Check priority
+    sch_init();
+
+    prc_create((EntryPoint)sampleCodeModuleAddress, 0, NULL);
 
     return 0;
 }

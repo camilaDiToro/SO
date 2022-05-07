@@ -1,179 +1,141 @@
 /* Local Headers */
-#include "time.h"
-#include "scheduler.h"
-#include "graphics.h"
-#include "memoryManager.h"
+#include <time.h>
+#include <scheduler.h>
+#include <graphics.h>
+#include <memoryManager.h>
+#include <process.h>
 
-#define MAX_PROCESSES 16
 #define QUANTUM 4
-#define PROCESS_STACK_SIZE 4096  
 
-typedef enum status {READY = 0, BLOCKED, KILLED} TprocessStatus;
+static int currentRunningProcessPID = -1;
 
-typedef struct processContext {
-    uint8_t priority;
-    TprocessStatus status;
-    void* topRSP;
-    void* baseRSP;
-    void* currentRSP;
-    void* functionAddress;
-} TProcessBlock;
+// Suggested - implement the structure you think that fits better.
+// This array stores pointers to the ready processes using as idx their pid
+// An array is a good idea JUST if there is a small qty of processes (which is the case we are having now)
+// A list would be a better solution if the MAX_PROCESS_QTY was a bigger number
+static TProcess readyProcesses[MAX_PROCESSES] = {NULL};
 
-static TProcessBlock * processes[MAX_PROCESSES] = {NULL};
-static uint8_t currentRunningProcessPID = 0;
+static int validPID(int pid);
 
-static int validPID(uint8_t pid);
-
-void sch_init(void* functionAddress, uint8_t priority, int argc, const char * argv[]){
-
-    // TO DO: Add halt process to avoid busy waiting?
-
-    // First process to run is the shell (SampleCodeModule)
-    int PID = sch_loadProcess(functionAddress, priority, argc, argv);
-    if(-1 == PID){
-        return -1;
-    }
-
-    currentRunningProcessPID = PID;
-
-    // ¿Open here process context? (Check Intel TSS)
-
-    return 0;
+void sch_init() {
+    currentRunningProcessPID = -1;
 }
 
-int sch_loadProcess(void* functionAddress, uint8_t priority, int argc, const char * argv[]){
+void sch_onProcessCreated(TProcess process) {
 
-    int i=0;
-    for (; i<MAX_PROCESSES && processes[i] != NULL; i++);
+    process->currentRSP = 0; // TODO
 
-    if (i == MAX_PROCESSES)
-        return -1;
+    // This has been commented since we believe that the 
+    // scheduler shoud be in charge of putting into de stack de harcoded values 
+    // that the process needs to start. 
+    /*if(process-> currentRSP == NULL){
+        mm_free(stackEnd);
+        mm_free(process);
+        return NULL;
+    }*/
 
-    TProcessBlock * pblock = mm_malloc(sizeof(TProcessBlock));
-
-    if (pblock == NULL)
-        return -1;
-
-    uint64_t topRSP = mm_malloc(PROCESS_STACK_SIZE);
-
-    if (topRSP == NULL) {
-        free(pblock);
-        return -1;
-    }
-
-    // TO DO: Define priority set (0,1,2, ...)
-    pblock->priority = priority;
-    pblock->status = READY;
-    pblock->functionAddress = functionAddress;
-    pblock->topRSP = topRSP;
-    pblock->baseRSP = topRSP + PROCESS_STACK_SIZE;
-    pblock->currentRSP = // TO DO: Build process context (Check Intel TSS)
-
-    if(pblock-> currentRSP == NULL){
-        return -1;
-    }
-
-    processes[i] = pblock;
-    return i;
+    //Processes, by default, are created in the state READY.
+    readyProcesses[process->pid] = process; 
 }
 
-void* sch_switchProcess(uint64_t * currentRSP){
-    processes[currentRunningProcessPID]->currentRSP = currentRSP;
+void sch_onProcessKilled(TProcess process) {
+    readyProcesses[process->pid] = NULL;
+    prc_kill(process);
+}
+
+void sch_blockProcess(TPid process){
+    Tprocess prc = prc_getProcessFromPid(pid);
+    readyProcesses[process] = NULL;
+    prc->status = BLOCKED;
+}
+
+void sch_unblockProcess(TPid process){
+    Tprocess prc = prc_getProcessFromPid(pid);
+    readyProcesses[process] = process;
+    prc->status = READY;
+}
+
+int sch_getCurrentPID() {
+    return currentRunningProcessPID;
+}
+
+void* sch_switchProcess(void* currentRSP) {
+    readyProcesses[currentRunningProcessPID]->currentRSP = currentRSP;
     // TO DO
 
     /* Main idea:
       Save running process currentStackPointer
-      Check if quantum has finished or there is another process with higher priority to preempt 
+      Check if quantum has finished or there is another process with higher priority to preempt
       Check process status
       If we have to switch a process, we return the currentStackPointer of the other process.
       If not, we return currentStackPointer.
     */
 }
 
-uint8_t sch_getCurrentPID(){
-    return currentRunningProcessPID;
-}
+int sch_nice(TPid pid, Tpriority priority) {
 
-int sch_kill(uint8_t pid){
-
-    if(!validPID(pid)){
+    if (!validPID(pid)) {
         return -1;
-   } 
-
-   // What happens if pid = SampleCodeModuleProcess?
-   if(processes[pid]->status == READY){
-        processes[pid]->status = KILLED;
-        return 0;
-   } else {
-        return -1;
-   }
-}
-
-int sch_block(uint8_t pid){
-
-   if(!validPID(pid)){
-        return -1;
-   } 
-   
-   // What happens if pid = SampleCodeModuleProcess?
-   if(processes[pid]->status == READY){
-        processes[pid]->status = BLOCKED;
-        return 0;
-   } else {
-        return -1;
-   }
-   // If calling some of these functions during an interruption, should we change a process' status to READY? 
-   // We're about to hand control right back to it anyways
-}
-
-int sch_unblock(uint8_t pid){
-
-   if(!validPID(pid)){
-        return -1;
-   } 
-   
-   if(processes[pid]->status == BLOCKED){
-        processes[pid]->status = READY;
-        return 0;
-   } else {
-        return -1;
-   }
-
-}
-
-void sch_getProcesses(){
-    scr_print("Process list:\n");
-    for (int i=0; i < MAX_PROCESSES; i++){
-        if (processes[i] != NULL) {
-            scr_print("Process ");
-            scr_printDec(i);
-            scr_print(": ");
-            scr_print("STATE: ");
-            scr_printDec(processes[i]->status);
-            scr_print('\n');
-        }
     }
-
-    return;
-}
-
-int sch_nice(uint8_t pid, uint8_t priority){
-
-    if(!validPID(pid)){
-        return -1;
-    } 
 
     // TO DO: check priority
     // What happens if pid = SampleCodeModuleProcess?
-    processes[pid]->priority = priority;
+    Tprocess prc = prc_getProcessFromPid(pid);
+    prc->priority = priority;
 }
 
-void sch_freeProcess(uint8_t pid) {
+/* int sch_kill(uint8_t pid) {
+
+    if (!validPID(pid)) {
+        return -1;
+    }
+
+    // What happens if pid = SampleCodeModuleProcess?
+    if (processes[pid]->status == READY) {
+        processes[pid]->status = KILLED;
+        return 0;
+    } else {
+        return -1;
+    }
+} */
+
+/* int sch_block(uint8_t pid) {
+
+    if (!validPID(pid)) {
+        return -1;
+    }
+
+    // What happens if pid = SampleCodeModuleProcess?
+    if (processes[pid]->status == READY) {
+        processes[pid]->status = BLOCKED;
+        return 0;
+    } else {
+        return -1;
+    }
+    // If calling some of these functions during an interruption, should we change a process' status to READY?
+    // We're about to hand control right back to it anyways
+} */
+
+/* int sch_unblock(uint8_t pid) {
+
+    if (!validPID(pid)) {
+        return -1;
+    }
+
+    if (processes[pid]->status == BLOCKED) {
+        processes[pid]->status = READY;
+        return 0;
+    } else {
+        return -1;
+    }
+} */
+
+/* void sch_freeProcess(uint8_t pid) {
     free(processes[pid]);
     processes[pid] = NULL;
     return;
-}
+} */
 
-static int validPID(uint8_t pid){
+static int validPID(int pid) {
     return pid < MAX_PROCESSES;
 }
