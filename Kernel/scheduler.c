@@ -63,7 +63,7 @@ int sch_blockProcess(TPid pid) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
-    if (processState->state == BLOCKED)
+    if (processState->status == BLOCKED)
         return 0;
 
     processState->status = BLOCKED;

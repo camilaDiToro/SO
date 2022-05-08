@@ -13,6 +13,8 @@ GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 GLOBAL _exception0Handler
 GLOBAL _exception6Handler
+GLOBAL _exception0DHandler
+GLOBAL _exception0EHandler
 GLOBAL _sysCallHandler
 
 EXTERN irqDispatcher
@@ -139,29 +141,21 @@ _irq00Handler:
 _irq01Handler:
 	irqHandlerMaster 1
 
-; Cascade pic never called
-_irq02Handler:
-	irqHandlerMaster 2
-
-; Serial Port 2 and 4
-_irq03Handler:
-	irqHandlerMaster 3
-
-; Serial Port 1 and 3
-_irq04Handler:
-	irqHandlerMaster 4
-
-; USB
-_irq05Handler:
-	irqHandlerMaster 5
-
 ; Zero Division Exception
 _exception0Handler:
-	exceptionHandler 0
+	exceptionHandler 00h
 
 ; Invalid Operand Exception
 _exception6Handler:
-	exceptionHandler 6
+	exceptionHandler 06h
+
+; General Protection Exception
+_exception0DHandler:
+	exceptionHandler 0Dh
+
+; Page Fault Exception
+_exception0EHandler:
+	exceptionHandler 0Eh
 
 _sysCallHandler:
 	mov rcx, r10
