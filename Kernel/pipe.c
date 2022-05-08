@@ -1,12 +1,16 @@
 /* Standard library */
 #include <stdint.h>
 #include <stddef.h>
+#include <sys/types.h>
+
 #include <string.h>
 
 /* Local headers */
 #include <pipe.h>
 #include <memoryManager.h>
+#include <process.h>
 #include <lib.h>
+#include <graphics.h>
 
 /** The minimum size for a non-null pipe buffer. */
 #define PIPE_MIN_BUFFER_SIZE 512
@@ -41,6 +45,10 @@ struct TPipeInternal {
      */
     size_t remainingBytes;
 };
+
+static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
+static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count);
+static int fdCloseHandler(TPid pid, int fd, void* resource);
 
 TPipe pipe_create() {
     TPipe pipe = mm_malloc(sizeof(struct TPipeInternal));
@@ -130,7 +138,16 @@ size_t pipe_getRemainingBytes(TPipe pipe) {
     return pipe->remainingBytes;
 }
 
-#include <graphics.h>
+int pipe_mapToProcessFd(TPipe pipe, TPid pid) {
+    int r = prc_mapFd(pid, pipe, &fdReadHandler, &fdWriteHandler, &fdCloseHandler);
+    if (r < 0)
+        return r;
+
+    // TODO: process tracking? "Who is using each pipe" so we know when to dispose them.
+
+    return r;
+}
+
 void pipe_printDebug(TPipe pipe) {
     scr_printChar('[');
     scr_printHex((uint64_t)pipe->buffer);
@@ -141,4 +158,22 @@ void pipe_printDebug(TPipe pipe) {
     scr_print(", ");
     scr_printDec(pipe->remainingBytes);
     scr_printChar(']');
+}
+
+static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count) {
+    // TPipe pipe = (TPipe) resource;
+    // TODO: Implement blocking read
+    return -1;
+}
+
+static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count) {
+    // TPipe pipe = (TPipe) resource;
+    // TODO: Implement blocking write
+    return -1;
+}
+
+static int fdCloseHandler(TPid pid, int fd, void* resource) {
+    // TPipe pipe = (TPipe) resource;
+    // TODO: process tracking? "Who is using each pipe" so we know when to dispose them.
+    return -1;
 }

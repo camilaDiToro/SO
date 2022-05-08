@@ -6,6 +6,9 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+/* Local headers */
+#include <process.h>
+
 typedef struct TPipeInternal* TPipe;
 
 /**
@@ -43,6 +46,14 @@ ssize_t pipe_read(TPipe pipe, void* buf, size_t count);
  * @brief Gets the amount of bytes available for reading through a pipe.
  */
 size_t pipe_getRemainingBytes(TPipe pipe);
+
+/**
+ * @brief Maps a pipe onto a process' I/O table.
+ *  
+ * @returns The file descriptor on which the pipe was mapped for the process,
+ * or -1 if an error occurred.
+ */
+int pipe_mapToProcessFd(TPipe pipe, TPid pid);
 
 void pipe_printDebug(TPipe pipe);
 
