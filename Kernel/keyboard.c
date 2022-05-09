@@ -110,8 +110,8 @@ void kbd_clearBuffer() {
     bufferSize = 0;
 }
 
-int kbd_mapToProcessFd(TPid pid) {
-    int r = prc_mapFd(pid, (void*)1, &fdReadHandler, NULL, &fdCloseHandler);
+int kbd_mapToProcessFd(TPid pid, int fd) {
+    int r = prc_mapFd(pid, fd, (void*)1, &fdReadHandler, NULL, &fdCloseHandler);
     if (r < 0)
         return r;
 

@@ -12,6 +12,7 @@
 #include <process.h>
 #include <scheduler.h>
 #include <keyboard.h>
+#include <systemCalls.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -58,9 +59,9 @@ int main() {
     // ((TProcessEntryPoint)sampleCodeModuleAddress)(0, NULL);
     TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
 
-    kbd_mapToProcessFd(pid); // Map STDIN
-    scr_mapToProcessFd(pid, &WHITE); // Map STDOUT
-    scr_mapToProcessFd(pid, &RED); // Map STDERR
+    kbd_mapToProcessFd(pid, STDIN); // Map STDIN
+    scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT
+    scr_mapToProcessFd(pid, STDERR, &RED); // Map STDERR
 
     sch_correrCucuruchitos(pid);
 

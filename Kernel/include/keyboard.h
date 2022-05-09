@@ -35,6 +35,6 @@ void kbd_clearBuffer();
  * @returns The file descriptor on which the keyboard was mapped for the
  * process, or -1 if an error occurred.
  */
-int kbd_mapToProcessFd(TPid pid);
+int kbd_mapToProcessFd(TPid pid, int fd);
 
 #endif

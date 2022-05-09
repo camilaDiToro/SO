@@ -59,11 +59,13 @@ int prc_kill(TPid pid);
 
 /**
  * @brief Maps a resource onto a process' I/O table. "resource" may not be NULL.
+ * A resource can be requested to be mapped to a specific fd (if available), or -1 to
+ * let the mapper decide.
  *
  * @returns The file descriptor on which the resource was mapped for the process,
  * or -1 if an error occurred.
  */
-int prc_mapFd(TPid pid, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler);
+int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler);
 
 /**
  * @brief Unmaps a file descriptor from a process' I/O table.

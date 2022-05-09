@@ -19,6 +19,8 @@ typedef struct color {
 
 /* From graphicMode.c */
 extern const TColor RED;
+extern const TColor GREEN;
+extern const TColor BLUE;
 extern const TColor WHITE;
 extern const TColor GRAY;
 extern const TColor BLACK;
@@ -43,6 +45,6 @@ void scr_restartCursor();
  * @returns The file descriptor on which the screen was mapped for the
  * process, or -1 if an error occurred.
  */
-int scr_mapToProcessFd(TPid pid, const TColor* color);
+int scr_mapToProcessFd(TPid pid, int fd, const TColor* color);
 
 #endif

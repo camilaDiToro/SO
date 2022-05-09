@@ -53,7 +53,7 @@ size_t pipe_getRemainingBytes(TPipe pipe);
  * @returns The file descriptor on which the pipe was mapped for the process,
  * or -1 if an error occurred.
  */
-int pipe_mapToProcessFd(TPipe pipe, TPid pid, int allowRead, int allowWrite);
+int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWrite);
 
 void pipe_printDebug(TPipe pipe);
 

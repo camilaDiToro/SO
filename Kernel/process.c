@@ -11,6 +11,7 @@
 #include <graphics.h>
 
 #define FD_TABLE_CHUNK_SIZE 8
+#define FD_TABLE_MAX_ENTRIES 64
 
 /**
  * @brief Defines an entry on a process' file descriptor table.
@@ -101,18 +102,30 @@ int prc_kill(TPid pid) {
     return 0;
 }
 
-int prc_mapFd(TPid pid, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler) {
+int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler) {
     TProcessContext* process;
     if (resource == NULL || !tryGetProcessFromPid(pid, &process))
         return -1;
 
-    // Look for the lowest available file descriptor.
-    int fd;
-    for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
+    if (fd < 0) {
+        // Look for the lowest available file descriptor.
+        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
 
-    // If no fd in the table is available, expand the table.
-    if (fd == process->fdTableSize) {
-        size_t newFdTableSize = process->fdTableSize + FD_TABLE_CHUNK_SIZE;
+    } else {
+        // Check that the requested fd is available.
+        if (fd < process->fdTableSize && process->fdTable[fd].resource != NULL)
+            return -1;
+    }
+
+    // If the table doesn't have enough space for this fd, expand it.
+    if (fd >= process->fdTableSize) {
+        size_t newFdTableSize = (process->fdTableSize + FD_TABLE_CHUNK_SIZE) / FD_TABLE_CHUNK_SIZE * FD_TABLE_CHUNK_SIZE;
+        if (newFdTableSize > FD_TABLE_MAX_ENTRIES)
+            newFdTableSize = FD_TABLE_MAX_ENTRIES;
+
+        if (fd >= newFdTableSize)
+            return -1;
+
         TFileDescriptorTableEntry* newFdTable = mm_realloc(process->fdTable, sizeof(TFileDescriptorTableEntry) * newFdTableSize);
         if (newFdTable == NULL)
             return -1;

@@ -46,6 +46,8 @@ struct vbe_mode_info_structure {
 } __attribute__((packed));
 
 const TColor RED = {0xFF, 0x00, 0x00};
+const TColor GREEN = {0x00, 0xFF, 0x00};
+const TColor BLUE = {0x00, 0x00, 0xFF};
 const TColor WHITE = {0xFF, 0xFF, 0xFF};
 const TColor GRAY = {0xAA, 0xAA, 0xAA};
 const TColor BLACK = {0x00, 0x00, 0x00};
@@ -218,9 +220,9 @@ static void scrollUp() {
     current_i -= 1;
 }
 
-int scr_mapToProcessFd(TPid pid, const TColor* color) {
+int scr_mapToProcessFd(TPid pid, int fd, const TColor* color) {
 
-    int r = prc_mapFd(pid, (void*) color, NULL, &fdWriteHandler, &fdCloseHandler);
+    int r = prc_mapFd(pid, fd, (void*) color, NULL, &fdWriteHandler, &fdCloseHandler);
     if (r < 0)
         return r;
 
