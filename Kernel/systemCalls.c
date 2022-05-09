@@ -10,33 +10,17 @@
 #include <time.h>
 #include <memoryManager.h>
 #include <lib.h>
+#include <process.h>
+#include <scheduler.h>
 
 typedef size_t (*TSyscallHandlerFunction)(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8);
 
-ssize_t sys_write_handler(int fd, const char* buffer, size_t size) {
-    if (buffer == 0 || size == 0 || fd > 2) {
-        return -1;
-    }
-
-    const TColor* col = ((fd == STDERR) ? &RED : &WHITE);
-    size_t i = 0;
-    while (i < size && buffer[i])
-        scr_printCharFormat(buffer[i++], col, &BLACK);
-
-    return i;
+ssize_t sys_write_handler(int fd, const char* buffer, size_t count) {
+    return prc_handleWriteFd(sch_getCurrentPID(), fd, buffer, count);
 }
 
-ssize_t sys_read_handler(int fd, char* buffer, size_t size) {
-    if (buffer == 0 || size == 0 || fd != 0)
-        return -1;
-
-    uint8_t i = 0;
-    int c;
-
-    while (i < size && ((c = kbd_getChar()) != -1))
-        buffer[i++] = c;
-
-    return i;
+ssize_t sys_read_handler(int fd, char* buffer, size_t count) {
+    return prc_handleReadFd(sch_getCurrentPID(), fd, buffer, count);
 }
 
 int sys_date_handler(char* buffer) {

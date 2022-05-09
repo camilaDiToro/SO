@@ -3,10 +3,12 @@
 
 /* Local headers */
 #include <keyboard.h>
+#include <process.h>
+#include <lib.h>
 
 #define LEFT_SHIFT 0x2A
 #define RIGHT_SHIFT 0x36
-#define BUFFER_LENGTH 256
+#define BUFFER_MAX_SIZE 256
 #define CAPTURE_REGISTERS '-'
 
 // libasm.asm
@@ -14,11 +16,10 @@ extern void save_registers();
 extern unsigned int kbd_readKey();
 
 static uint8_t keyMapRow = 0;
-static uint8_t buffer[BUFFER_LENGTH];
+static uint8_t buffer[BUFFER_MAX_SIZE];
 
-uint16_t buffer_start = 0;
-uint16_t buffer_end = 0;
-uint16_t buffer_current_size = 0;
+static uint16_t bufferStart = 0;
+static uint16_t bufferSize = 0;
 
 // Us International QWERTY
 // https://stanislavs.org/helppc/make_codes.html
@@ -46,49 +47,98 @@ static uint8_t scancodeUToAscii[] = {
 
 static uint8_t* keyMap[] = {scancodeLToAscii, scancodeUToAscii};
 
-static void addBuffer(uint8_t c) {
-
-    buffer[buffer_end++] = c;
-    buffer_current_size++;
-
-    if (buffer_end == BUFFER_LENGTH) {
-        buffer_end = 0;
-    }
-    return;
-}
+static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
+static int fdCloseHandler(TPid pid, int fd, void* resource);
 
 void kbd_interruptHandler() {
-
     unsigned char code = kbd_readKey();
     if (code < 0x80) { // Key pressed
         if (code == LEFT_SHIFT || code == RIGHT_SHIFT) {
             keyMapRow |= 0x01;
+        } else {
+            uint8_t keyChar = keyMap[keyMapRow][code];
+            if (keyChar == CAPTURE_REGISTERS) {
+                // Inforeg - if it's the special key that save registers
+                save_registers();
+            } else if (keyChar != 0 && bufferSize < BUFFER_MAX_SIZE) {
+                uint16_t bufferEnd = (bufferStart + bufferSize) % BUFFER_MAX_SIZE;
+                buffer[bufferEnd] = keyChar;
+                bufferSize++;
+            }
         }
-        // Inforeg - if it's the special key that save registers
-        else if (keyMap[keyMapRow][code] == CAPTURE_REGISTERS) {
-            save_registers();
-            return;
-        } else if (keyMap[keyMapRow][code] != 0) {
-            addBuffer(keyMap[keyMapRow][code]);
-        }
-
     } else { // Key released
         code -= 0x80;
         if (code == LEFT_SHIFT || code == RIGHT_SHIFT) {
             keyMapRow &= 0xFE;
         }
     }
-    return;
 }
 
-void kbd_clearBuffer() {
-    buffer_end = buffer_start = buffer_current_size = 0;
+unsigned int kbd_readChars(char* buf, unsigned int count) {
+    unsigned int charsToRead = bufferSize;
+    if (charsToRead > count)
+        charsToRead = count;
+
+    if (charsToRead == 0)
+        return 0;
+
+    unsigned int firstReadSize = BUFFER_MAX_SIZE - bufferStart;
+    if (firstReadSize > charsToRead)
+        firstReadSize = charsToRead;
+    memcpy(buf, buffer + bufferStart, firstReadSize);
+
+    if (firstReadSize < charsToRead)
+        memcpy(buf + firstReadSize, buffer, charsToRead - firstReadSize);
+
+    bufferSize -= charsToRead;
+    bufferStart = (bufferStart + charsToRead) % BUFFER_MAX_SIZE;
+    return charsToRead;
 }
 
 int kbd_getChar() {
-    if (buffer_current_size == 0)
+    if (bufferSize == 0)
         return -1;
 
-    buffer_current_size--;
-    return buffer[buffer_start++];
+    int c = buffer[bufferStart];
+    bufferSize--;
+    bufferStart = (bufferStart + 1) % BUFFER_MAX_SIZE;
+    return c;
+}
+
+void kbd_clearBuffer() {
+    bufferStart = 0;
+    bufferSize = 0;
+}
+
+int kbd_mapToProcessFd(TPid pid) {
+    int r = prc_mapFd(pid, (void*)1, &fdReadHandler, NULL, &fdCloseHandler);
+    if (r < 0)
+        return r;
+
+    // TODO: process tracking? "Who is using the keyboard" so we can print them?
+
+    return r;
+}
+
+static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count) {
+    // Only foreground processes are allowed to read from the keyboard.
+    if (!prc_isForeground(pid))
+        return -1;
+
+    if (count > BUFFER_MAX_SIZE)
+        count = BUFFER_MAX_SIZE;
+
+    // TODO:
+    /*int read;
+    while ((read = kbd_readChars(buf, count)) == 0)
+        sch_block(pid); // Unblock when a key is received
+    return read;*/
+
+    return kbd_readChars(buf, count);
+}
+
+static int fdCloseHandler(TPid pid, int fd, void* resource) {
+    // TODO: process tracking? "Who is using the keyboard" so we can print them?
+
+    return 0;
 }

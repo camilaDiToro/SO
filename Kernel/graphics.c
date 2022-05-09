@@ -47,6 +47,7 @@ struct vbe_mode_info_structure {
 
 const TColor RED = {0xFF, 0x00, 0x00};
 const TColor WHITE = {0xFF, 0xFF, 0xFF};
+const TColor GRAY = {0xAA, 0xAA, 0xAA};
 const TColor BLACK = {0x00, 0x00, 0x00};
 
 static uint8_t current_i, current_j;
@@ -58,6 +59,9 @@ static const struct vbe_mode_info_structure* graphicModeInfo = (struct vbe_mode_
 static void getNextPosition();
 static void checkSpace();
 static void scrollUp();
+
+static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count);
+static int fdCloseHandler(TPid pid, int fd, void* resource);
 
 static void* getPixelAddress(int i, int j) {
     return (void*)((size_t)graphicModeInfo->framebuffer + 3 * (graphicModeInfo->width * i + j));
@@ -212,4 +216,32 @@ static void scrollUp() {
         }
     }
     current_i -= 1;
+}
+
+int scr_mapToProcessFd(TPid pid, const TColor* color) {
+
+    int r = prc_mapFd(pid, (void*) color, NULL, &fdWriteHandler, &fdCloseHandler);
+    if (r < 0)
+        return r;
+
+    // TODO: process tracking? "Who is using the screen" so we can print them?
+
+    return r;
+}
+
+static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count) {
+    // Only foreground processes are allowed to write to the screen.
+    if (!prc_isForeground(pid))
+        return -1;
+
+    for (size_t i = 0; i < count; i++)
+        scr_printCharFormat(buf[i], (const TColor*) resource, &BLACK);
+
+    return count;
+}
+
+static int fdCloseHandler(TPid pid, int fd, void* resource) {
+    // TODO: process tracking? "Who is using the screen" so we can print them?
+
+    return 0;
 }

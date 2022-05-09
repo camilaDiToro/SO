@@ -11,6 +11,7 @@
 #include <memoryManager.h>
 #include <process.h>
 #include <scheduler.h>
+#include <keyboard.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -54,8 +55,15 @@ int main() {
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
     sch_init();
 
-    // prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
-    ((TProcessEntryPoint)sampleCodeModuleAddress)(0, NULL);
+    // ((TProcessEntryPoint)sampleCodeModuleAddress)(0, NULL);
+    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
+
+    kbd_mapToProcessFd(pid); // Map STDIN
+    scr_mapToProcessFd(pid, &WHITE); // Map STDOUT
+    scr_mapToProcessFd(pid, &RED); // Map STDERR
+
+    sch_correrCucuruchitos(pid);
+
 
     return 0;
 }

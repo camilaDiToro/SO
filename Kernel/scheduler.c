@@ -33,7 +33,7 @@ int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentR
     // Processes, by default, are created in the state READY.
     processStates[pid].priority = DEFAULT_PRIORITY;
     processStates[pid].status = READY;
-    processStates[pid].currentRSP = currentRSP;
+    processStates[pid].currentRSP = (void*) entryPoint; //currentRSP; // CHANGED FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
 
     // We believe that the scheduler should be in charge of pushing into
     // the stack the harcoded values that the process needs to start.
@@ -90,6 +90,14 @@ int sch_unblockProcess(TPid pid) {
 
 TPid sch_getCurrentPID() {
     return currentRunningProcessPID;
+}
+
+// THIS FUNCTION IS ONLY FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
+void sch_correrCucuruchitos(TPid pid) {
+    TProcessEntryPoint entryPoint = (void*) processStates[pid].currentRSP;
+
+    currentRunningProcessPID = pid;
+    entryPoint(0, NULL);
 }
 
 int sch_setProcessPriority(TPid pid, TPriority priority) {

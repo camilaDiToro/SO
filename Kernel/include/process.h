@@ -20,6 +20,7 @@ typedef int (*TProcessEntryPoint)(int argc, const char* argv[]);
 
 /**
  * @brief Represents a function that will handle a file descriptor read operation.
+ * Handlers need not check that the pid or fd is valid, or count being 0.
  *
  * @returns The amount of bytes read, or -1 if an error occurred.
  */
@@ -27,6 +28,7 @@ typedef ssize_t (*TFdReadHandler)(TPid pid, int fd, void* resource, char* buf, s
 
 /**
  * @brief Represents a function that will handle a file descriptor write operation.
+ * Handlers need not check that the pid or fd is valid, or count being 0.
  *
  * @returns The amount of bytes written, or -1 if an error occurred.
  */
@@ -34,6 +36,7 @@ typedef ssize_t (*TFdWriteHandler)(TPid pid, int fd, void* resource, const char*
 
 /**
  * @brief Represents a function that will handle a file descriptor close operation.
+ * Handlers need not check that the pid or fd is valid.
  *
  * @returns 0 if the operation succeeded.
  */
@@ -55,7 +58,7 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]);
 int prc_kill(TPid pid);
 
 /**
- * @brief Maps a resource onto a process' I/O table.
+ * @brief Maps a resource onto a process' I/O table. "resource" may not be NULL.
  *
  * @returns The file descriptor on which the resource was mapped for the process,
  * or -1 if an error occurred.
@@ -68,6 +71,21 @@ int prc_mapFd(TPid pid, void* resource, TFdReadHandler readHandler, TFdWriteHand
  * @returns 0 if the operation succeeded.
  */
 int prc_unmapFd(TPid pid, int fd);
+
+/**
+ * @brief Gets whether a process is in the background or foreground.
+ * 
+ * @returns 0 or 1 depending on whether the process is background or foreground
+ * respectively, or -1 if an error occurred.
+ */
+int prc_isForeground(TPid pid);
+
+/**
+ * @brief Sets whether a process is in the background or foreground.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int prc_setIsForeground(TPid pid, int isForeground);
 
 /**
  * @brief Handles a process' read operation from a file descriptor in its I/O table.

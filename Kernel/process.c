@@ -33,6 +33,8 @@ typedef struct {
     /** highest memory addres, where stack begins. */
     void* stackStart;
 
+    int isForeground;
+
     TFileDescriptorTableEntry* fdTable;
     unsigned int fdTableSize;
 } TProcessContext;
@@ -52,7 +54,7 @@ static int tryGetProcessFromPid(TPid pid, TProcessContext** outProcess) {
 TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
     // Crear un proceso, deberia crear su contexto y su stack, le avisa al sch que se QUIERE cargar un proceso
     // llamando a sch_onCreateProcess
-    int pid = 0;
+    TPid pid = 0;
     for (; pid < MAX_PROCESSES && processes[pid].stackEnd != NULL; pid++);
 
     if (pid == MAX_PROCESSES)
@@ -64,6 +66,7 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
         return -1;
 
     process->stackStart = process->stackEnd + PROCESS_STACK_SIZE;
+    process->isForeground = 1;
     process->fdTable = NULL;
     process->fdTableSize = 0;
 
@@ -147,12 +150,32 @@ static int handleUnmapFdUnchecked(TProcessContext* process, TPid pid, int fd) {
     return 0;
 }
 
+int prc_isForeground(TPid pid) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pid, &process))
+        return -1;
+
+    return process->isForeground;
+}
+
+int prc_setIsForeground(TPid pid, int isForeground) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pid, &process))
+        return -1;
+
+    return process->isForeground = (isForeground != 0);
+    return 0;
+}
+
 ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count) {
     TProcessContext* process;
     TFileDescriptorTableEntry* entry;
     if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd
         || (entry = &process->fdTable[fd])->resource == NULL || entry->readHandler == NULL)
         return -1;
+    
+    if (count == 0)
+        return 0;
 
     return entry->readHandler(pid, fd, entry->resource, buf, count);
 }
@@ -163,6 +186,9 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count) {
     if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd
         || (entry = &process->fdTable[fd])->resource == NULL || entry->writeHandler == NULL)
         return -1;
+    
+    if (count == 0)
+        return 0;
 
     return entry->writeHandler(pid, fd, entry->resource, buf, count);
 }

@@ -52,6 +52,9 @@ int sch_unblockProcess(TPid pid);
  */
 TPid sch_getCurrentPID();
 
+// THIS FUNCTION IS ONLY FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
+void sch_correrCucuruchitos(TPid pid);
+
 /**
  * @brief Sets a process' priority.
  *
