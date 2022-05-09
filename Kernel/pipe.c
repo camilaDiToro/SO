@@ -3,8 +3,6 @@
 #include <stddef.h>
 #include <sys/types.h>
 
-#include <string.h>
-
 /* Local headers */
 #include <pipe.h>
 #include <memoryManager.h>
@@ -138,8 +136,8 @@ size_t pipe_getRemainingBytes(TPipe pipe) {
     return pipe->remainingBytes;
 }
 
-int pipe_mapToProcessFd(TPipe pipe, TPid pid) {
-    int r = prc_mapFd(pid, pipe, &fdReadHandler, &fdWriteHandler, &fdCloseHandler);
+int pipe_mapToProcessFd(TPipe pipe, TPid pid, int allowRead, int allowWrite) {
+    int r = prc_mapFd(pid, pipe, allowRead ? &fdReadHandler : NULL, allowWrite ? &fdWriteHandler : NULL, &fdCloseHandler);
     if (r < 0)
         return r;
 
