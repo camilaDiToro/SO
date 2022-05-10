@@ -75,7 +75,7 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
 
     // TODO: Copy arguments onto the stack
 
-    sch_onProcessCreated(pid, entryPoint, currentRSP);
+    sch_onProcessCreated(pid, entryPoint, currentRSP, argc, argv);
 
     return pid;
 }

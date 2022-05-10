@@ -1,5 +1,6 @@
 GLOBAL cpuVendor
 GLOBAL save_registers
+GLOBAL _int20
 
 ; systemCalls.c
 EXTERN store_registers
@@ -35,4 +36,8 @@ save_registers:
 
     mov rsp, rbp
 	pop rbp
+	ret
+
+_int20:
+	int 20h
 	ret

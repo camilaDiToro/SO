@@ -15,6 +15,10 @@ typedef struct {
 } TProcessState;
 
 #define DEFAULT_PRIORITY 0
+#define MIN_PRIORITY 10
+#define MAX_PRIORITY -10
+
+extern void* _createProcessContext(int argc, const char* argv[], void * rsp, TProcessEntryPoint entryPoint);
 
 void sch_init();
 
@@ -23,7 +27,8 @@ void sch_init();
  *
  * @returns 0 if the operation succeeded.
  */
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP);
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* argv[]);
+
 
 /**
  * @brief Called by process.c whenever a process is being killed.

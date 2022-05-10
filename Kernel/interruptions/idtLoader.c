@@ -25,9 +25,6 @@ static void setup_IDT_entry(int index, uint64_t offset);
 
 void load_idt() {
 
-    // Disable interrupts
-    _cli();
-
     // Exceptions
     setup_IDT_entry(0x00, (uint64_t)&_exception0Handler);
     setup_IDT_entry(0x06, (uint64_t)&_exception6Handler);
@@ -45,8 +42,6 @@ void load_idt() {
     picMasterMask(0xFC);
     picSlaveMask(0xFF);
 
-    // Enable interrupts
-    _sti();
 }
 
 static void setup_IDT_entry(int index, uint64_t offset) {
