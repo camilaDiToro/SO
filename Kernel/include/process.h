@@ -20,7 +20,7 @@ typedef int (*TProcessEntryPoint)(int argc, const char* argv[]);
 
 /**
  * @brief Represents a function that will handle a file descriptor read operation.
- * Handlers need not check that the pid or fd is valid, or count being 0.
+ * Handlers need not check that the pid or fd is valid.
  *
  * @returns The amount of bytes read, or -1 if an error occurred.
  */
@@ -28,7 +28,7 @@ typedef ssize_t (*TFdReadHandler)(TPid pid, int fd, void* resource, char* buf, s
 
 /**
  * @brief Represents a function that will handle a file descriptor write operation.
- * Handlers need not check that the pid or fd is valid, or count being 0.
+ * Handlers need not check that the pid or fd is valid.
  *
  * @returns The amount of bytes written, or -1 if an error occurred.
  */

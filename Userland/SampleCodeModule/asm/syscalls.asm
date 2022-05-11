@@ -1,7 +1,7 @@
 GLOBAL sys_write
 GLOBAL sys_read
 GLOBAL sys_time
-GLOBAL sys_tick
+GLOBAL sys_close
 GLOBAL sys_clear
 GLOBAL sys_restartCursor
 GLOBAL sys_divide
@@ -29,7 +29,7 @@ sys_time:
     int 80h
     ret
 
-sys_tick:
+sys_close:
     mov rax, 3
     int 80h
     ret

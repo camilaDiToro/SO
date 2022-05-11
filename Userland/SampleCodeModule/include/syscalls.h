@@ -16,7 +16,7 @@ ssize_t sys_write(int fd, const char* buffer, size_t size);
 
 void sys_time(char* buffer);
 
-int sys_tick();
+int sys_close(int fd);
 
 void sys_clear();
 

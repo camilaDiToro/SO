@@ -33,14 +33,8 @@ int sys_time_handler(char* buffer) {
     return 0;
 }
 
-int sys_hasTicked_handler() {
-    static unsigned long last_tick = 0;
-    unsigned long current_tick = rtc_getElapsedTicks();
-    if (last_tick == current_tick)
-        return 0;
-
-    last_tick = current_tick;
-    return 1;
+int sys_close_handler(int fd) {
+    return prc_unmapFd(sch_getCurrentPID(), fd);
 }
 
 int sys_clearWindow_handler() {
@@ -119,7 +113,7 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /*  0 */ (TSyscallHandlerFunction) sys_read_handler,
     /*  1 */ (TSyscallHandlerFunction) sys_write_handler,
     /*  2 */ (TSyscallHandlerFunction) sys_time_handler,
-    /*  3 */ (TSyscallHandlerFunction) sys_hasTicked_handler,
+    /*  3 */ (TSyscallHandlerFunction) sys_close_handler,
     /*  4 */ (TSyscallHandlerFunction) sys_clearWindow_handler,
     /*  5 */ (TSyscallHandlerFunction) NULL,
     /*  6 */ (TSyscallHandlerFunction) NULL,

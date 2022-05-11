@@ -42,7 +42,14 @@ struct TPipeInternal {
      * The amount of bytes that are currently stored in this pipe's buffer.
      */
     size_t remainingBytes;
+
+    unsigned int readerFdCount, writerFdCount;
 };
+
+typedef struct {
+    TPipe pipe;
+    int allowRead, allowWrite;
+} TPipeFdMapping;
 
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count);
@@ -58,6 +65,8 @@ TPipe pipe_create() {
     pipe->bufferSize = 0;
     pipe->readOffset = 0;
     pipe->remainingBytes = 0;
+    pipe->readerFdCount = 0;
+    pipe->writerFdCount = 0;
     return pipe;
 }
 
@@ -132,16 +141,31 @@ ssize_t pipe_read(TPipe pipe, void* buf, size_t count) {
     return bytesToRead;
 }
 
-size_t pipe_getRemainingBytes(TPipe pipe) {
-    return pipe->remainingBytes;
-}
-
 int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWrite) {
-    int r = prc_mapFd(pid, fd, pipe, allowRead ? &fdReadHandler : NULL, allowWrite ? &fdWriteHandler : NULL, &fdCloseHandler);
-    if (r < 0)
-        return r;
+    TPipeFdMapping* mapping = mm_malloc(sizeof(TPipeFdMapping));
+    if (mapping == NULL)
+        return -1;
 
-    // TODO: process tracking? "Who is using each pipe" so we know when to dispose them.
+    int r = prc_mapFd(pid, fd, mapping, allowRead ? &fdReadHandler : NULL, allowWrite ? &fdWriteHandler : NULL, &fdCloseHandler);
+    if (r < 0) {
+        mm_free(mapping);
+        return r;
+    }
+
+    // Ensure these are a value of either 0 or 1.
+    allowRead = (allowRead != 0);
+    allowWrite = (allowWrite != 0);
+
+    // Fill in the mapping info to the struct.
+    mapping->pipe = pipe;
+    mapping->allowRead = allowRead;
+    mapping->allowWrite = allowWrite;
+
+    // Resource tracking.
+    // TODO: lockPipe(); // Should this be done in this function? Who's the calling PID? What if it's the kernel?
+    pipe->readerFdCount += allowRead;
+    pipe->writerFdCount += allowWrite;
+    // TODO: unlockPipe();
 
     return r;
 }
@@ -159,19 +183,83 @@ void pipe_printDebug(TPipe pipe) {
 }
 
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count) {
-    // TPipe pipe = (TPipe) resource;
-    // TODO: Implement blocking read
-    return -1;
+    TPipeFdMapping* mapping = (TPipeFdMapping*) resource;
+    TPipe pipe = mapping->pipe;
+
+    if (count == 0)
+        return 0;
+
+    // TODO: Implement blocking read.
+    // TODO: Make access to the TPipe struct mutually exclusive between processes.
+    // lockPipe(); // With a semaphore or somethin
+    ssize_t r;
+    while ((r = pipe_read(pipe, buf, count)) == 0 && pipe->writerFdCount != 0) {
+        // Add to queue of blocked
+        // unlockPipe();
+        // sch_block(pid);
+        // sch_ready(pidOtro);
+        // sch_yield(pid);
+        // lockPipe();
+    }
+
+    // If no bytes remain for reading and there are no writers, then "end of file" was reached.
+    // We can free the internal pipe's buffer to save memory.
+    if (pipe->buffer != NULL && pipe->writerFdCount == 0 && pipe->remainingBytes == 0) {
+        mm_free(pipe->buffer);
+        pipe->buffer = NULL;
+        pipe->bufferSize = 0;
+        // TODO: wake up all readers?
+    }
+
+    // unlockPipe();
+    return r;
 }
 
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count) {
-    // TPipe pipe = (TPipe) resource;
-    // TODO: Implement blocking write
-    return -1;
+    TPipeFdMapping* mapping = (TPipeFdMapping*) resource;
+    TPipe pipe = mapping->pipe;
+
+    if (count == 0)
+        return 0;
+
+    // TODO: Implement blocking write.
+    // TODO: Make access to the TPipe struct mutually exclusive between processes.
+    // lockPipe();
+    ssize_t r;
+    while ((r = pipe_write(pipe, buf, count)) == 0 && pipe->readerFdCount != 0) {
+        // Add to queue of blocked
+        // unlockPipe();
+        // sch_block(pid);
+        // sch_ready(pidOtro);
+        // sch_yield(pid);
+        // lockPipe();
+    }
+
+    // unlockPipe();
+    return r == 0 ? -1 : r;
 }
 
 static int fdCloseHandler(TPid pid, int fd, void* resource) {
-    // TPipe pipe = (TPipe) resource;
-    // TODO: process tracking? "Who is using each pipe" so we know when to dispose them.
-    return -1;
+    TPipeFdMapping* mapping = (TPipeFdMapping*) resource;
+    TPipe pipe = mapping->pipe;
+    // TODO: Make access to the TPipe struct mutually exclusive between processes.
+    // lockPipe();
+    pipe->readerFdCount -= mapping->allowRead;
+    pipe->writerFdCount -= mapping->allowWrite;
+    int result = mm_free(mapping);
+
+    if (pipe->readerFdCount == 0) {
+        if (pipe->writerFdCount == 0) {
+            // No more readers nor writers, fully dispose of the pipe.
+            return result + pipe_free(pipe);
+        } else {
+            // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
+            result += mm_free(pipe->buffer);
+            pipe->buffer = NULL;
+            pipe->bufferSize = 0;
+        }
+    }
+
+    // unlockPipe();
+    return result;
 }

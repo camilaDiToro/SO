@@ -43,11 +43,6 @@ ssize_t pipe_write(TPipe pipe, const void* buf, size_t count);
 ssize_t pipe_read(TPipe pipe, void* buf, size_t count);
 
 /**
- * @brief Gets the amount of bytes available for reading through a pipe.
- */
-size_t pipe_getRemainingBytes(TPipe pipe);
-
-/**
  * @brief Maps a pipe onto a process' I/O table.
  *  
  * @returns The file descriptor on which the pipe was mapped for the process,

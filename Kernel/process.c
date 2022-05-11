@@ -186,9 +186,6 @@ ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count) {
     if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd
         || (entry = &process->fdTable[fd])->resource == NULL || entry->readHandler == NULL)
         return -1;
-    
-    if (count == 0)
-        return 0;
 
     return entry->readHandler(pid, fd, entry->resource, buf, count);
 }
@@ -199,9 +196,6 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count) {
     if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd
         || (entry = &process->fdTable[fd])->resource == NULL || entry->writeHandler == NULL)
         return -1;
-    
-    if (count == 0)
-        return 0;
 
     return entry->writeHandler(pid, fd, entry->resource, buf, count);
 }

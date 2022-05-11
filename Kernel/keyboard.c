@@ -125,6 +125,9 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
     if (!prc_isForeground(pid))
         return -1;
 
+    if (count == 0)
+        return 0;
+
     if (count > BUFFER_MAX_SIZE)
         count = BUFFER_MAX_SIZE;
 
