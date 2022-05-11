@@ -20,6 +20,10 @@ typedef struct {
 
 extern void* _createProcessContext(int argc, const char* argv[], void * rsp, TProcessEntryPoint entryPoint);
 
+/**
+ * @brief Initialize Scheduler
+ * 
+ */
 void sch_init();
 
 /**
@@ -52,8 +56,9 @@ int sch_blockProcess(TPid pid);
 int sch_unblockProcess(TPid pid);
 
 /**
- * @brief Gets the PID of the currently-running or last was-running process,
- * or -1 if no process is currently running.
+ * @brief Gets the PID of the currently-running or last was-running process
+ * 
+ * @returns PID or -1 if no process is currently running.
  */
 TPid sch_getCurrentPID();
 
@@ -74,4 +79,16 @@ int sch_setProcessPriority(TPid pid, TPriority priority);
  */
 int sch_getProcessState(TPid pid, TProcessState* outState);
 
+/**
+ * @brief Decides which process to run next 
+ * 
+ * @param currentRSP RSP of the interrupted process
+ * @return RSP of the next process to run
+ */
 void* sch_switchProcess(void* currentRSP);
+
+/**
+ * @brief The process that is running voluntarily yields the CPU
+ * 
+ */
+void sch_yieldProcess();

@@ -8,7 +8,6 @@
 #define QUANTUM 4
 
 static TProcessState processStates[MAX_PROCESSES];
-
 static TPid currentRunningProcessPID = -1;
 static uint8_t quantums = 0;
 
@@ -22,6 +21,7 @@ static int is_valid_pid(TPid pid);
 static int is_ready(TPid pid);
 static int is_active(TPid pid);
 static int tryGetProcessState(TPid pid, TProcessState** outState);
+extern void _int20();
 
 static int tryGetProcessState(TPid pid, TProcessState** outState) {
     if (pid < 0 || pid >= MAX_PROCESSES || processStates[pid].currentRSP == NULL)
@@ -30,7 +30,6 @@ static int tryGetProcessState(TPid pid, TProcessState** outState) {
     *outState = &processStates[pid];
     return 1;
 }
-
 
 void sch_init() {
     currentRunningProcessPID = -1;
@@ -43,7 +42,7 @@ int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentR
     
     char * argvCopy = mm_malloc(sizeof(char*) * (argc + 1));
 
-    // TO DO: check if a deep copy is needed
+    // TO DO: Deep copy is needed. Scheduler must recieve the deep copy and the process must do it itself before calling onProccessCreated
     for(int i=0 ; i<argc ; ++i){
         argvCopy[i] = argv[i]; 
     }
@@ -109,14 +108,6 @@ TPid sch_getCurrentPID() {
     return currentRunningProcessPID;
 }
 
-// THIS FUNCTION IS ONLY FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
-void sch_correrCucuruchitos(TPid pid) {
-    TProcessEntryPoint entryPoint = (void*) processStates[pid].currentRSP;
-
-    currentRunningProcessPID = pid;
-    entryPoint(0, NULL);
-}
-
 int sch_setProcessPriority(TPid pid, TPriority priority) {
     TProcessState* processState;
     if (!tryGetProcessState(pid, &processState))
@@ -139,6 +130,14 @@ int sch_getProcessState(TPid pid, TProcessState* outState) {
 
     *outState = *processState;
     return 0;
+}
+
+void sch_yieldProcess(){
+    quantums = 0;
+
+    // TO DO: try to avoid ticking 
+    // Waiting for the next tick will result in busy waiting?
+    _int20();
 }
 
 static int is_valid_pid(TPid pid){
@@ -170,13 +169,11 @@ static TPid get_next_ready_pid(){
     return -1;
 }
 
-
-
 void* sch_switchProcess(void* currentRSP) {
 
     if(currentRunningProcessPID!=-1){
         processStates[currentRunningProcessPID].currentRSP = currentRSP;
-    }
+    } 
 
     if(!is_ready(currentRunningProcessPID) || quantums == 0){
         TPid newPid = get_next_ready_pid();
@@ -189,13 +186,6 @@ void* sch_switchProcess(void* currentRSP) {
     }else{
         quantums-=1;
     }
-    
-    /* Main idea:
-      Save running process currentStackPointer
-      Check if quantum has finished or there is another process with higher priority to preempt
-      Check process status
-      If we have to switch a process, we return the currentStackPointer of the other process.
-      If not, we return currentStackPointer.
-    */
+
     return processStates[currentRunningProcessPID].currentRSP;
 }

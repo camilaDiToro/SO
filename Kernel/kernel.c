@@ -21,10 +21,8 @@ extern uint8_t data;
 extern uint8_t bss;
 extern uint8_t endOfKernelBinary;
 extern uint8_t endOfKernel;
-extern void _int20();
 
 static const uint64_t PageSize = 0x1000;
-
 static void* const sampleCodeModuleAddress = (void*)0x400000;
 static void* const sampleDataModuleAddress = (void*)0x500000;
 static void* const startHeapAddres = (void*)0xF00000;
@@ -52,12 +50,13 @@ void* initializeKernelBinary() {
     return getStackBase();
 }
 
-/*
-void printA(){
-    while(1){
-        scr_print("A");
-    }
-}*/
+void initializeShell(){
+    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, (char *[]){ NULL });
+
+    kbd_mapToProcessFd(pid, STDIN); // Map STDIN
+    scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT
+    scr_mapToProcessFd(pid, STDERR, &RED); // Map STDERR
+}
 
 int main() {
 
@@ -69,26 +68,10 @@ int main() {
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
     sch_init();
 
-    // ((TProcessEntryPoint)sampleCodeModuleAddress)(0, NULL);
-    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, (char *[]){ NULL });
+    initializeShell();
 
-    kbd_mapToProcessFd(pid, STDIN); // Map STDIN
-    scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT
-    scr_mapToProcessFd(pid, STDERR, &RED); // Map STDERR
-/*
-    TPid pid2 = prc_create((TProcessEntryPoint)printA, 0, (char *[]){ NULL });
-
-    kbd_mapToProcessFd(pid2, STDIN); // Map STDIN
-    scr_mapToProcessFd(pid2, STDOUT, &WHITE); // Map STDOUT
-    scr_mapToProcessFd(pid2, STDERR, &RED); // Map STDERR
-*/
     // Enable interrupts
     _sti();
-
-    _int20();
-    
-    // sch_correrCucuruchitos(pid);
-
 
     return 0;
 }

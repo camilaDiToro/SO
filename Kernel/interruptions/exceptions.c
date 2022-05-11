@@ -2,6 +2,8 @@
 #include <graphics.h>
 #include <keyboard.h>
 #include <exceptions.h>
+#include <scheduler.h>
+#include <process.h>
 
 typedef void (*TException)(void);
 
@@ -9,10 +11,8 @@ static void zero_division();
 static void invalid_opcode();
 static void general_protection();
 static void page_fault();
-
 static void excepHandler(int exception, const char* msg);
 
-extern void give_control_to_user();
 extern void _hlt();
 
 static TException exceptions[] = {
@@ -32,18 +32,29 @@ void exceptionDispatcher(int exception) {
 }
 
 static void excepHandler(int exception, const char* msg) {
-    scr_print(msg);
-    scr_print(" (0x");
-    scr_printDec(exception);
-    scr_printChar(')');
-    scr_printLine();     
-    scr_print("Presione enter para continuar");
+    TPid pid = sch_getCurrentPID();
+    if (prc_isForeground(pid)) {
+        scr_print(msg);
+        scr_print(" (0x");
+        scr_printDec(exception);
+        scr_printChar(')');
+        scr_printLine();     
+        scr_print("Presione enter para continuar");
+    }
+
     int c;
     do {
         _hlt(); // halts the central processing unit until the next external interrupt is fired.
     } while ((c = kbd_getChar()) != '\n');
-    scr_clear();
-    give_control_to_user();
+
+    prc_kill(pid);
+
+    if(pid == 0){ // TO DO: check if shell PID is ALWAYS 0.
+        scr_clear();
+        initializeShell();
+    }
+
+    sch_yieldProcess();
 }
 
 static void zero_division() {
