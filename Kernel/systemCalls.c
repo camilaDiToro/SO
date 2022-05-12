@@ -38,7 +38,7 @@ int sys_close_handler(int fd) {
     return prc_unmapFd(sch_getCurrentPID(), fd);
 }
 
-int sys_clearWindow_handler() {
+int sys_clearScreen_handler() {
     scr_clear();
     return 0;
 }
@@ -130,25 +130,53 @@ int sys_pipe_handler(int pipefd[2]) {
     return 0;
 }
 
+int sys_killProcess_handler(TPid pid){
+    return prc_kill(pid);
+}
+
+int sys_blockProcess_handler(TPid pid){
+    return sch_blockProcess(pid);
+}
+
+int sys_unblockProcess_handler(TPid pid){
+    return sch_unblockProcess(pid);
+}
+
+TPid sys_createProcess_handler(TProcessEntryPoint entryPoint, int argc, const char* argv[]){
+    return prc_create(entryPoint, argc, argv);
+}
+
+void sys_yieldProcess_handler(){
+    sch_yieldProcess();
+}
+
+TPid sys_getCurrentPid_handler(){
+    return sch_getCurrentPID();
+}
+
+int sys_setProcessPriority_handler(TPid pid, TPriority priority){
+    return sch_setProcessPriority(pid, priority);
+}
+
 static TSyscallHandlerFunction syscallHandlers[] = {
 /* 0x00 */ (TSyscallHandlerFunction) sys_read_handler,
 /* 0x01 */ (TSyscallHandlerFunction) sys_write_handler,
 /* 0x02 */ (TSyscallHandlerFunction) sys_time_handler,
 /* 0x03 */ (TSyscallHandlerFunction) sys_close_handler,
-/* 0x04 */ (TSyscallHandlerFunction) sys_clearWindow_handler,
-/* 0x05 */ (TSyscallHandlerFunction) NULL,
-/* 0x06 */ (TSyscallHandlerFunction) NULL,
-/* 0x07 */ (TSyscallHandlerFunction) NULL,
+/* 0x04 */ (TSyscallHandlerFunction) sys_clearScreen_handler,
+/* 0x05 */ (TSyscallHandlerFunction) sys_killProcess_handler,
+/* 0x06 */ (TSyscallHandlerFunction) sys_blockProcess_handler,
+/* 0x07 */ (TSyscallHandlerFunction) sys_unblockProcess_handler,
 /* 0x08 */ (TSyscallHandlerFunction) sys_printmem_handler,
-/* 0x09 */ (TSyscallHandlerFunction) NULL,
+/* 0x09 */ (TSyscallHandlerFunction) sys_createProcess_handler,
 /* 0x0A */ (TSyscallHandlerFunction) sys_date_handler,
 /* 0x0B */ (TSyscallHandlerFunction) sys_infoReg_handler,
 /* 0x0C */ (TSyscallHandlerFunction) sys_malloc_handler,
 /* 0x0D */ (TSyscallHandlerFunction) sys_free_handler,
 /* 0x0E */ (TSyscallHandlerFunction) sys_realloc_handler,
-/* 0x0F */ (TSyscallHandlerFunction) NULL,
-/* 0x10 */ (TSyscallHandlerFunction) NULL,
-/* 0x11 */ (TSyscallHandlerFunction) NULL,
+/* 0x0F */ (TSyscallHandlerFunction) sys_yieldProcess_handler,
+/* 0x10 */ (TSyscallHandlerFunction) sys_getCurrentPid_handler,
+/* 0x11 */ (TSyscallHandlerFunction) sys_setProcessPriority_handler,
 /* 0x12 */ (TSyscallHandlerFunction) NULL,
 /* 0x13 */ (TSyscallHandlerFunction) NULL,
 /* 0x14 */ (TSyscallHandlerFunction) NULL,
