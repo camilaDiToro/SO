@@ -2,7 +2,6 @@
 #define _SYSCALLS_H_
 
 /* Standard library */
-#include <stdint.h>
 #include <stddef.h>
 #include <sys/types.h>
 
@@ -31,5 +30,7 @@ void* sys_malloc(size_t size);
 int sys_free(void* ptr);
 
 void* sys_realloc(void* ptr, size_t size);
+
+int sys_pipe(int pipefd[2]);
 
 #endif

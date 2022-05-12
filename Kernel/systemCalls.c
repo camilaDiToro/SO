@@ -12,6 +12,7 @@
 #include <lib.h>
 #include <process.h>
 #include <scheduler.h>
+#include <pipe.h>
 
 typedef size_t (*TSyscallHandlerFunction)(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8);
 
@@ -109,22 +110,50 @@ void* sys_realloc_handler(void* ptr, size_t size) {
     return mm_realloc(ptr, size);
 }
 
+int sys_pipe_handler(int pipefd[2]) {
+    TPid pid = sch_getCurrentPID();
+
+    TPipe pipe;
+    int readFd = -1, writeFd = -1;
+
+    if ((pipe = pipe_create()) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0
+        || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
+        if (pipe != NULL)
+            pipe_free(pipe);
+        if (readFd >= 0)
+            prc_unmapFd(pid, readFd);
+        return 1;
+    }
+
+    pipefd[0] = readFd;
+    pipefd[1] = writeFd;
+    return 0;
+}
+
 static TSyscallHandlerFunction syscallHandlers[] = {
-    /*  0 */ (TSyscallHandlerFunction) sys_read_handler,
-    /*  1 */ (TSyscallHandlerFunction) sys_write_handler,
-    /*  2 */ (TSyscallHandlerFunction) sys_time_handler,
-    /*  3 */ (TSyscallHandlerFunction) sys_close_handler,
-    /*  4 */ (TSyscallHandlerFunction) sys_clearWindow_handler,
-    /*  5 */ (TSyscallHandlerFunction) NULL,
-    /*  6 */ (TSyscallHandlerFunction) NULL,
-    /*  7 */ (TSyscallHandlerFunction) NULL,
-    /*  8 */ (TSyscallHandlerFunction) sys_printmem_handler,
-    /*  9 */ (TSyscallHandlerFunction) NULL,
-    /* 10 */ (TSyscallHandlerFunction) sys_date_handler,
-    /* 11 */ (TSyscallHandlerFunction) sys_infoReg_handler,
-    /* 12 */ (TSyscallHandlerFunction) sys_malloc_handler,
-    /* 13 */ (TSyscallHandlerFunction) sys_free_handler,
-    /* 14 */ (TSyscallHandlerFunction) sys_realloc_handler
+/* 0x00 */ (TSyscallHandlerFunction) sys_read_handler,
+/* 0x01 */ (TSyscallHandlerFunction) sys_write_handler,
+/* 0x02 */ (TSyscallHandlerFunction) sys_time_handler,
+/* 0x03 */ (TSyscallHandlerFunction) sys_close_handler,
+/* 0x04 */ (TSyscallHandlerFunction) sys_clearWindow_handler,
+/* 0x05 */ (TSyscallHandlerFunction) NULL,
+/* 0x06 */ (TSyscallHandlerFunction) NULL,
+/* 0x07 */ (TSyscallHandlerFunction) NULL,
+/* 0x08 */ (TSyscallHandlerFunction) sys_printmem_handler,
+/* 0x09 */ (TSyscallHandlerFunction) NULL,
+/* 0x0A */ (TSyscallHandlerFunction) sys_date_handler,
+/* 0x0B */ (TSyscallHandlerFunction) sys_infoReg_handler,
+/* 0x0C */ (TSyscallHandlerFunction) sys_malloc_handler,
+/* 0x0D */ (TSyscallHandlerFunction) sys_free_handler,
+/* 0x0E */ (TSyscallHandlerFunction) sys_realloc_handler,
+/* 0x0F */ (TSyscallHandlerFunction) NULL,
+/* 0x10 */ (TSyscallHandlerFunction) NULL,
+/* 0x11 */ (TSyscallHandlerFunction) NULL,
+/* 0x12 */ (TSyscallHandlerFunction) NULL,
+/* 0x13 */ (TSyscallHandlerFunction) NULL,
+/* 0x14 */ (TSyscallHandlerFunction) NULL,
+/* 0x15 */ (TSyscallHandlerFunction) NULL,
+/* 0x16 */ (TSyscallHandlerFunction) sys_pipe_handler
 };
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {
