@@ -9,6 +9,8 @@
 #include <pipe.h>
 #include <scheduler.h>
 #include <graphics.h>
+#include <lib.h>
+#include <string.h>
 
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
@@ -38,6 +40,9 @@ typedef struct {
 
     TFileDescriptorTableEntry* fdTable;
     unsigned int fdTableSize;
+
+    char** argv;
+    int argc;
 } TProcessContext;
 
 static TProcessContext processes[MAX_PROCESSES];
@@ -53,8 +58,6 @@ static int tryGetProcessFromPid(TPid pid, TProcessContext** outProcess) {
 }
 
 TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
-    // Crear un proceso, deberia crear su contexto y su stack, le avisa al sch que se QUIERE cargar un proceso
-    // llamando a sch_onCreateProcess
     TPid pid = 0;
     for (; pid < MAX_PROCESSES && processes[pid].stackEnd != NULL; pid++);
 
@@ -73,9 +76,16 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
 
     void* currentRSP = process->stackStart;
 
-    // TODO: Copy arguments onto the stack
-
-    sch_onProcessCreated(pid, entryPoint, currentRSP, argc, argv);
+    char** argvCopy = mm_malloc(sizeof(char *) * argc);
+    for(int i = 0; i < argc; ++i)
+    {
+        size_t length = strlen(argv[i])+1;
+        argvCopy[i] = mm_malloc(length);
+        memcpy(argvCopy[i], argv[i], length);
+    }
+    process->argc = argc;
+    process->argv = argvCopy;
+    sch_onProcessCreated(pid, entryPoint, currentRSP, argc, argvCopy);
 
     return pid;
 }
@@ -92,6 +102,10 @@ int prc_kill(TPid pid) {
 
     sch_onProcessKilled(pid);
 
+    for (int i = 0; i < process->argc; i++){
+        mm_free(process->argv[i]);
+    }
+    mm_free(process->argv);
     mm_free(process->stackEnd);
     mm_free(process->fdTable);
     process->stackEnd = NULL;

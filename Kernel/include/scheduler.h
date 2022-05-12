@@ -70,7 +70,7 @@ void sch_correrCucuruchitos(TPid pid);
  *
  * @returns 0 if the operation succeeded.
  */
-int sch_setProcessPriority(TPid pid, TPriority priority);
+int sch_setProcessPriority(TPid pid, TPriority newPriority);
 
 /**
  * @brief Gets a process' state information, containing it's priority, status, and stack pointer.

@@ -11,17 +11,13 @@ static TProcessState processStates[MAX_PROCESSES];
 static TPid currentRunningProcessPID = -1;
 static uint8_t quantums = 0;
 
-// Suggested - implement the structure you think that fits better.
-// This array stores pointers to the ready processes using as idx their pid
-// An array is a good idea JUST if there is a small qty of processes (which is the case we are having now)
-// A list would be a better solution if the MAX_PROCESS_QTY was a bigger number
-// static TPid readyProcesses[MAX_PROCESSES];
-
 static int is_valid_pid(TPid pid);
 static int is_ready(TPid pid);
 static int is_active(TPid pid);
 static int tryGetProcessState(TPid pid, TProcessState** outState);
+static void haltUntilNextProcessReady();
 extern void _int20();
+extern void _hlt();
 
 static int tryGetProcessState(TPid pid, TProcessState** outState) {
     if (pid < 0 || pid >= MAX_PROCESSES || processStates[pid].currentRSP == NULL)
@@ -33,27 +29,14 @@ static int tryGetProcessState(TPid pid, TProcessState** outState) {
 
 void sch_init() {
     currentRunningProcessPID = -1;
+    quantums = 0;
 }
 
 int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* argv[]) {
     // Processes, by default, are created in the state READY.
     processStates[pid].priority = DEFAULT_PRIORITY;
     processStates[pid].status = READY;
-    
-    char * argvCopy = mm_malloc(sizeof(char*) * (argc + 1));
-
-    // TO DO: Deep copy is needed. Scheduler must recieve the deep copy and the process must do it itself before calling onProccessCreated
-    for(int i=0 ; i<argc ; ++i){
-        argvCopy[i] = argv[i]; 
-    }
-    
-    argvCopy[argc] = NULL;
-
-    processStates[pid].currentRSP = _createProcessContext(argc, argvCopy, currentRSP, entryPoint);
-
-    
-    //TO DO: make sure the argvCopy is freed when the process is killed
-
+    processStates[pid].currentRSP = _createProcessContext(argc, argv, currentRSP, entryPoint);
     return 0;
 }
 
@@ -62,14 +45,14 @@ int sch_onProcessKilled(TPid pid) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
+    if (processState->status == KILLED)
+        return 0;
+
     processState->status = KILLED;
     processState->currentRSP = NULL;
 
     if (currentRunningProcessPID == pid)
         currentRunningProcessPID = -1;
-
-    // TODO: Handle whatever the fuck you gotta handle
-    // (keep in mind; what if the pid killed is currentRunningProcessPID?)
 
     return 0;
 }
@@ -81,12 +64,13 @@ int sch_blockProcess(TPid pid) {
 
     if (processState->status == BLOCKED)
         return 0;
-
+    
     processState->status = BLOCKED;
 
-    // TODO: Whatever else is necessary (e.g. remove from round robin queue)
+    if (currentRunningProcessPID == pid)
+        quantums = 0;
 
-    return 0;
+        return 0;
 }
 
 int sch_unblockProcess(TPid pid) {
@@ -99,8 +83,6 @@ int sch_unblockProcess(TPid pid) {
 
     processState->status = READY;
 
-    // TODO: Whatever else is necessary (e.g. add to round robin queue)
-
     return 0;
 }
 
@@ -108,17 +90,18 @@ TPid sch_getCurrentPID() {
     return currentRunningProcessPID;
 }
 
-int sch_setProcessPriority(TPid pid, TPriority priority) {
+int sch_setProcessPriority(TPid pid, TPriority newPriority) {
     TProcessState* processState;
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
-    if (processState->priority == priority)
+    if(newPriority < MAX_PRIORITY || newPriority > MIN_PRIORITY)
+        return 1;
+
+    if (processState->priority == newPriority)
         return 0;
 
-    processState->priority = priority;
-
-    // TODO: Whatever else is necessary (e.g. move between round robin queues)
+    processState->priority = newPriority;
 
     return 0;
 }
@@ -152,7 +135,6 @@ static int is_ready(TPid pid){
     return is_active(pid) && processStates[pid].status == READY;
 }
 
-
 static int get_quantums(TPid pid){
     return MIN_PRIORITY - processStates[pid].priority;
 }
@@ -169,6 +151,12 @@ static TPid get_next_ready_pid(){
     return -1;
 }
 
+static void haltUntilNextProcessReady(){
+    while(get_next_ready_pid() == -1){
+        _hlt();
+    }
+}
+
 void* sch_switchProcess(void* currentRSP) {
 
     if(currentRunningProcessPID!=-1){
@@ -178,8 +166,8 @@ void* sch_switchProcess(void* currentRSP) {
     if(!is_ready(currentRunningProcessPID) || quantums == 0){
         TPid newPid = get_next_ready_pid();
         if(newPid == -1){
-            // no ready process available, decide what to do
-        }else{
+            haltUntilNextProcessReady();
+        } else {
             quantums = get_quantums(newPid);
             currentRunningProcessPID = newPid;
         }
