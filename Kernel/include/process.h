@@ -22,13 +22,6 @@ typedef struct {
 } TProcessInfo;
 
 /**
- * @brief Represents a process' entrypoint function.
- *
- * @returns The process' exit code.
- */
-typedef int (*TProcessEntryPoint)(int argc, const char* argv[]);
-
-/**
  * @brief Represents a function that will handle a file descriptor read operation.
  * Handlers need not check that the pid or fd is valid.
  *

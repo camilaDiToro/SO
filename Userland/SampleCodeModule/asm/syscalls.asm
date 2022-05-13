@@ -15,7 +15,7 @@ GLOBAL sys_block
 GLOBAL sys_unblock
 GLOBAL sys_create
 GLOBAL sys_yield
-GLOBAL sys_pid
+GLOBAL sys_getPid
 GLOBAL sys_nice
 GLOBAL sys_exit
 
@@ -99,17 +99,17 @@ sys_yield:
     int 80h 
     ret
 
-sys_pid
+sys_getPid:
     mov rax, 0x10
     int 80h
     ret
 
-sys_nice
+sys_nice:
     mov rax, 0x11
     int 80h
     ret
 
-sys_exit
+sys_exit:
     mov rax, 0x12
     int 80h
     ret
