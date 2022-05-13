@@ -4,12 +4,6 @@
 /* Local headers */
 #include <lib.h>
 
-size_t strlen(const char* s) {
-    size_t l;
-    for (l = 0; *s != 0; s++, l++);
-    return l;
-}
-
 void* memset(void* destination, int32_t c, size_t length) {
     uint8_t chr = (uint8_t)c;
     char* dst = (char*)destination;
