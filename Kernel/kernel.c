@@ -14,6 +14,8 @@
 #include <scheduler.h>
 #include <keyboard.h>
 #include <systemCalls.h>
+#include <kernelTypes.h>
+#include <kernel.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -41,7 +43,8 @@ void* getStackBase() {
 void* initializeKernelBinary() {
     void* moduleAddresses[] = {
         sampleCodeModuleAddress,
-        sampleDataModuleAddress};
+        sampleDataModuleAddress
+    };
 
     loadModules(&endOfKernelBinary, moduleAddresses);
 
@@ -50,12 +53,13 @@ void* initializeKernelBinary() {
     return getStackBase();
 }
 
-void initializeShell(){
-    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, (char *[]){ NULL });
+void initializeShell() {
+    const char* args[] = {NULL};
+    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, args);
 
-    kbd_mapToProcessFd(pid, STDIN); // Map STDIN
+    kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
     scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT
-    scr_mapToProcessFd(pid, STDERR, &RED); // Map STDERR
+    scr_mapToProcessFd(pid, STDERR, &RED);   // Map STDERR
 }
 
 int main() {

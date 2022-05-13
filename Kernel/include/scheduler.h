@@ -1,12 +1,12 @@
+#ifndef _SCHEDULER_H_
+#define _SCHEDULER_H_
+
 /* Standard library */
 #include <stdint.h>
 
 /* Local headers */
+#include <kernelTypes.h>
 #include <process.h>
-
-typedef enum status { READY = 0, BLOCKED, KILLED } TProcessStatus;
-
-typedef int8_t TPriority;
 
 typedef struct {
     TPriority priority;
@@ -18,11 +18,9 @@ typedef struct {
 #define MIN_PRIORITY 10
 #define MAX_PRIORITY -10
 
-extern void* _createProcessContext(int argc, const char* argv[], void * rsp, TProcessEntryPoint entryPoint);
-
 /**
  * @brief Initialize Scheduler
- * 
+ *
  */
 void sch_init();
 
@@ -31,8 +29,7 @@ void sch_init();
  *
  * @returns 0 if the operation succeeded.
  */
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* argv[]);
-
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* const argv[]);
 
 /**
  * @brief Called by process.c whenever a process is being killed.
@@ -57,7 +54,7 @@ int sch_unblockProcess(TPid pid);
 
 /**
  * @brief Gets the PID of the currently-running or last was-running process
- * 
+ *
  * @returns PID or -1 if no process is currently running.
  */
 TPid sch_getCurrentPID();
@@ -80,8 +77,8 @@ int sch_setProcessPriority(TPid pid, TPriority newPriority);
 int sch_getProcessState(TPid pid, TProcessState* outState);
 
 /**
- * @brief Decides which process to run next 
- * 
+ * @brief Decides which process to run next
+ *
  * @param currentRSP RSP of the interrupted process
  * @return RSP of the next process to run
  */
@@ -89,6 +86,14 @@ void* sch_switchProcess(void* currentRSP);
 
 /**
  * @brief The process that is running voluntarily yields the CPU
- * 
+ *
  */
 void sch_yieldProcess();
+
+/**
+ * @brief Loads the scheduler info of the process with the indicated @param pid in the @param array recibed as paramenter, at the index @param idx.
+ *
+ */
+void sch_loadProcessInfo(TProcessInfo* array, int pid, int idx);
+
+#endif

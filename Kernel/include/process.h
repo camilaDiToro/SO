@@ -6,10 +6,20 @@
 #include <stddef.h>
 #include <sys/types.h>
 
+/* Local headers */
+#include <kernelTypes.h>
+
 #define PROCESS_STACK_SIZE 4096
 #define MAX_PROCESSES 16
 
-typedef int TPid;
+typedef struct {
+    void* stackStart;
+    TPid pid;
+    int isForeground;
+    TPriority priority;
+    TProcessStatus status;
+    void* currentRSP;
+} TProcessInfo;
 
 /**
  * @brief Represents a process' entrypoint function.
@@ -47,7 +57,7 @@ typedef int (*TFdCloseHandler)(TPid pid, int fd, void* resource);
  *
  * @returns The newly created TProcess, or NULL if process creation failed.
  */
-TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]);
+TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
 
 /**
  * @brief Kills a process and frees associated resources. Using a process after
@@ -76,7 +86,7 @@ int prc_unmapFd(TPid pid, int fd);
 
 /**
  * @brief Gets whether a process is in the background or foreground.
- * 
+ *
  * @returns 0 or 1 depending on whether the process is background or foreground
  * respectively, or -1 if an error occurred.
  */
@@ -84,7 +94,7 @@ int prc_isForeground(TPid pid);
 
 /**
  * @brief Sets whether a process is in the background or foreground.
- * 
+ *
  * @returns 0 if the operation succeeded.
  */
 int prc_setIsForeground(TPid pid, int isForeground);
@@ -102,5 +112,12 @@ ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count);
  * @returns The amount of bytes written, or -1 if an error occurred.
  */
 ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count);
+
+/**
+ *
+ *
+ *
+ */
+uint8_t prc_listProcesses(TProcessInfo* vec, uint8_t maxProceses);
 
 #endif

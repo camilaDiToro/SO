@@ -3,7 +3,7 @@
 #include <time.h>
 #include <graphics.h>
 #include <memoryManager.h>
-#include <process.h>
+#include <interrupts.h>
 
 #define QUANTUM 4
 
@@ -11,44 +11,45 @@ static TProcessState processStates[MAX_PROCESSES];
 static TPid currentRunningProcessPID = -1;
 static uint8_t quantums = 0;
 
+extern void* _createProcessContext(int argc, const char* const argv[], void* rsp, TProcessEntryPoint entryPoint);
+
 static int isValidPid(TPid pid);
 static int isReady(TPid pid);
 static int isActive(TPid pid);
 static int tryGetProcessState(TPid pid, TProcessState** outState);
 static void haltUntilNextProcessReady();
 extern void _int20();
-extern void _hlt();
 
-static int isValidPid(TPid pid){
-    return pid >=0 && pid<MAX_PROCESSES;
+static int isValidPid(TPid pid) {
+    return pid >= 0 && pid < MAX_PROCESSES;
 }
 
-static int isActive(TPid pid){
-    return isValidPid(pid) && processStates[pid].currentRSP!=NULL;
+static int isActive(TPid pid) {
+    return isValidPid(pid) && processStates[pid].currentRSP != NULL;
 }
 
-static int isReady(TPid pid){
+static int isReady(TPid pid) {
     return isActive(pid) && processStates[pid].status == READY;
 }
 
-static int getQuantums(TPid pid){
+static int getQuantums(TPid pid) {
     return MIN_PRIORITY - processStates[pid].priority;
 }
 
-static TPid getNextReadyPid(){
+static TPid getNextReadyPid() {
     TPid next = currentRunningProcessPID;
 
-    do{
-        next = (next + 1)%MAX_PROCESSES;
-        if(isReady(next)){
+    do {
+        next = (next + 1) % MAX_PROCESSES;
+        if (isReady(next)) {
             return next;
         }
-    }while(next!=currentRunningProcessPID);
+    } while (next != currentRunningProcessPID);
     return -1;
 }
 
-static void haltUntilNextProcessReady(){
-    while(getNextReadyPid() == -1){
+static void haltUntilNextProcessReady() {
+    while (getNextReadyPid() == -1) {
         _hlt();
     }
 }
@@ -66,7 +67,7 @@ void sch_init() {
     quantums = 0;
 }
 
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* argv[]) {
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* const argv[]) {
     // Processes, by default, are created in the state READY.
     processStates[pid].priority = DEFAULT_PRIORITY;
     processStates[pid].status = READY;
@@ -98,13 +99,13 @@ int sch_blockProcess(TPid pid) {
 
     if (processState->status == BLOCKED)
         return 0;
-    
+
     processState->status = BLOCKED;
 
     if (currentRunningProcessPID == pid)
         quantums = 0;
 
-        return 0;
+    return 0;
 }
 
 int sch_unblockProcess(TPid pid) {
@@ -129,7 +130,7 @@ int sch_setProcessPriority(TPid pid, TPriority newPriority) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
-    if(newPriority < MAX_PRIORITY || newPriority > MIN_PRIORITY)
+    if (newPriority < MAX_PRIORITY || newPriority > MIN_PRIORITY)
         return 1;
 
     if (processState->priority == newPriority)
@@ -149,31 +150,37 @@ int sch_getProcessState(TPid pid, TProcessState* outState) {
     return 0;
 }
 
-void sch_yieldProcess(){
+void sch_yieldProcess() {
     quantums = 0;
 
-    // TO DO: try to avoid ticking 
+    // TO DO: try to avoid ticking
     // Waiting for the next tick will result in busy waiting?
     _int20();
 }
 
 void* sch_switchProcess(void* currentRSP) {
 
-    if(currentRunningProcessPID!=-1){
+    if (currentRunningProcessPID != -1) {
         processStates[currentRunningProcessPID].currentRSP = currentRSP;
-    } 
+    }
 
-    if(!isReady(currentRunningProcessPID) || quantums == 0){
+    if (!isReady(currentRunningProcessPID) || quantums == 0) {
         TPid newPid = getNextReadyPid();
-        if(newPid == -1){
+        if (newPid == -1) {
             haltUntilNextProcessReady();
         } else {
             quantums = getQuantums(newPid);
             currentRunningProcessPID = newPid;
         }
-    }else{
-        quantums-=1;
+    } else {
+        quantums -= 1;
     }
 
     return processStates[currentRunningProcessPID].currentRSP;
+}
+
+void sch_loadProcessInfo(TProcessInfo* array, int pid, int idx) {
+    array[idx].currentRSP = processStates[pid].currentRSP;
+    array[idx].status = processStates[pid].status;
+    array[idx].priority = processStates[pid].priority;
 }

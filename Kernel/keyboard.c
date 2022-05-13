@@ -3,7 +3,6 @@
 
 /* Local headers */
 #include <keyboard.h>
-#include <process.h>
 #include <lib.h>
 
 #define LEFT_SHIFT 0x2A

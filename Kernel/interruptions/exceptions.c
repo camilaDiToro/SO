@@ -4,6 +4,8 @@
 #include <exceptions.h>
 #include <scheduler.h>
 #include <process.h>
+#include <kernel.h>
+#include <interrupts.h>
 
 typedef void (*TException)(void);
 
@@ -13,13 +15,11 @@ static void general_protection();
 static void page_fault();
 static void excepHandler(int exception, const char* msg);
 
-extern void _hlt();
-
 static TException exceptions[] = {
-/* 0x00 */ &zero_division, 0, 0, 0, 0, 0,
-/* 0x06 */ &invalid_opcode, 0, 0, 0, 0, 0, 0,
-/* 0x0D */ &general_protection,
-/* 0x0E */ &page_fault
+    /* 0x00 */ &zero_division, 0, 0, 0, 0, 0,
+    /* 0x06 */ &invalid_opcode, 0, 0, 0, 0, 0, 0,
+    /* 0x0D */ &general_protection,
+    /* 0x0E */ &page_fault
 };
 
 void exceptionDispatcher(int exception) {
@@ -28,7 +28,7 @@ void exceptionDispatcher(int exception) {
         excepHandler(exception, "Unknown exception");
     } else {
         ex();
-    }   
+    }
 }
 
 static void excepHandler(int exception, const char* msg) {
@@ -38,7 +38,7 @@ static void excepHandler(int exception, const char* msg) {
         scr_print(" (0x");
         scr_printDec(exception);
         scr_printChar(')');
-        scr_printLine();     
+        scr_printLine();
         scr_print("Presione enter para continuar");
     }
 
@@ -46,10 +46,11 @@ static void excepHandler(int exception, const char* msg) {
     do {
         _hlt(); // halts the central processing unit until the next external interrupt is fired.
     } while ((c = kbd_getChar()) != '\n');
+    _cli();
 
     prc_kill(pid);
 
-    if(pid == 0){ // TO DO: check if shell PID is ALWAYS 0.
+    if (pid == 0) { // TO DO: check if shell PID is ALWAYS 0.
         scr_clear();
         initializeShell();
     }

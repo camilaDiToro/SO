@@ -57,7 +57,7 @@ static int tryGetProcessFromPid(TPid pid, TProcessContext** outProcess) {
     return 1;
 }
 
-TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
+TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
     TPid pid = 0;
     for (; pid < MAX_PROCESSES && processes[pid].stackEnd != NULL; pid++);
 
@@ -76,16 +76,15 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* argv[]) {
 
     void* currentRSP = process->stackStart;
 
-    char** argvCopy = mm_malloc(sizeof(char *) * argc);
-    for(int i = 0; i < argc; ++i)
-    {
-        size_t length = strlen(argv[i])+1;
+    char** argvCopy = mm_malloc(sizeof(char*) * argc);
+    for (int i = 0; i < argc; ++i) {
+        size_t length = strlen(argv[i]) + 1;
         argvCopy[i] = mm_malloc(length);
         memcpy(argvCopy[i], argv[i], length);
     }
     process->argc = argc;
     process->argv = argvCopy;
-    sch_onProcessCreated(pid, entryPoint, currentRSP, argc, argvCopy);
+    sch_onProcessCreated(pid, entryPoint, currentRSP, argc, (const char* const*)argvCopy);
 
     return pid;
 }
@@ -102,7 +101,7 @@ int prc_kill(TPid pid) {
 
     sch_onProcessKilled(pid);
 
-    for (int i = 0; i < process->argc; i++){
+    for (int i = 0; i < process->argc; i++) {
         mm_free(process->argv[i]);
     }
     mm_free(process->argv);
@@ -123,7 +122,8 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
 
     if (fd < 0) {
         // Look for the lowest available file descriptor.
-        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
+        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++)
+            ;
 
     } else {
         // Check that the requested fd is available.
@@ -197,8 +197,7 @@ int prc_setIsForeground(TPid pid, int isForeground) {
 ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count) {
     TProcessContext* process;
     TFileDescriptorTableEntry* entry;
-    if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd
-        || (entry = &process->fdTable[fd])->resource == NULL || entry->readHandler == NULL)
+    if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd || (entry = &process->fdTable[fd])->resource == NULL || entry->readHandler == NULL)
         return -1;
 
     return entry->readHandler(pid, fd, entry->resource, buf, count);
@@ -207,9 +206,45 @@ ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count) {
 ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count) {
     TProcessContext* process;
     TFileDescriptorTableEntry* entry;
-    if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd
-        || (entry = &process->fdTable[fd])->resource == NULL || entry->writeHandler == NULL)
+    if (fd < 0 || !tryGetProcessFromPid(pid, &process) || process->fdTableSize <= fd || (entry = &process->fdTable[fd])->resource == NULL || entry->writeHandler == NULL)
         return -1;
 
     return entry->writeHandler(pid, fd, entry->resource, buf, count);
+}
+/*
+
+
+typedef struct {
+    void* stackEnd;
+    void* stackStart;
+    int isForeground;
+    TFileDescriptorTableEntry* fdTable;
+    unsigned int fdTableSize;
+    char** argv;
+    int argc;
+} TProcessContext;
+
+
+typedef struct{
+    void* stackStart;
+    TPid pid;
+    int isForeground;
+    TPriority priority;
+    TProcessStatus status;
+    void* currentRSP;
+}TProcessInfo;
+*/
+
+uint8_t prc_listProcesses(TProcessInfo* vec, uint8_t maxProceses) {
+    int processCounter = 0;
+    for (int i = 0; i < MAX_PROCESSES && processCounter < maxProceses; ++i) {
+        if (processes[i].stackEnd != NULL) {
+            vec[processCounter].stackStart = processes[i].stackStart;
+            vec[processCounter].isForeground = processes[i].isForeground;
+            vec[processCounter].pid = i;
+            sch_loadProcessInfo(vec, i, processCounter);
+            ++processCounter;
+        }
+    }
+    return processCounter;
 }

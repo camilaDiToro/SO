@@ -17,6 +17,7 @@ GLOBAL sys_create
 GLOBAL sys_yield
 GLOBAL sys_pid
 GLOBAL sys_nice
+GLOBAL sys_exit
 
 sys_read:
     mov rax, 0x00
@@ -105,6 +106,11 @@ sys_pid
 
 sys_nice
     mov rax, 0x11
+    int 80h
+    ret
+
+sys_exit
+    mov rax, 0x12
     int 80h
     ret
 
