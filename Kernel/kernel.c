@@ -77,5 +77,7 @@ int main() {
     // Enable interrupts
     _sti();
 
+    _int81();
+
     return 0;
 }

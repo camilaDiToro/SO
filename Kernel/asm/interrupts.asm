@@ -5,6 +5,9 @@ GLOBAL picSlaveMask
 GLOBAL haltcpu
 GLOBAL _hlt
 
+GLOBAL _awakeScheduler
+GLOBAL _int81
+
 GLOBAL _irq00Handler
 GLOBAL _irq01Handler
 GLOBAL _irq02Handler	
@@ -90,17 +93,9 @@ SECTION .text
 
 %endmacro
 
-_hlt:
-	sti
-	hlt
-	ret
-
-_cli:
+haltcpu:
 	cli
-	ret
-
-_sti:
-	sti
+	hlt
 	ret
 
 picMasterMask:
@@ -163,9 +158,36 @@ _sysCallHandler:
 	call sysCallDispatcher
 	iretq
 
-haltcpu:
-	cli
+; To avoid ticking unnecesarily (e.g. when a process yields the CPU)
+_awakeScheduler:
+	pushState
+	
+	mov rdi, rsp
+	call sch_switchProcess
+	mov rsp, rax
+
+	; signal pic EOI (End of Interrupt)
+	mov al, 20h
+	out 20h, al
+	
+	popState
+	iretq
+
+_int81:
+	int 81h
+	ret
+
+_hlt:
+	sti
 	hlt
+	ret
+
+_cli:
+	cli
+	ret
+
+_sti:
+	sti
 	ret
 
 SECTION .bss

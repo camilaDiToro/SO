@@ -18,7 +18,6 @@ static int isReady(TPid pid);
 static int isActive(TPid pid);
 static int tryGetProcessState(TPid pid, TProcessState** outState);
 static void haltUntilNextProcessReady();
-extern void _int20();
 
 static int isValidPid(TPid pid) {
     return pid >= 0 && pid < MAX_PROCESSES;
@@ -152,10 +151,7 @@ int sch_getProcessState(TPid pid, TProcessState* outState) {
 
 void sch_yieldProcess() {
     quantums = 0;
-
-    // TO DO: try to avoid ticking
-    // Waiting for the next tick will result in busy waiting?
-    _int20();
+    _int81();
 }
 
 void* sch_switchProcess(void* currentRSP) {

@@ -37,6 +37,7 @@ void load_idt() {
 
     // Software Interrupts
     setup_IDT_entry(0x80, (uint64_t)&_sysCallHandler);
+    setup_IDT_entry(0x81, (uint64_t)&_awakeScheduler);
 
     // 1111 1100 timer-tick and keyboard
     picMasterMask(0xFC);
