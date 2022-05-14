@@ -10,22 +10,14 @@ The final goal of the project is to provide an entry point for a kernel and the 
 
     user@linux:$ nasm qemu gcc make
 
-2- Build the Toolchain
+2- Compile the kernel
 
-Execute the following commands on the x64BareBones project directory:
+Execute the following commands on the x64BareBones project directory. This will compile the proyect inside the following docker: agodio/itba-so:1.0 
 
-    user@linux:$ cd Toolchain user@linux:$ make all
+    user@linux:~/SO/$ ./compile.sh
 
-3- Build the Kernel
-
-From the x64BareBones project directory run:
-
-    user@linux:$ make all
-
-4- Run the kernel
+3- Run the kernel
 
 From the x64BareBones project directory run:
 
-    user@linux:$ ./run.sh
-
-Author: Rodrigo Rearden (RowDaBoat) Collaborator: Augusto Nizzo McIntosh
+    user@linux:~/SO/$ ./run.sh
