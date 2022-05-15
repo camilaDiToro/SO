@@ -130,11 +130,17 @@ int sys_pipe_handler(int pipefd[2]) {
 }
 
 int sys_killProcess_handler(TPid pid) {
-    return prc_kill(pid);
+    int result = prc_kill(pid);
+    if (pid == sch_getCurrentPID())
+        sch_yieldProcess();
+    return result;
 }
 
 int sys_blockProcess_handler(TPid pid) {
-    return sch_blockProcess(pid);
+    int result = sch_blockProcess(pid);
+    if (pid == sch_getCurrentPID())
+        sch_yieldProcess();
+    return result;
 }
 
 int sys_unblockProcess_handler(TPid pid) {
@@ -142,10 +148,19 @@ int sys_unblockProcess_handler(TPid pid) {
 }
 
 TPid sys_createProcess_handler(TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
-    return prc_create(entryPoint, argc, argv);
+    TPid pid = prc_create(entryPoint, argc, argv);
+
+    // TODO: Map them to somewhere else!!
+    if (pid >= 0) {
+        kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
+        scr_mapToProcessFd(pid, STDOUT, &GREEN); // Map STDOUT
+        scr_mapToProcessFd(pid, STDERR, &BLUE);   // Map STDERR
+    }
+
+    return pid;
 }
 
-void sys_yieldProcess_handler() {
+void sys_yield_handler() {
     sch_yieldProcess();
 }
 
@@ -153,12 +168,14 @@ TPid sys_getCurrentPid_handler() {
     return sch_getCurrentPID();
 }
 
-int sys_setProcessPriority_handler(TPid pid, TPriority priority) {
+int sys_nice_handler(TPid pid, TPriority priority) {
     return sch_setProcessPriority(pid, priority);
 }
 
 int sys_exit_handler() {
-    return prc_kill(sch_getCurrentPID());
+    prc_kill(sch_getCurrentPID());
+    sch_yieldProcess();
+    return 1;
 }
 
 static TSyscallHandlerFunction syscallHandlers[] = {
@@ -177,9 +194,9 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x0C */ (TSyscallHandlerFunction)sys_malloc_handler,
     /* 0x0D */ (TSyscallHandlerFunction)sys_free_handler,
     /* 0x0E */ (TSyscallHandlerFunction)sys_realloc_handler,
-    /* 0x0F */ (TSyscallHandlerFunction)sys_yieldProcess_handler,
+    /* 0x0F */ (TSyscallHandlerFunction)sys_yield_handler,
     /* 0x10 */ (TSyscallHandlerFunction)sys_getCurrentPid_handler,
-    /* 0x11 */ (TSyscallHandlerFunction)sys_setProcessPriority_handler,
+    /* 0x11 */ (TSyscallHandlerFunction)sys_nice_handler, // ((nice))
     /* 0x12 */ (TSyscallHandlerFunction)sys_exit_handler,
     /* 0x13 */ (TSyscallHandlerFunction)NULL,
     /* 0x14 */ (TSyscallHandlerFunction)NULL,

@@ -91,9 +91,10 @@ void* sch_switchProcess(void* currentRSP);
 void sch_yieldProcess();
 
 /**
- * @brief Loads the scheduler info of the process with the indicated @param pid in the @param array recibed as paramenter, at the index @param idx.
- *
+ * @brief Stores the scheduler info of the process with the indicated pid into an info struct.
+ * 
+ * @returns 0 if the operation succeeded.
  */
-void sch_loadProcessInfo(TProcessInfo* array, int pid, int idx);
+int sch_getProcessInfo(TPid pid, TProcessInfo* info);
 
 #endif

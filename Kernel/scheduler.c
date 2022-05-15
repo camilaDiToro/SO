@@ -8,7 +8,7 @@
 #define QUANTUM 4
 
 static TProcessState processStates[MAX_PROCESSES];
-static TPid currentRunningProcessPID = -1;
+static TPid currentRunningPID = -1;
 static uint8_t quantums = 0;
 
 extern void* _createProcessContext(int argc, const char* const argv[], void* rsp, TProcessEntryPoint entryPoint);
@@ -17,7 +17,6 @@ static int isValidPid(TPid pid);
 static int isReady(TPid pid);
 static int isActive(TPid pid);
 static int tryGetProcessState(TPid pid, TProcessState** outState);
-static void haltUntilNextProcessReady();
 
 static int isValidPid(TPid pid) {
     return pid >= 0 && pid < MAX_PROCESSES;
@@ -36,21 +35,15 @@ static int getQuantums(TPid pid) {
 }
 
 static TPid getNextReadyPid() {
-    TPid next = currentRunningProcessPID;
+    TPid next = currentRunningPID;
 
     do {
         next = (next + 1) % MAX_PROCESSES;
         if (isReady(next)) {
             return next;
         }
-    } while (next != currentRunningProcessPID);
+    } while (next != currentRunningPID);
     return -1;
-}
-
-static void haltUntilNextProcessReady() {
-    while (getNextReadyPid() == -1) {
-        _hlt();
-    }
 }
 
 static int tryGetProcessState(TPid pid, TProcessState** outState) {
@@ -62,7 +55,7 @@ static int tryGetProcessState(TPid pid, TProcessState** outState) {
 }
 
 void sch_init() {
-    currentRunningProcessPID = -1;
+    currentRunningPID = -1;
     quantums = 0;
 }
 
@@ -85,8 +78,8 @@ int sch_onProcessKilled(TPid pid) {
     processState->status = KILLED;
     processState->currentRSP = NULL;
 
-    if (currentRunningProcessPID == pid)
-        currentRunningProcessPID = -1;
+    if (currentRunningPID == pid)
+        currentRunningPID = -1;
 
     return 0;
 }
@@ -101,7 +94,7 @@ int sch_blockProcess(TPid pid) {
 
     processState->status = BLOCKED;
 
-    if (currentRunningProcessPID == pid)
+    if (currentRunningPID == pid)
         quantums = 0;
 
     return 0;
@@ -121,7 +114,7 @@ int sch_unblockProcess(TPid pid) {
 }
 
 TPid sch_getCurrentPID() {
-    return currentRunningProcessPID;
+    return currentRunningPID;
 }
 
 int sch_setProcessPriority(TPid pid, TPriority newPriority) {
@@ -156,27 +149,32 @@ void sch_yieldProcess() {
 
 void* sch_switchProcess(void* currentRSP) {
 
-    if (currentRunningProcessPID != -1) {
-        processStates[currentRunningProcessPID].currentRSP = currentRSP;
+    if (currentRunningPID != -1) {
+        processStates[currentRunningPID].currentRSP = currentRSP;
     }
 
-    if (!isReady(currentRunningProcessPID) || quantums == 0) {
+    if (!isReady(currentRunningPID) || quantums == 0) {
         TPid newPid = getNextReadyPid();
-        if (newPid == -1) {
-            haltUntilNextProcessReady();
-        } else {
-            quantums = getQuantums(newPid);
-            currentRunningProcessPID = newPid;
-        }
+
+        while ((newPid = getNextReadyPid()) < 0)
+            _hlt();
+
+        quantums = getQuantums(newPid);
+        currentRunningPID = newPid;
     } else {
         quantums -= 1;
     }
 
-    return processStates[currentRunningProcessPID].currentRSP;
+    return processStates[currentRunningPID].currentRSP;
 }
 
-void sch_loadProcessInfo(TProcessInfo* array, int pid, int idx) {
-    array[idx].currentRSP = processStates[pid].currentRSP;
-    array[idx].status = processStates[pid].status;
-    array[idx].priority = processStates[pid].priority;
+int sch_getProcessInfo(TPid pid, TProcessInfo* info) {
+    TProcessState* processState;
+    if (!tryGetProcessState(pid, &processState))
+        return 1;
+    
+    info->currentRSP = processState->currentRSP;
+    info->status = processStates->status;
+    info->priority = processStates->priority;
+    return 0;
 }

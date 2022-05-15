@@ -76,8 +76,7 @@ int main() {
 
     // Enable interrupts
     _sti();
-
-    _int81();
+    sch_yieldProcess();
 
     return 0;
 }

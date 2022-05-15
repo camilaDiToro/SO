@@ -13,7 +13,7 @@ GLOBAL sys_pipe
 GLOBAL sys_kill
 GLOBAL sys_block
 GLOBAL sys_unblock
-GLOBAL sys_create
+GLOBAL sys_createProcess
 GLOBAL sys_yield
 GLOBAL sys_getPid
 GLOBAL sys_nice
@@ -64,7 +64,7 @@ sys_printmem:
     int 80h
     ret
 
-sys_create:
+sys_createProcess:
     mov rax, 0x09
     int 80h
     ret

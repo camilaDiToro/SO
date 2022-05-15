@@ -40,13 +40,14 @@ static void excepHandler(int exception, const char* msg) {
         scr_printChar(')');
         scr_printLine();
         scr_print("Presione enter para continuar");
-    }
 
-    int c;
-    do {
-        _hlt(); // halts the central processing unit until the next external interrupt is fired.
-    } while ((c = kbd_getChar()) != '\n');
-    _cli();
+        kbd_clearBuffer();
+        int c;
+        do {
+            _hlt(); // halts the central processing unit until the next external interrupt is fired.
+        } while ((c = kbd_getChar()) != '\n');
+        _cli();
+    }
 
     prc_kill(pid);
 

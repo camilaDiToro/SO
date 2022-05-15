@@ -82,6 +82,7 @@ TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* const argv[
         argvCopy[i] = mm_malloc(length);
         memcpy(argvCopy[i], argv[i], length);
     }
+
     process->argc = argc;
     process->argv = argvCopy;
     sch_onProcessCreated(pid, entryPoint, currentRSP, argc, (const char* const*)argvCopy);
@@ -122,9 +123,7 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
 
     if (fd < 0) {
         // Look for the lowest available file descriptor.
-        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++)
-            ;
-
+        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
     } else {
         // Check that the requested fd is available.
         if (fd < process->fdTableSize && process->fdTable[fd].resource != NULL)
@@ -242,7 +241,7 @@ uint8_t prc_listProcesses(TProcessInfo* vec, uint8_t maxProceses) {
             vec[processCounter].stackStart = processes[i].stackStart;
             vec[processCounter].isForeground = processes[i].isForeground;
             vec[processCounter].pid = i;
-            sch_loadProcessInfo(vec, i, processCounter);
+            sch_getProcessInfo(processCounter, &vec[i]);
             ++processCounter;
         }
     }

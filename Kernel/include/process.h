@@ -48,7 +48,7 @@ typedef int (*TFdCloseHandler)(TPid pid, int fd, void* resource);
 /**
  * @brief Creates a new process from a given entry point and arguments list.
  *
- * @returns The newly created TProcess, or NULL if process creation failed.
+ * @returns The newly created TProcess, or -1 if process creation failed.
  */
 TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
 
