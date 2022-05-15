@@ -17,6 +17,7 @@ GLOBAL sys_createProcess
 GLOBAL sys_yield
 GLOBAL sys_getPid
 GLOBAL sys_nice
+GLOBAL sys_listProcesses
 GLOBAL sys_exit
 
 sys_read:
@@ -66,6 +67,7 @@ sys_printmem:
 
 sys_createProcess:
     mov rax, 0x09
+    mov r10, rcx
     int 80h
     ret
 
@@ -111,6 +113,11 @@ sys_nice:
 
 sys_exit:
     mov rax, 0x12
+    int 80h
+    ret
+
+sys_listProcesses:
+    mov rax, 0x13
     int 80h
     ret
 

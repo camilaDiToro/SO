@@ -6,13 +6,6 @@
 
 /* Local headers */
 #include <kernelTypes.h>
-#include <process.h>
-
-typedef struct {
-    TPriority priority;
-    TProcessStatus status;
-    void* currentRSP;
-} TProcessState;
 
 #define DEFAULT_PRIORITY 0
 #define MIN_PRIORITY 10
@@ -59,22 +52,12 @@ int sch_unblockProcess(TPid pid);
  */
 TPid sch_getCurrentPID();
 
-// THIS FUNCTION IS ONLY FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
-void sch_correrCucuruchitos(TPid pid);
-
 /**
  * @brief Sets a process' priority.
  *
  * @returns 0 if the operation succeeded.
  */
 int sch_setProcessPriority(TPid pid, TPriority newPriority);
-
-/**
- * @brief Gets a process' state information, containing it's priority, status, and stack pointer.
- *
- * @returns 0 if the operation succeeded.
- */
-int sch_getProcessState(TPid pid, TProcessState* outState);
 
 /**
  * @brief Decides which process to run next
@@ -85,13 +68,13 @@ int sch_getProcessState(TPid pid, TProcessState* outState);
 void* sch_switchProcess(void* currentRSP);
 
 /**
- * @brief The process that is running voluntarily yields the CPU
- *
+ * @brief Yields control of the CPU to the next process on the ready list.
+ * If the caller is not a process or is one that exited, this function does not return.
  */
 void sch_yieldProcess();
 
 /**
- * @brief Stores the scheduler info of the process with the indicated pid into an info struct.
+ * @brief Fills the given struct with the scheduler-related data of the requested process.
  * 
  * @returns 0 if the operation succeeded.
  */

@@ -12,15 +12,6 @@
 #define PROCESS_STACK_SIZE 4096
 #define MAX_PROCESSES 16
 
-typedef struct {
-    void* stackStart;
-    TPid pid;
-    int isForeground;
-    TPriority priority;
-    TProcessStatus status;
-    void* currentRSP;
-} TProcessInfo;
-
 /**
  * @brief Represents a function that will handle a file descriptor read operation.
  * Handlers need not check that the pid or fd is valid.
@@ -50,7 +41,7 @@ typedef int (*TFdCloseHandler)(TPid pid, int fd, void* resource);
  *
  * @returns The newly created TProcess, or -1 if process creation failed.
  */
-TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
+TPid prc_create(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
 
 /**
  * @brief Kills a process and frees associated resources. Using a process after
@@ -107,10 +98,10 @@ ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count);
 ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count);
 
 /**
- *
- *
- *
+ * @brief Gets the information of up to maxProcesses processes.
+ * 
+ * @returns the amount of processes read.
  */
-uint8_t prc_listProcesses(TProcessInfo* vec, uint8_t maxProceses);
+int prc_listProcesses(TProcessInfo* vec, int maxProcesses);
 
 #endif

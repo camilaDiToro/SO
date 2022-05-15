@@ -74,6 +74,16 @@ int execute_command(char* command) {
 }
 
 void print_mem(void) {
+    TProcessInfo arr[16];
+    int count = sys_listProcesses(arr, 16);
+    printf("Listing %d process/es: \n", count);
+    for (int i = 0; i < count; i++) {
+        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%d, rsp=%x\n",
+        arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, (int) arr[i].status, arr[i].currentRSP);
+    }
+    return;
+
+    
     signed int counter = 0;
     char c;
     uint64_t value = 0;

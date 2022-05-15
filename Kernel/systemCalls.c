@@ -147,8 +147,8 @@ int sys_unblockProcess_handler(TPid pid) {
     return sch_unblockProcess(pid);
 }
 
-TPid sys_createProcess_handler(TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
-    TPid pid = prc_create(entryPoint, argc, argv);
+TPid sys_createProcess_handler(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
+    TPid pid = prc_create(name, entryPoint, argc, argv);
 
     // TODO: Map them to somewhere else!!
     if (pid >= 0) {
@@ -178,6 +178,10 @@ int sys_exit_handler() {
     return 1;
 }
 
+int sys_listProcesses_handler(TProcessInfo* array, int maxProcesses) {
+    return prc_listProcesses(array, maxProcesses);
+}
+
 static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x00 */ (TSyscallHandlerFunction)sys_read_handler,
     /* 0x01 */ (TSyscallHandlerFunction)sys_write_handler,
@@ -198,7 +202,7 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x10 */ (TSyscallHandlerFunction)sys_getCurrentPid_handler,
     /* 0x11 */ (TSyscallHandlerFunction)sys_nice_handler, // ((nice))
     /* 0x12 */ (TSyscallHandlerFunction)sys_exit_handler,
-    /* 0x13 */ (TSyscallHandlerFunction)NULL,
+    /* 0x13 */ (TSyscallHandlerFunction)sys_listProcesses_handler,
     /* 0x14 */ (TSyscallHandlerFunction)NULL,
     /* 0x15 */ (TSyscallHandlerFunction)NULL,
     /* 0x16 */ (TSyscallHandlerFunction)sys_pipe_handler

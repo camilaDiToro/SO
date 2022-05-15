@@ -26,4 +26,18 @@ typedef int8_t TPriority;
  */
 typedef int (*TProcessEntryPoint)(int argc, const char* argv[]);
 
+/**
+ * @brief Represents a process' information.
+ */
+typedef struct {
+    TPid pid;
+    const char* name;
+    void* stackEnd;
+    void* stackStart;
+    int isForeground;
+    TPriority priority;
+    TProcessStatus status;
+    void* currentRSP;
+} TProcessInfo;
+
 #endif

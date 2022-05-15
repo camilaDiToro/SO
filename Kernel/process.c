@@ -15,6 +15,8 @@
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
 
+#define MAX_NAME_LENGTH 16
+
 /**
  * @brief Defines an entry on a process' file descriptor table.
  * Setting "resource" to null determines the whole structure as empty or unused.
@@ -38,6 +40,8 @@ typedef struct {
 
     int isForeground;
 
+    char* name;
+
     TFileDescriptorTableEntry* fdTable;
     unsigned int fdTableSize;
 
@@ -57,35 +61,74 @@ static int tryGetProcessFromPid(TPid pid, TProcessContext** outProcess) {
     return 1;
 }
 
-TPid prc_create(TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
+static int isNameValid(const char* name) {
+    if (name == NULL)
+        return 1;
+
+    for (int i = 0; i <= MAX_NAME_LENGTH; i++) {
+        char c = name[i];
+        if (c == '\0')
+            return 1;
+
+        // The first character must be a letter. Subsequent characters may be a letter or a number.
+        if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) {
+            if (i == 0 || c < '0' || c > '9')
+                return 0;
+        }
+    }
+
+    return 0;
+}
+
+TPid prc_create(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
     TPid pid = 0;
     for (; pid < MAX_PROCESSES && processes[pid].stackEnd != NULL; pid++);
 
-    if (pid == MAX_PROCESSES)
+    if (argc < 0 || pid == MAX_PROCESSES || !isNameValid(name))
         return -1;
 
-    TProcessContext* process = &processes[pid];
-
-    if ((process->stackEnd = mm_malloc(PROCESS_STACK_SIZE)) == NULL)
+    void* stackEnd = NULL;
+    char* nameCopy = NULL;
+    char** argvCopy = NULL;
+    if ((stackEnd = mm_malloc(PROCESS_STACK_SIZE)) == NULL
+        || (name != NULL && (nameCopy = mm_malloc(strlen(name) + 1)) == NULL)
+        || (argc != 0 && (argvCopy = mm_malloc(sizeof(char*) * argc)) == NULL)) {
+        mm_free(stackEnd);
+        mm_free(nameCopy);
         return -1;
+    }
 
-    process->stackStart = process->stackEnd + PROCESS_STACK_SIZE;
-    process->isForeground = 1;
-    process->fdTable = NULL;
-    process->fdTableSize = 0;
-
-    void* currentRSP = process->stackStart;
-
-    char** argvCopy = mm_malloc(sizeof(char*) * argc);
     for (int i = 0; i < argc; ++i) {
         size_t length = strlen(argv[i]) + 1;
-        argvCopy[i] = mm_malloc(length);
+
+        if ((argvCopy[i] = mm_malloc(length)) == NULL) {
+            mm_free(stackEnd);
+            mm_free(nameCopy);
+            while (i > 0) {
+                i--;
+                mm_free(argvCopy[i]);
+            }
+            mm_free(argvCopy);
+            return -1;
+        }
+
         memcpy(argvCopy[i], argv[i], length);
     }
 
-    process->argc = argc;
+    if (name != NULL)
+        strcpy(nameCopy, name);
+
+    TProcessContext* process = &processes[pid];
+    process->stackEnd = stackEnd;
+    process->stackStart = stackEnd + PROCESS_STACK_SIZE;
+    process->isForeground = 1;
+    process->name = nameCopy;
+    process->fdTable = NULL;
+    process->fdTableSize = 0;
     process->argv = argvCopy;
-    sch_onProcessCreated(pid, entryPoint, currentRSP, argc, (const char* const*)argvCopy);
+    process->argc = argc;
+
+    sch_onProcessCreated(pid, entryPoint, process->stackStart, argc, (const char* const*)argvCopy);
 
     return pid;
 }
@@ -106,6 +149,7 @@ int prc_kill(TPid pid) {
         mm_free(process->argv[i]);
     }
     mm_free(process->argv);
+    mm_free(process->name);
     mm_free(process->stackEnd);
     mm_free(process->fdTable);
     process->stackEnd = NULL;
@@ -210,40 +254,21 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count) {
 
     return entry->writeHandler(pid, fd, entry->resource, buf, count);
 }
-/*
 
-
-typedef struct {
-    void* stackEnd;
-    void* stackStart;
-    int isForeground;
-    TFileDescriptorTableEntry* fdTable;
-    unsigned int fdTableSize;
-    char** argv;
-    int argc;
-} TProcessContext;
-
-
-typedef struct{
-    void* stackStart;
-    TPid pid;
-    int isForeground;
-    TPriority priority;
-    TProcessStatus status;
-    void* currentRSP;
-}TProcessInfo;
-*/
-
-uint8_t prc_listProcesses(TProcessInfo* vec, uint8_t maxProceses) {
+int prc_listProcesses(TProcessInfo* vec, int maxProcesses) {
     int processCounter = 0;
-    for (int i = 0; i < MAX_PROCESSES && processCounter < maxProceses; ++i) {
-        if (processes[i].stackEnd != NULL) {
-            vec[processCounter].stackStart = processes[i].stackStart;
-            vec[processCounter].isForeground = processes[i].isForeground;
-            vec[processCounter].pid = i;
-            sch_getProcessInfo(processCounter, &vec[i]);
-            ++processCounter;
+    for (int i = 0; i < MAX_PROCESSES && processCounter < maxProcesses; ++i) {
+        TProcessContext* processContext = &processes[i];
+        if (processContext->stackEnd != NULL) {
+            TProcessInfo* info = &vec[processCounter++];
+            info->pid = i;
+            info->name = processContext->name;
+            info->stackEnd = processContext->stackEnd;
+            info->stackStart = processContext->stackStart;
+            info->isForeground = processContext->isForeground;
+            sch_getProcessInfo(i, info);
         }
     }
+
     return processCounter;
 }

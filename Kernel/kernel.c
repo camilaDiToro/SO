@@ -54,8 +54,7 @@ void* initializeKernelBinary() {
 }
 
 void initializeShell() {
-    const char* args[] = {NULL};
-    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, args);
+    TPid pid = prc_create("shell", (TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
 
     kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
     scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT

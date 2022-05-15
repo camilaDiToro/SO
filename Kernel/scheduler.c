@@ -7,16 +7,17 @@
 
 #define QUANTUM 4
 
+typedef struct {
+    TPriority priority;
+    TProcessStatus status;
+    void* currentRSP;
+} TProcessState;
+
 static TProcessState processStates[MAX_PROCESSES];
 static TPid currentRunningPID = -1;
 static uint8_t quantums = 0;
 
 extern void* _createProcessContext(int argc, const char* const argv[], void* rsp, TProcessEntryPoint entryPoint);
-
-static int isValidPid(TPid pid);
-static int isReady(TPid pid);
-static int isActive(TPid pid);
-static int tryGetProcessState(TPid pid, TProcessState** outState);
 
 static int isValidPid(TPid pid) {
     return pid >= 0 && pid < MAX_PROCESSES;
@@ -133,15 +134,6 @@ int sch_setProcessPriority(TPid pid, TPriority newPriority) {
     return 0;
 }
 
-int sch_getProcessState(TPid pid, TProcessState* outState) {
-    TProcessState* processState;
-    if (!tryGetProcessState(pid, &processState))
-        return 1;
-
-    *outState = *processState;
-    return 0;
-}
-
 void sch_yieldProcess() {
     quantums = 0;
     _int81();
@@ -173,8 +165,8 @@ int sch_getProcessInfo(TPid pid, TProcessInfo* info) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
     
-    info->currentRSP = processState->currentRSP;
     info->status = processStates->status;
     info->priority = processStates->priority;
+    info->currentRSP = processState->currentRSP;
     return 0;
 }

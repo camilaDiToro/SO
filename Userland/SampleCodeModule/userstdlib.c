@@ -97,7 +97,7 @@ void printf(const char* frmt, ...) {
 
         case 's':
             s = va_arg(arg, char*); // Fetch string
-            sprint(1, s);
+            sprint(1, s == NULL ? "(NULL)" : s);
             break;
 
         case 'u':

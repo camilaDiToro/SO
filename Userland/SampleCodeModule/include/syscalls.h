@@ -30,7 +30,7 @@ int sys_unblock(TPid pid);
 
 int sys_printmem(void* mem_address);
 
-int sys_createProcess(TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
+int sys_createProcess(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
 
 void sys_date(char* buffer);
 
@@ -49,6 +49,8 @@ TPid sys_getPid();
 int sys_nice(TPid pid, TPriority newPriority);
 
 int sys_exit();
+
+int sys_listProcesses(TProcessInfo* array, int maxProcesses);
 
 int sys_pipe(int pipefd[2]);
 
