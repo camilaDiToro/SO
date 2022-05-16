@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]) {
     welcome_message();
     while (1) {
-        putChar(STDERR, '>');
+        fputChar(STDERR, '>');
         wait_command();
     }
 }

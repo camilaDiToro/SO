@@ -7,15 +7,19 @@
 
 int getChar();
 
-int putChar(int fd, char c);
+int putChar(char c);
 
-int readChar();
+int fgetChar(int fd);
 
-int sprint(int fd, const char* str);
+int fputChar(int fd, char c);
+
+int print(const char* str);
+
+int fprint(int fd, const char* str);
 
 void printf(const char* frmt, ...);
 
-char* convert(unsigned int num, unsigned int base);
+void fprintf(int fd, const char* frmt, ...);
 
 int atoi(const char* str);
 

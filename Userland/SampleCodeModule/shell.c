@@ -29,7 +29,7 @@ static TCommand valid_commands[] = {
     {0, 0}};
 
 void welcome_message() {
-    printf("Bienvenido a Userland\n");
+    print("Bienvenido a Userland\n");
     help();
 }
 
@@ -42,23 +42,23 @@ void wait_command() {
     while ((c = getChar()) != '\n') {
         // Just delete what the user has written
         if (c == '\b' && i > 0) {
-            putChar(STDOUT, c);
+            putChar(c);
             command[--i] = 0;
         } else if (c != '\b') {
-            putChar(STDOUT, c);
+            putChar(c);
             command[i++] = c;
         }
     }
-    sprint(STDERR, "\n");
+    fprint(STDERR, "\n");
     command[i] = 0;
 
     // Check if de command is valid.
     // Execute it if its valid
     if (!execute_command(command)) {
         // If not valid, show mensage
-        sprint(STDERR, "Comando invalido \n");
-        sprint(STDERR, command);
-        sprint(STDERR, "\n");
+        fprint(STDERR, "Comando invalido \n");
+        fprint(STDERR, command);
+        fprint(STDERR, "\n");
     }
 }
 
@@ -100,22 +100,22 @@ void print_mem(void) {
             num[counter++] = (c - 'a' + 10);
         } else if (c == '\b') {
             if (counter > 0) {
-                putChar(STDOUT, c);
+                putChar(c);
                 num[--counter] = 0;
             }
         } else {
             num[counter++] = 16 + c;
         }
         if (c != '\b') {
-            putChar(STDOUT, c);
+            putChar(c);
         }
     }
 
     if (counter > 16) {
         char* msg_error = "La direccion ingresada no puede tener mas de 64 bits (16 digitos hexa).";
-        putChar(STDOUT, '\n');
-        sprint(STDERR, msg_error);
-        putChar(STDOUT, '\n');
+        putChar('\n');
+        fprint(STDERR, msg_error);
+        putChar('\n');
         return;
     }
 
@@ -124,18 +124,18 @@ void print_mem(void) {
             value = (value << 4) + num[i];
         } else {
             char* msg_error2 = "Formato hexa invalido.";
-            putChar(STDOUT, '\n');
-            sprint(STDERR, msg_error2);
-            putChar(STDOUT, '\n');
+            putChar('\n');
+            fprint(STDERR, msg_error2);
+            putChar('\n');
             return;
         }
     }
 
-    putChar(STDOUT, '\n');
+    putChar('\n');
     char* msg_error3 = "Acceso a memoria invalido.";
     if (sys_printmem((void*)value) == -1) {
-        sprint(STDERR, msg_error3);
-        putChar(STDOUT, '\n');
+        fprint(STDERR, msg_error3);
+        putChar('\n');
     }
 }
 

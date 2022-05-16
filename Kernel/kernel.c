@@ -76,10 +76,15 @@ int main() {
 
     // Enable interrupts
     _sti();
-    sch_yieldProcess();
 
-    while (1)
+    while (1) {
+        // TODO: Without this, when a process is reading from the keyboard and a key is pressed,
+        // the process will not be waked up until the next timer tick interrupt. With this however,
+        // when there are no processes to run the scheduler will be awaked twice per timer tick:
+        // once by the timer and another time by this yield.
+        sch_yieldProcess();
         _hlt();
+    }
 
     return 0;
 }

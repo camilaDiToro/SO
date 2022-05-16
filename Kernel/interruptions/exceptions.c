@@ -33,30 +33,32 @@ void exceptionDispatcher(int exception) {
 
 static void excepHandler(int exception, const char* msg) {
     TPid pid = sch_getCurrentPID();
-    if (prc_isForeground(pid)) {
-        scr_print("[PID ");
-        scr_printDec(pid);
-        scr_print("] ");
-        scr_print(msg);
-        scr_print(" (0x");
-        scr_printDec(exception);
-        scr_printChar(')');
-        scr_printLine();
-        scr_print("Presione enter para continuar");
+    scr_print("PID ");
+    scr_printDec(pid);
+    scr_print(" CRASHED! ");
+    scr_print(msg);
+    scr_print(" (0x");
+    scr_printHex(exception);
+    scr_print(")\n");
 
+    if (pid == 0) { // TO DO: check if shell PID is ALWAYS 0.
+        scr_print("Press ENTER to restart the shell.");
+
+        // TODO: This can't be handled like this, hlt would stop the entire system.
+        // Consider: finding a way to stop just this process, or just kill all processes
+        // and restart the whole system when the shell crashes.
         kbd_clearBuffer();
         int c;
         do {
             _hlt(); // halts the central processing unit until the next external interrupt is fired.
             _cli();
         } while ((c = kbd_getChar()) != '\n');
-    }
 
-    prc_kill(pid);
-
-    if (pid == 0) { // TO DO: check if shell PID is ALWAYS 0.
+        prc_kill(pid);
         scr_clear();
         initializeShell();
+    } else {
+        prc_kill(pid);
     }
 
     sch_yieldProcess();
