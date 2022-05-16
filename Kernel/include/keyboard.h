@@ -2,7 +2,9 @@
 #define _KEYBOARD_H_
 
 /* Local headers */
-#include <process.h>
+#include <kernelTypes.h>
+
+void kbd_init();
 
 /**
  * @brief Called by the interrupt dispatcher whenever a keyboard interrupt occurs.

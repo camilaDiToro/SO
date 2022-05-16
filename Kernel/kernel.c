@@ -7,12 +7,15 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <graphics.h>
+#include <interrupts.h>
 #include <idtLoader.h>
 #include <memoryManager.h>
 #include <process.h>
 #include <scheduler.h>
 #include <keyboard.h>
 #include <systemCalls.h>
+#include <kernelTypes.h>
+#include <kernel.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -22,7 +25,6 @@ extern uint8_t endOfKernelBinary;
 extern uint8_t endOfKernel;
 
 static const uint64_t PageSize = 0x1000;
-
 static void* const sampleCodeModuleAddress = (void*)0x400000;
 static void* const sampleDataModuleAddress = (void*)0x500000;
 static void* const startHeapAddres = (void*)0xF00000;
@@ -41,7 +43,8 @@ void* getStackBase() {
 void* initializeKernelBinary() {
     void* moduleAddresses[] = {
         sampleCodeModuleAddress,
-        sampleDataModuleAddress};
+        sampleDataModuleAddress
+    };
 
     loadModules(&endOfKernelBinary, moduleAddresses);
 
@@ -50,21 +53,38 @@ void* initializeKernelBinary() {
     return getStackBase();
 }
 
+void initializeShell() {
+    TPid pid = prc_create("shell", (TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
+
+    kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
+    scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT
+    scr_mapToProcessFd(pid, STDERR, &RED);   // Map STDERR
+}
+
 int main() {
+
+    // Disable interrupts
+    _cli();
+
     load_idt();
     scr_init();
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
+    kbd_init();
     sch_init();
 
-    // ((TProcessEntryPoint)sampleCodeModuleAddress)(0, NULL);
-    TPid pid = prc_create((TProcessEntryPoint)sampleCodeModuleAddress, 0, NULL);
+    initializeShell();
 
-    kbd_mapToProcessFd(pid, STDIN); // Map STDIN
-    scr_mapToProcessFd(pid, STDOUT, &WHITE); // Map STDOUT
-    scr_mapToProcessFd(pid, STDERR, &RED); // Map STDERR
+    // Enable interrupts
+    _sti();
 
-    sch_correrCucuruchitos(pid);
-
+    while (1) {
+        // TODO: Without this, when a process is reading from the keyboard and a key is pressed,
+        // the process will not be waked up until the next timer tick interrupt. With this however,
+        // when there are no processes to run the scheduler will be awaked twice per timer tick:
+        // once by the timer and another time by this yield.
+        sch_yieldProcess();
+        _hlt();
+    }
 
     return 0;
 }

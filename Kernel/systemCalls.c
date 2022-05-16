@@ -4,8 +4,8 @@
 #include <sys/types.h>
 
 /* Local headers */
-#include <graphics.h>
 #include <systemCalls.h>
+#include <graphics.h>
 #include <keyboard.h>
 #include <time.h>
 #include <memoryManager.h>
@@ -26,7 +26,7 @@ ssize_t sys_read_handler(int fd, char* buffer, size_t count) {
 
 int sys_date_handler(char* buffer) {
     rtc_getCurrentDateString(buffer);
-    return 0;    
+    return 0;
 }
 
 int sys_time_handler(char* buffer) {
@@ -38,7 +38,7 @@ int sys_close_handler(int fd) {
     return prc_unmapFd(sch_getCurrentPID(), fd);
 }
 
-int sys_clearWindow_handler() {
+int sys_clearScreen_handler() {
     scr_clear();
     return 0;
 }
@@ -116,8 +116,7 @@ int sys_pipe_handler(int pipefd[2]) {
     TPipe pipe;
     int readFd = -1, writeFd = -1;
 
-    if ((pipe = pipe_create()) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0
-        || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
+    if ((pipe = pipe_create()) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
         if (pipe != NULL)
             pipe_free(pipe);
         if (readFd >= 0)
@@ -130,35 +129,88 @@ int sys_pipe_handler(int pipefd[2]) {
     return 0;
 }
 
+int sys_killProcess_handler(TPid pid) {
+    int result = prc_kill(pid);
+    if (pid == sch_getCurrentPID())
+        sch_yieldProcess();
+    return result;
+}
+
+int sys_blockProcess_handler(TPid pid) {
+    int result = sch_blockProcess(pid);
+    if (pid == sch_getCurrentPID())
+        sch_yieldProcess();
+    return result;
+}
+
+int sys_unblockProcess_handler(TPid pid) {
+    return sch_unblockProcess(pid);
+}
+
+TPid sys_createProcess_handler(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
+    TPid pid = prc_create(name, entryPoint, argc, argv);
+
+    // TODO: Map them to somewhere else!!
+    if (pid >= 0) {
+        kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
+        scr_mapToProcessFd(pid, STDOUT, &GREEN); // Map STDOUT
+        scr_mapToProcessFd(pid, STDERR, &BLUE);   // Map STDERR
+    }
+
+    return pid;
+}
+
+void sys_yield_handler() {
+    sch_yieldProcess();
+}
+
+TPid sys_getCurrentPid_handler() {
+    return sch_getCurrentPID();
+}
+
+int sys_nice_handler(TPid pid, TPriority priority) {
+    return sch_setProcessPriority(pid, priority);
+}
+
+int sys_exit_handler() {
+    prc_kill(sch_getCurrentPID());
+    sch_yieldProcess();
+    return 1;
+}
+
+int sys_listProcesses_handler(TProcessInfo* array, int maxProcesses) {
+    return prc_listProcesses(array, maxProcesses);
+}
+
 static TSyscallHandlerFunction syscallHandlers[] = {
-/* 0x00 */ (TSyscallHandlerFunction) sys_read_handler,
-/* 0x01 */ (TSyscallHandlerFunction) sys_write_handler,
-/* 0x02 */ (TSyscallHandlerFunction) sys_time_handler,
-/* 0x03 */ (TSyscallHandlerFunction) sys_close_handler,
-/* 0x04 */ (TSyscallHandlerFunction) sys_clearWindow_handler,
-/* 0x05 */ (TSyscallHandlerFunction) NULL,
-/* 0x06 */ (TSyscallHandlerFunction) NULL,
-/* 0x07 */ (TSyscallHandlerFunction) NULL,
-/* 0x08 */ (TSyscallHandlerFunction) sys_printmem_handler,
-/* 0x09 */ (TSyscallHandlerFunction) NULL,
-/* 0x0A */ (TSyscallHandlerFunction) sys_date_handler,
-/* 0x0B */ (TSyscallHandlerFunction) sys_infoReg_handler,
-/* 0x0C */ (TSyscallHandlerFunction) sys_malloc_handler,
-/* 0x0D */ (TSyscallHandlerFunction) sys_free_handler,
-/* 0x0E */ (TSyscallHandlerFunction) sys_realloc_handler,
-/* 0x0F */ (TSyscallHandlerFunction) NULL,
-/* 0x10 */ (TSyscallHandlerFunction) NULL,
-/* 0x11 */ (TSyscallHandlerFunction) NULL,
-/* 0x12 */ (TSyscallHandlerFunction) NULL,
-/* 0x13 */ (TSyscallHandlerFunction) NULL,
-/* 0x14 */ (TSyscallHandlerFunction) NULL,
-/* 0x15 */ (TSyscallHandlerFunction) NULL,
-/* 0x16 */ (TSyscallHandlerFunction) sys_pipe_handler
+    /* 0x00 */ (TSyscallHandlerFunction)sys_read_handler,
+    /* 0x01 */ (TSyscallHandlerFunction)sys_write_handler,
+    /* 0x02 */ (TSyscallHandlerFunction)sys_time_handler,
+    /* 0x03 */ (TSyscallHandlerFunction)sys_close_handler,
+    /* 0x04 */ (TSyscallHandlerFunction)sys_clearScreen_handler,
+    /* 0x05 */ (TSyscallHandlerFunction)sys_killProcess_handler,
+    /* 0x06 */ (TSyscallHandlerFunction)sys_blockProcess_handler,
+    /* 0x07 */ (TSyscallHandlerFunction)sys_unblockProcess_handler,
+    /* 0x08 */ (TSyscallHandlerFunction)sys_printmem_handler,
+    /* 0x09 */ (TSyscallHandlerFunction)sys_createProcess_handler,
+    /* 0x0A */ (TSyscallHandlerFunction)sys_date_handler,
+    /* 0x0B */ (TSyscallHandlerFunction)sys_infoReg_handler,
+    /* 0x0C */ (TSyscallHandlerFunction)sys_malloc_handler,
+    /* 0x0D */ (TSyscallHandlerFunction)sys_free_handler,
+    /* 0x0E */ (TSyscallHandlerFunction)sys_realloc_handler,
+    /* 0x0F */ (TSyscallHandlerFunction)sys_yield_handler,
+    /* 0x10 */ (TSyscallHandlerFunction)sys_getCurrentPid_handler,
+    /* 0x11 */ (TSyscallHandlerFunction)sys_nice_handler, // ((nice))
+    /* 0x12 */ (TSyscallHandlerFunction)sys_exit_handler,
+    /* 0x13 */ (TSyscallHandlerFunction)sys_listProcesses_handler,
+    /* 0x14 */ (TSyscallHandlerFunction)NULL,
+    /* 0x15 */ (TSyscallHandlerFunction)NULL,
+    /* 0x16 */ (TSyscallHandlerFunction)sys_pipe_handler
 };
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {
     TSyscallHandlerFunction handler;
-    if (rax < (sizeof(syscallHandlers)/sizeof(syscallHandlers[0])) && (handler = syscallHandlers[rax]) != NULL)
+    if (rax < (sizeof(syscallHandlers) / sizeof(syscallHandlers[0])) && (handler = syscallHandlers[rax]) != NULL)
         return handler(rdi, rsi, rdx, r10, r8);
     return -1;
 }

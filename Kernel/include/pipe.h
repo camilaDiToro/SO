@@ -7,7 +7,7 @@
 #include <sys/types.h>
 
 /* Local headers */
-#include <process.h>
+#include <kernelTypes.h>
 
 typedef struct TPipeInternal* TPipe;
 

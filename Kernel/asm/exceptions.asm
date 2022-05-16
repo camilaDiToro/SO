@@ -4,15 +4,8 @@ GLOBAL give_control_to_user
 EXTERN scr_print
 EXTERN scr_printRegisterFormat
 EXTERN scr_printLine
-EXTERN main
-EXTERN getStackBase
 
 section .text
-
-give_control_to_user:
-    call getStackBase	        ; Get thet stack address
-	mov rsp, rax				; Set up the stack with the returned address
-	call main
  
     ;   Retrieved from https://os.phil-opp.com/handling-exceptions/ 
     ;   The function must print the registers mentioned below in the following order:

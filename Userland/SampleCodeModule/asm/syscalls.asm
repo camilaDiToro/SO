@@ -3,10 +3,6 @@ GLOBAL sys_read
 GLOBAL sys_time
 GLOBAL sys_close
 GLOBAL sys_clear
-GLOBAL sys_restartCursor
-GLOBAL sys_divide
-GLOBAL sys_uniqueWindow
-GLOBAL sys_setScreen
 GLOBAL sys_date
 GLOBAL sys_printmem
 GLOBAL sys_inforeg
@@ -14,6 +10,15 @@ GLOBAL sys_malloc
 GLOBAL sys_free
 GLOBAL sys_realloc
 GLOBAL sys_pipe
+GLOBAL sys_kill
+GLOBAL sys_block
+GLOBAL sys_unblock
+GLOBAL sys_createProcess
+GLOBAL sys_yield
+GLOBAL sys_getPid
+GLOBAL sys_nice
+GLOBAL sys_listProcesses
+GLOBAL sys_exit
 
 sys_read:
     mov rax, 0x00
@@ -40,8 +45,29 @@ sys_clear:
     int 80h
     ret
 
+sys_kill:
+    mov rax, 0x05
+    int 80h
+    ret
+
+sys_block:
+    mov rax, 0x06
+    int 80h 
+    ret
+
+sys_unblock:
+    mov rax, 0x07
+    int 80h
+    ret
+
 sys_printmem:
     mov rax, 0x08
+    int 80h
+    ret
+
+sys_createProcess:
+    mov rax, 0x09
+    mov r10, rcx
     int 80h
     ret
 
@@ -67,6 +93,31 @@ sys_free:
 
 sys_realloc:
     mov rax, 0x0E
+    int 80h
+    ret
+
+sys_yield:
+    mov rax, 0x0F
+    int 80h 
+    ret
+
+sys_getPid:
+    mov rax, 0x10
+    int 80h
+    ret
+
+sys_nice:
+    mov rax, 0x11
+    int 80h
+    ret
+
+sys_exit:
+    mov rax, 0x12
+    int 80h
+    ret
+
+sys_listProcesses:
+    mov rax, 0x13
     int 80h
     ret
 

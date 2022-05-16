@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 /* Local headers */
-#include <process.h>
+#include <kernelTypes.h>
 
 /**
  * @struct color 

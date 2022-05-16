@@ -1,21 +1,20 @@
+#ifndef _SCHEDULER_H_
+#define _SCHEDULER_H_
+
 /* Standard library */
 #include <stdint.h>
 
 /* Local headers */
-#include <process.h>
-
-typedef enum status { READY = 0, BLOCKED, KILLED } TProcessStatus;
-
-typedef int8_t TPriority;
-
-typedef struct {
-    TPriority priority;
-    TProcessStatus status;
-    void* currentRSP;
-} TProcessState;
+#include <kernelTypes.h>
 
 #define DEFAULT_PRIORITY 0
+#define MIN_PRIORITY 10
+#define MAX_PRIORITY -10
 
+/**
+ * @brief Initialize Scheduler
+ *
+ */
 void sch_init();
 
 /**
@@ -23,10 +22,12 @@ void sch_init();
  *
  * @returns 0 if the operation succeeded.
  */
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP);
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* const argv[]);
 
 /**
  * @brief Called by process.c whenever a process is being killed.
+ * If the caller is said process, it is not immediatelly stopped. For this to occur,
+ * sch_yieldProcess() must be called.
  *
  * @returns 0 if the operation succeeded.
  */
@@ -34,6 +35,8 @@ int sch_onProcessKilled(TPid pid);
 
 /**
  * @brief Instructs the scheduler that a given process should not run until it is unblocked.
+ * If the caller is said process, it is not immediately blocked. For this to occur,
+ * sch_yieldProcess() must be called afterwards.
  *
  * @returns 0 if the operation succeeded.
  */
@@ -47,26 +50,38 @@ int sch_blockProcess(TPid pid);
 int sch_unblockProcess(TPid pid);
 
 /**
- * @brief Gets the PID of the currently-running or last was-running process,
- * or -1 if no process is currently running.
+ * @brief Gets the PID of the currently-running or last was-running process
+ *
+ * @returns PID or -1 if no process is currently running.
  */
 TPid sch_getCurrentPID();
-
-// THIS FUNCTION IS ONLY FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
-void sch_correrCucuruchitos(TPid pid);
 
 /**
  * @brief Sets a process' priority.
  *
  * @returns 0 if the operation succeeded.
  */
-int sch_setProcessPriority(TPid pid, TPriority priority);
+int sch_setProcessPriority(TPid pid, TPriority newPriority);
 
 /**
- * @brief Gets a process' state information, containing it's priority, status, and stack pointer.
+ * @brief Decides which process to run next
  *
+ * @param currentRSP RSP of the interrupted process
+ * @return RSP of the next process to run
+ */
+void* sch_switchProcess(void* currentRSP);
+
+/**
+ * @brief Yields control of the CPU to the next process on the ready list.
+ * If the caller is not a process or is one that exited, this function does not return.
+ */
+void sch_yieldProcess();
+
+/**
+ * @brief Fills the given struct with the scheduler-related data of the requested process.
+ * 
  * @returns 0 if the operation succeeded.
  */
-int sch_getProcessState(TPid pid, TProcessState* outState);
+int sch_getProcessInfo(TPid pid, TProcessInfo* info);
 
-void* sch_switchProcess(void* currentRSP);
+#endif

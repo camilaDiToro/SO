@@ -1,24 +1,65 @@
 /* Local Headers */
 #include <scheduler.h>
-#include <time.h>
-#include <graphics.h>
-#include <memoryManager.h>
 #include <process.h>
+#include <time.h>
+#include <memoryManager.h>
+#include <interrupts.h>
 
 #define QUANTUM 4
 
+// These are "Pseudo PIDs". That is, PID numbers that do not represent actual processes.
+// The difference between these is that PSEUDOPID_KERNEL represents the kernel's main
+// function (which is probly running an infinite hlt loop), while PSEUDOPID_NONE represents
+// a caller that should not be reassigned CPU time (e.g. a process that was just killed).
+#define PSEUDOPID_KERNEL -1
+#define PSEUDOPID_NONE -2
+
+typedef struct {
+    TPriority priority;
+    TProcessStatus status;
+    void* currentRSP;
+} TProcessState;
+
+static void* mainRSP;
+
 static TProcessState processStates[MAX_PROCESSES];
+static TPid currentRunningPID;
+static uint8_t quantums;
 
-static TPid currentRunningProcessPID = -1;
+extern void* _createProcessContext(int argc, const char* const argv[], void* rsp, TProcessEntryPoint entryPoint);
 
-// Suggested - implement the structure you think that fits better.
-// This array stores pointers to the ready processes using as idx their pid
-// An array is a good idea JUST if there is a small qty of processes (which is the case we are having now)
-// A list would be a better solution if the MAX_PROCESS_QTY was a bigger number
-// static TPid readyProcesses[MAX_PROCESSES];
+static int isValidPid(TPid pid) {
+    return pid >= 0 && pid < MAX_PROCESSES;
+}
+
+static int isActive(TPid pid) {
+    return isValidPid(pid) && processStates[pid].currentRSP != NULL;
+}
+
+static int isReady(TPid pid) {
+    return isActive(pid) && processStates[pid].status == READY;
+}
+
+static int getQuantums(TPid pid) {
+    return MIN_PRIORITY - processStates[pid].priority;
+}
+
+static TPid getNextReadyPid() {
+    TPid first = currentRunningPID < 0 ? 0 : currentRunningPID;
+    TPid next = first;
+
+    do {
+        next = (next + 1) % MAX_PROCESSES;
+        if (isReady(next)) {
+            return next;
+        }
+    } while (next != first);
+
+    return PSEUDOPID_KERNEL;
+}
 
 static int tryGetProcessState(TPid pid, TProcessState** outState) {
-    if (pid < 0 || pid >= MAX_PROCESSES || processStates[pid].currentRSP == NULL)
+    if (!isActive(pid))
         return 0;
 
     *outState = &processStates[pid];
@@ -26,18 +67,15 @@ static int tryGetProcessState(TPid pid, TProcessState** outState) {
 }
 
 void sch_init() {
-    currentRunningProcessPID = -1;
+    currentRunningPID = PSEUDOPID_KERNEL;
+    quantums = 0;
 }
 
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP) {
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* const argv[]) {
     // Processes, by default, are created in the state READY.
     processStates[pid].priority = DEFAULT_PRIORITY;
     processStates[pid].status = READY;
-    processStates[pid].currentRSP = (void*) entryPoint; //currentRSP; // CHANGED FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
-
-    // We believe that the scheduler should be in charge of pushing into
-    // the stack the harcoded values that the process needs to start.
-
+    processStates[pid].currentRSP = _createProcessContext(argc, argv, currentRSP, entryPoint);
     return 0;
 }
 
@@ -46,14 +84,14 @@ int sch_onProcessKilled(TPid pid) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
+    if (processState->status == KILLED)
+        return 0;
+
     processState->status = KILLED;
     processState->currentRSP = NULL;
 
-    if (currentRunningProcessPID == pid)
-        currentRunningProcessPID = -1;
-
-    // TODO: Handle whatever the fuck you gotta handle
-    // (keep in mind; what if the pid killed is currentRunningProcessPID?)
+    if (currentRunningPID == pid)
+        currentRunningPID = PSEUDOPID_NONE;
 
     return 0;
 }
@@ -68,7 +106,8 @@ int sch_blockProcess(TPid pid) {
 
     processState->status = BLOCKED;
 
-    // TODO: Whatever else is necessary (e.g. remove from round robin queue)
+    if (currentRunningPID == pid)
+        quantums = 0;
 
     return 0;
 }
@@ -83,58 +122,63 @@ int sch_unblockProcess(TPid pid) {
 
     processState->status = READY;
 
-    // TODO: Whatever else is necessary (e.g. add to round robin queue)
-
     return 0;
 }
 
 TPid sch_getCurrentPID() {
-    return currentRunningProcessPID;
+    return currentRunningPID;
 }
 
-// THIS FUNCTION IS ONLY FOR DEBUGGING UNTIL THE SCHEDULER CAN PROPERLY LOAD A PROCESS
-void sch_correrCucuruchitos(TPid pid) {
-    TProcessEntryPoint entryPoint = (void*) processStates[pid].currentRSP;
-
-    currentRunningProcessPID = pid;
-    entryPoint(0, NULL);
-}
-
-int sch_setProcessPriority(TPid pid, TPriority priority) {
+int sch_setProcessPriority(TPid pid, TPriority newPriority) {
     TProcessState* processState;
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
-    if (processState->priority == priority)
+    if (newPriority < MAX_PRIORITY || newPriority > MIN_PRIORITY)
+        return 1;
+
+    if (processState->priority == newPriority)
         return 0;
 
-    processState->priority = priority;
-
-    // TODO: Whatever else is necessary (e.g. move between round robin queues)
+    processState->priority = newPriority;
 
     return 0;
 }
 
-int sch_getProcessState(TPid pid, TProcessState* outState) {
-    TProcessState* processState;
-    if (!tryGetProcessState(pid, &processState))
-        return 1;
-
-    *outState = *processState;
-    return 0;
+void sch_yieldProcess() {
+    quantums = 0;
+    _int81();
 }
 
 void* sch_switchProcess(void* currentRSP) {
-    // readyProcesses[currentRunningProcessPID]->currentRSP = currentRSP;
-    //  TO DO
+    if (currentRunningPID >= 0)
+        processStates[currentRunningPID].currentRSP = currentRSP;
+    else if (currentRunningPID == PSEUDOPID_KERNEL)
+        mainRSP = currentRSP;
 
-    /* Main idea:
-      Save running process currentStackPointer
-      Check if quantum has finished or there is another process with higher priority to preempt
-      Check process status
-      If we have to switch a process, we return the currentStackPointer of the other process.
-      If not, we return currentStackPointer.
-    */
+    if (!isReady(currentRunningPID) || quantums == 0) {
+        currentRunningPID = getNextReadyPid();
 
-    return currentRSP;
+        if (currentRunningPID == PSEUDOPID_KERNEL) {
+            quantums = 0;
+            return mainRSP;
+        }
+
+        quantums = getQuantums(currentRunningPID);
+    } else {
+        quantums -= 1;
+    }
+
+    return processStates[currentRunningPID].currentRSP;
+}
+
+int sch_getProcessInfo(TPid pid, TProcessInfo* info) {
+    TProcessState* processState;
+    if (!tryGetProcessState(pid, &processState))
+        return 1;
+
+    info->status = processStates->status;
+    info->priority = processStates->priority;
+    info->currentRSP = processState->currentRSP;
+    return 0;
 }
