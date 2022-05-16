@@ -1,19 +1,23 @@
 include ../Makefile.inc
 
 MODULE=0000-sampleCodeModule.bin
-SOURCES=$(wildcard *.c)
+MODULE_ELF=$(MODULE:%.bin=%.elf)
+
+SOURCES=$(wildcard [^_]*.c)
+SOURCES_LOADER=$(wildcard _*.c)
 SOURCES_ASM=$(wildcard asm/*.asm)
+
 OBJECTS=$(SOURCES:%.c=obj/%.o)
+OBJECTS_LOADER=$(SOURCES_LOADER:%.c=obj/%.o)
 OBJECTS_ASM=$(SOURCES_ASM:asm/%.asm=obj/%.asm.o)
 
-ALL_OBJECTS= $(OBJECTS) $(OBJECTS_ASM)
+ALL_OBJECTS=$(OBJECTS) $(OBJECTS_ASM)
 
 all: $(MODULE)
 
-$(MODULE): $(ALL_OBJECTS)
-	$(LD) $(LDFLAGS) -T sampleCodeModule.ld $(ALL_OBJECTS) -o ../$(MODULE)
-	$(LD) $(LDFLAGS) -T sampleCodeModule.ld  $(ALL_OBJECTS) -o ../0000-sampleCodeModule.elf --oformat=elf64-x86-64
-#	$(GCC) $(GCCFLAGS) -I./include -T sampleCodeModule.ld -Wl,--oformat=elf64-x86-64 _loader.c $(SOURCES) $(OBJECTS_ASM) -o ../0000-sampleCodeModule.elf
+$(MODULE): $(ALL_OBJECTS) $(OBJECTS_LOADER)
+	$(LD) $(LDFLAGS) -T sampleCodeModule.ld $(OBJECTS_LOADER) $(ALL_OBJECTS) -o ../$(MODULE)
+	$(LD) $(LDFLAGS) -T sampleCodeModule.ld $(OBJECTS_LOADER) $(ALL_OBJECTS) -o ../$(MODULE_ELF) --oformat=elf64-x86-64
 
 obj/%.o: %.c
 	mkdir -p obj

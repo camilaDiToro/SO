@@ -12,7 +12,7 @@ void* memset(void* destiny, int32_t c, size_t length);
 int _start(int argc, char * argv[]) {
     // Clean BSS
     memset(&bss, 0, &endOfBinary - &bss);
-    return main(argc, argv);
+    return main(0, 0);
 }
 
 void* memset(void* destiation, int32_t c, size_t length) {
