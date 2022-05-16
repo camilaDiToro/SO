@@ -7,15 +7,24 @@
 
 #define QUANTUM 4
 
+// These are "Pseudo PIDs". That is, PID numbers that do not represent actual processes.
+// The difference between these is that PSEUDOPID_KERNEL represents the kernel's main
+// function (which is probly running an infinite hlt loop), while PSEUDOPID_NONE represents
+// a caller that should not be reassigned CPU time (e.g. a process that was just killed).
+#define PSEUDOPID_KERNEL -1
+#define PSEUDOPID_NONE -2
+
 typedef struct {
     TPriority priority;
     TProcessStatus status;
     void* currentRSP;
 } TProcessState;
 
+static void* mainRSP;
+
 static TProcessState processStates[MAX_PROCESSES];
-static TPid currentRunningPID = -1;
-static uint8_t quantums = 0;
+static TPid currentRunningPID;
+static uint8_t quantums;
 
 extern void* _createProcessContext(int argc, const char* const argv[], void* rsp, TProcessEntryPoint entryPoint);
 
@@ -36,7 +45,7 @@ static int getQuantums(TPid pid) {
 }
 
 static TPid getNextReadyPid() {
-    TPid first = currentRunningPID == -1 ? 0 : currentRunningPID;
+    TPid first = currentRunningPID < 0 ? 0 : currentRunningPID;
     TPid next = first;
 
     do {
@@ -45,7 +54,8 @@ static TPid getNextReadyPid() {
             return next;
         }
     } while (next != first);
-    return -1;
+
+    return PSEUDOPID_KERNEL;
 }
 
 static int tryGetProcessState(TPid pid, TProcessState** outState) {
@@ -57,7 +67,7 @@ static int tryGetProcessState(TPid pid, TProcessState** outState) {
 }
 
 void sch_init() {
-    currentRunningPID = -1;
+    currentRunningPID = PSEUDOPID_KERNEL;
     quantums = 0;
 }
 
@@ -81,7 +91,7 @@ int sch_onProcessKilled(TPid pid) {
     processState->currentRSP = NULL;
 
     if (currentRunningPID == pid)
-        currentRunningPID = -1;
+        currentRunningPID = PSEUDOPID_NONE;
 
     return 0;
 }
@@ -141,16 +151,17 @@ void sch_yieldProcess() {
 }
 
 void* sch_switchProcess(void* currentRSP) {
-    if (currentRunningPID != -1) {
+    if (currentRunningPID >= 0)
         processStates[currentRunningPID].currentRSP = currentRSP;
-    }
+    else if (currentRunningPID == PSEUDOPID_KERNEL)
+        mainRSP = currentRSP;
 
     if (!isReady(currentRunningPID) || quantums == 0) {
         currentRunningPID = getNextReadyPid();
 
-        if (currentRunningPID == -1) {
+        if (currentRunningPID == PSEUDOPID_KERNEL) {
             quantums = 0;
-            return NULL;
+            return mainRSP;
         }
 
         quantums = getQuantums(currentRunningPID);
@@ -165,7 +176,7 @@ int sch_getProcessInfo(TPid pid, TProcessInfo* info) {
     TProcessState* processState;
     if (!tryGetProcessState(pid, &processState))
         return 1;
-    
+
     info->status = processStates->status;
     info->priority = processStates->priority;
     info->currentRSP = processState->currentRSP;

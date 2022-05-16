@@ -142,22 +142,17 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
     if (count > BUFFER_MAX_SIZE)
         count = BUFFER_MAX_SIZE;
 
-    
-    // TODO:
-    /*int read;
+    int read;
     while ((read = kbd_readChars(buf, count)) == 0) {
         sch_blockProcess(pid);
         wq_add(processReadWaitQueue, pid);
         sch_yieldProcess();
     }
 
-    return read;*/
-
-    return kbd_readChars(buf, count);
+    return read;
 }
 
 static int fdCloseHandler(TPid pid, int fd, void* resource) {
-    // TODO: process tracking? "Who is using the keyboard" so we can print them?
-
+    wq_remove(processReadWaitQueue, pid);
     return 0;
 }

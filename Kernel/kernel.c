@@ -78,5 +78,8 @@ int main() {
     _sti();
     sch_yieldProcess();
 
+    while (1)
+        _hlt();
+
     return 0;
 }

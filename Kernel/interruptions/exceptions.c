@@ -34,6 +34,9 @@ void exceptionDispatcher(int exception) {
 static void excepHandler(int exception, const char* msg) {
     TPid pid = sch_getCurrentPID();
     if (prc_isForeground(pid)) {
+        scr_print("[PID ");
+        scr_printDec(pid);
+        scr_print("] ");
         scr_print(msg);
         scr_print(" (0x");
         scr_printDec(exception);
@@ -45,8 +48,8 @@ static void excepHandler(int exception, const char* msg) {
         int c;
         do {
             _hlt(); // halts the central processing unit until the next external interrupt is fired.
+            _cli();
         } while ((c = kbd_getChar()) != '\n');
-        _cli();
     }
 
     prc_kill(pid);
