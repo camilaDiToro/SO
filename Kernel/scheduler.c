@@ -1,7 +1,7 @@
 /* Local Headers */
 #include <scheduler.h>
+#include <process.h>
 #include <time.h>
-#include <graphics.h>
 #include <memoryManager.h>
 #include <interrupts.h>
 
@@ -36,14 +36,15 @@ static int getQuantums(TPid pid) {
 }
 
 static TPid getNextReadyPid() {
-    TPid next = currentRunningPID;
+    TPid first = currentRunningPID == -1 ? 0 : currentRunningPID;
+    TPid next = first;
 
     do {
         next = (next + 1) % MAX_PROCESSES;
         if (isReady(next)) {
             return next;
         }
-    } while (next != currentRunningPID);
+    } while (next != first);
     return -1;
 }
 
@@ -140,19 +141,19 @@ void sch_yieldProcess() {
 }
 
 void* sch_switchProcess(void* currentRSP) {
-
     if (currentRunningPID != -1) {
         processStates[currentRunningPID].currentRSP = currentRSP;
     }
 
     if (!isReady(currentRunningPID) || quantums == 0) {
-        TPid newPid = getNextReadyPid();
+        currentRunningPID = getNextReadyPid();
 
-        while ((newPid = getNextReadyPid()) < 0)
-            _hlt();
+        if (currentRunningPID == -1) {
+            quantums = 0;
+            return NULL;
+        }
 
-        quantums = getQuantums(newPid);
-        currentRunningPID = newPid;
+        quantums = getQuantums(currentRunningPID);
     } else {
         quantums -= 1;
     }

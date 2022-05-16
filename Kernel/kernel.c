@@ -69,6 +69,7 @@ int main() {
     load_idt();
     scr_init();
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
+    kbd_init();
     sch_init();
 
     initializeShell();

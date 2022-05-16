@@ -65,7 +65,6 @@ SECTION .text
 %endmacro
 
 %macro irqHandlerMaster 1
-	push rsp
 	pushState
 
 	mov rdi, %1 
@@ -76,7 +75,6 @@ SECTION .text
 	out 20h, al
 
 	popState
-	pop rsp
 	iretq
 %endmacro
 
@@ -120,7 +118,7 @@ _irq00Handler:
 
 	mov rdi, 0
 	call irqDispatcher
-	
+
 	mov rdi, rsp
 	call sch_switchProcess
 	mov rsp, rax
@@ -128,7 +126,7 @@ _irq00Handler:
 	; signal pic EOI (End of Interrupt)
 	mov al, 20h
 	out 20h, al
-	
+
 	popState
 	iretq
 
@@ -165,10 +163,6 @@ _awakeScheduler:
 	mov rdi, rsp
 	call sch_switchProcess
 	mov rsp, rax
-
-	; signal pic EOI (End of Interrupt)
-	mov al, 20h
-	out 20h, al
 	
 	popState
 	iretq

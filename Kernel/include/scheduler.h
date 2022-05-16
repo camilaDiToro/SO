@@ -26,6 +26,8 @@ int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentR
 
 /**
  * @brief Called by process.c whenever a process is being killed.
+ * If the caller is said process, it is not immediatelly stopped. For this to occur,
+ * sch_yieldProcess() must be called.
  *
  * @returns 0 if the operation succeeded.
  */
@@ -33,6 +35,8 @@ int sch_onProcessKilled(TPid pid);
 
 /**
  * @brief Instructs the scheduler that a given process should not run until it is unblocked.
+ * If the caller is said process, it is not immediately blocked. For this to occur,
+ * sch_yieldProcess() must be called afterwards.
  *
  * @returns 0 if the operation succeeded.
  */

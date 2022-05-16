@@ -1,9 +1,11 @@
 #ifndef _KERNEL_TYPES_H_
 #define _KERNEL_TYPES_H_
 
+/* Standard library */
+#include <stdint.h>
+
 /**
  * @brief Represents a process status.
- * 
  */
 typedef enum status { READY = 0, BLOCKED, KILLED } TProcessStatus;
 

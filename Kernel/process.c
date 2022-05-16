@@ -6,7 +6,6 @@
 /* Local headers */
 #include <process.h>
 #include <memoryManager.h>
-#include <pipe.h>
 #include <scheduler.h>
 #include <graphics.h>
 #include <lib.h>

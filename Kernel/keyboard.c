@@ -1,9 +1,14 @@
 /* Standard library */
 #include <stdint.h>
+#include <stddef.h>
+#include <sys/types.h>
 
 /* Local headers */
 #include <keyboard.h>
 #include <lib.h>
+#include <process.h>
+#include <scheduler.h>
+#include <waitQueueADT.h>
 
 #define LEFT_SHIFT 0x2A
 #define RIGHT_SHIFT 0x36
@@ -46,8 +51,14 @@ static uint8_t scancodeUToAscii[] = {
 
 static uint8_t* keyMap[] = {scancodeLToAscii, scancodeUToAscii};
 
+static TWaitQueue processReadWaitQueue;
+
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
 static int fdCloseHandler(TPid pid, int fd, void* resource);
+
+void kbd_init() {
+    processReadWaitQueue = wq_new();
+}
 
 void kbd_interruptHandler() {
     unsigned char code = kbd_readKey();
@@ -63,6 +74,7 @@ void kbd_interruptHandler() {
                 uint16_t bufferEnd = (bufferStart + bufferSize) % BUFFER_MAX_SIZE;
                 buffer[bufferEnd] = keyChar;
                 bufferSize++;
+                wq_unblockSingle(processReadWaitQueue);
             }
         }
     } else { // Key released
@@ -130,10 +142,15 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
     if (count > BUFFER_MAX_SIZE)
         count = BUFFER_MAX_SIZE;
 
+    
     // TODO:
     /*int read;
-    while ((read = kbd_readChars(buf, count)) == 0)
-        sch_block(pid); // Unblock when a key is received
+    while ((read = kbd_readChars(buf, count)) == 0) {
+        sch_blockProcess(pid);
+        wq_add(processReadWaitQueue, pid);
+        sch_yieldProcess();
+    }
+
     return read;*/
 
     return kbd_readChars(buf, count);

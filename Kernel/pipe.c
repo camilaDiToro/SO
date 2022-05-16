@@ -84,8 +84,13 @@ ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
         
         void* newBuf = mm_malloc(newBufferSize);
         if (newBuf != NULL) {
-            memcpy(newBuf, pipe->buffer + pipe->readOffset, pipe->bufferSize - pipe->readOffset);
-            memcpy(newBuf + pipe->readOffset, pipe->buffer, pipe->readOffset);
+            size_t x = pipe->bufferSize - pipe->readOffset;
+            if (x <= pipe->remainingBytes) {
+                memcpy(newBuf, pipe->buffer + pipe->readOffset, pipe->remainingBytes);
+            } else {
+                memcpy(newBuf, pipe->buffer + pipe->readOffset, x);
+                memcpy(newBuf + x, pipe->buffer, pipe->remainingBytes - x);
+            }
             pipe->readOffset = 0;
             mm_free(pipe->buffer);
             pipe->buffer = newBuf;

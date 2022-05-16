@@ -4,8 +4,8 @@
 #include <sys/types.h>
 
 /* Local headers */
-#include <graphics.h>
 #include <systemCalls.h>
+#include <graphics.h>
 #include <keyboard.h>
 #include <time.h>
 #include <memoryManager.h>
