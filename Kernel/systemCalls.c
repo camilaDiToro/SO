@@ -129,6 +129,18 @@ int sys_pipe_handler(int pipefd[2]) {
     return 0;
 }
 
+int sys_openPipe_handler(const char* name, int pipefd[2]) {
+    return 420;
+}
+
+int sys_unlinkPipe_handler(const char* name) {
+    return 420;
+}
+
+int sys_listPipes_handler(TPipeInfo* array, int maxPipes) {
+    return 420;
+}
+
 int sys_killProcess_handler(TPid pid) {
     int result = prc_kill(pid);
     if (pid == sch_getCurrentPID())
@@ -182,6 +194,31 @@ int sys_listProcesses_handler(TProcessInfo* array, int maxProcesses) {
     return prc_listProcesses(array, maxProcesses);
 }
 
+int sys_openSem_handler(const char* name, TSem* sem, unsigned int value) {
+    return 420;
+}
+
+int sys_closeSem_handler(TSem* sem) {
+    return 420;
+}
+
+int sys_unlinkSem_handler(const char* name) {
+    return 420;
+}
+
+int sys_postSem_handler(TSem* sem) {
+    return 420;
+}
+
+int sys_waitSem_handler(TSem* sem) {
+    return 420;
+}
+
+int sys_listSemaphores_handler(TSemaphoreInfo* array, int maxSemaphores) {
+    return 420;
+}
+
+
 static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x00 */ (TSyscallHandlerFunction)sys_read_handler,
     /* 0x01 */ (TSyscallHandlerFunction)sys_write_handler,
@@ -205,7 +242,22 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x13 */ (TSyscallHandlerFunction)sys_listProcesses_handler,
     /* 0x14 */ (TSyscallHandlerFunction)NULL,
     /* 0x15 */ (TSyscallHandlerFunction)NULL,
-    /* 0x16 */ (TSyscallHandlerFunction)sys_pipe_handler
+    /* 0x16 */ (TSyscallHandlerFunction)sys_pipe_handler,
+    /* 0x17 */ (TSyscallHandlerFunction)sys_openPipe_handler,
+    /* 0x18 */ (TSyscallHandlerFunction)sys_unlinkPipe_handler,
+    /* 0x19 */ (TSyscallHandlerFunction)sys_listPipes_handler,
+    /* 0x1A */ (TSyscallHandlerFunction)NULL,
+    /* 0x1B */ (TSyscallHandlerFunction)NULL,
+    /* 0x1C */ (TSyscallHandlerFunction)NULL,
+    /* 0x1D */ (TSyscallHandlerFunction)NULL,
+    /* 0x1E */ (TSyscallHandlerFunction)NULL,
+    /* 0x1F */ (TSyscallHandlerFunction)NULL,
+    /* 0x20 */ (TSyscallHandlerFunction)sys_openSem_handler,
+    /* 0x21 */ (TSyscallHandlerFunction)sys_closeSem_handler,
+    /* 0x22 */ (TSyscallHandlerFunction)sys_unlinkSem_handler,
+    /* 0x23 */ (TSyscallHandlerFunction)sys_postSem_handler,
+    /* 0x24 */ (TSyscallHandlerFunction)sys_waitSem_handler,
+    /* 0x25 */ (TSyscallHandlerFunction)sys_listSemaphores_handler
 };
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {

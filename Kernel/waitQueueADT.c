@@ -1,5 +1,3 @@
-/* Standard library */
-
 /* Local headers */
 #include <waitQueueADT.h>
 #include <memoryManager.h>

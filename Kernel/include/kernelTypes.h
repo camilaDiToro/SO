@@ -11,13 +11,11 @@ typedef enum status { READY = 0, BLOCKED, KILLED } TProcessStatus;
 
 /**
  * @brief Represents process PID
- * 
  */
 typedef int TPid;
 
 /**
  * @brief Represents process priority
- * 
  */
 typedef int8_t TPriority;
 
@@ -41,5 +39,18 @@ typedef struct {
     TProcessStatus status;
     void* currentRSP;
 } TProcessInfo;
+
+typedef struct {
+    const char* name;
+} TPipeInfo;
+
+/**
+ * @brief Represents a semaphore.
+ */
+typedef int TSem;
+
+typedef struct {
+    const char* name;
+} TSemaphoreInfo;
 
 #endif
