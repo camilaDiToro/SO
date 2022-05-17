@@ -69,4 +69,12 @@ int wq_unblockSingle(TWaitQueue queue);
  */
 int wq_unblockAll(TWaitQueue queue);
 
+/**
+ * @brief Gets up to maxPids PIDs stored in this queue, in the order in which they were queued.
+ * (array[0] will be the next PID to be unblocked).
+ * 
+ * @returns The amount of PIDs written to the array.
+ */
+int wq_getPids(TWaitQueue queue, TPid* array, int maxPids);
+
 #endif

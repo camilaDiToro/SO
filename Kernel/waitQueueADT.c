@@ -110,3 +110,13 @@ int wq_unblockAll(TWaitQueue queue) {
     queue->offset = 0;
     return failed;
 }
+
+int wq_getPids(TWaitQueue queue, TPid* array, int maxPids) {
+    if (maxPids > queue->count)
+        maxPids = queue->count;
+
+    for (int i = 0; i < maxPids; i++)
+        array[i] = queue->buf[(queue->offset + i) % queue->bufSize];
+
+    return maxPids;
+}
