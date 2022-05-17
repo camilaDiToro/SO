@@ -160,17 +160,30 @@ int sys_unblockProcess_handler(TPid pid) {
 }
 
 TPid sys_createProcess_handler(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo) {
-    TPid pid = prc_create(createInfo->name, createInfo->entryPoint, createInfo->argc, createInfo->argv);
+    TPid callerPid = sch_getCurrentPID();
+    TPid newPid = prc_create(createInfo->name, createInfo->entryPoint, createInfo->argc, createInfo->argv);
 
     // TODO: Map them to somewhere else!!
-    if (pid >= 0) {
-        prc_setIsForeground(pid, createInfo->isForeground);
-        kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
-        scr_mapToProcessFd(pid, STDOUT, &GREEN); // Map STDOUT
-        scr_mapToProcessFd(pid, STDERR, &BLUE);   // Map STDERR
+    if (newPid >= 0) {
+        prc_setIsForeground(newPid, createInfo->isForeground);
+
+        if (stdinMapFd < 0)
+            kbd_mapToProcessFd(newPid, STDIN);
+        else
+            prc_dupFd(callerPid, newPid, stdinMapFd, STDIN);
+
+        if (stdoutMapFd < 0)
+            scr_mapToProcessFd(newPid, STDOUT, &GREEN);
+        else
+            prc_dupFd(callerPid, newPid, stdoutMapFd, STDOUT);
+
+        if (stderrMapFd < 0)
+            scr_mapToProcessFd(newPid, STDERR, &BLUE);
+        else
+            prc_dupFd(callerPid, newPid, stderrMapFd, STDERR);
     }
 
-    return pid;
+    return newPid;
 }
 
 void sys_yield_handler() {

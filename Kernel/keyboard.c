@@ -55,6 +55,7 @@ static TWaitQueue processReadWaitQueue;
 
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
 static int fdCloseHandler(TPid pid, int fd, void* resource);
+static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
 
 void kbd_init() {
     processReadWaitQueue = wq_new();
@@ -122,13 +123,7 @@ void kbd_clearBuffer() {
 }
 
 int kbd_mapToProcessFd(TPid pid, int fd) {
-    int r = prc_mapFd(pid, fd, (void*)1, &fdReadHandler, NULL, &fdCloseHandler);
-    if (r < 0)
-        return r;
-
-    // TODO: process tracking? "Who is using the keyboard" so we can print them?
-
-    return r;
+    return prc_mapFd(pid, fd, (void*)1, &fdReadHandler, NULL, &fdCloseHandler, &fdDupHandler);
 }
 
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count) {
@@ -155,4 +150,8 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
 static int fdCloseHandler(TPid pid, int fd, void* resource) {
     wq_remove(processReadWaitQueue, pid);
     return 0;
+}
+
+static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource) {
+    return kbd_mapToProcessFd(pidTo, fdTo);
 }

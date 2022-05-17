@@ -29,6 +29,14 @@ typedef ssize_t (*TFdReadHandler)(TPid pid, int fd, void* resource, char* buf, s
 typedef ssize_t (*TFdWriteHandler)(TPid pid, int fd, void* resource, const char* buf, size_t count);
 
 /**
+ * @brief Represents a function that will handle a file descriptor dup operation.
+ * Handlers need not check that pidFrom or fdFrom are valid.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+typedef int (*TFdDupHandler)(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
+
+/**
  * @brief Represents a function that will handle a file descriptor close operation.
  * Handlers need not check that the pid or fd is valid.
  *
@@ -59,7 +67,7 @@ int prc_kill(TPid pid);
  * @returns The file descriptor on which the resource was mapped for the process,
  * or -1 if an error occurred.
  */
-int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler);
+int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler, TFdDupHandler dupHandler);
 
 /**
  * @brief Unmaps a file descriptor from a process' I/O table.
@@ -103,5 +111,13 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count);
  * @returns the amount of processes read.
  */
 int prc_listProcesses(TProcessInfo* vec, int maxProcesses);
+
+/**
+ * @brief Maps the resource on a file descriptor from a process to a file descriptor
+ * on another process. fdTo may be -1 to let the I/O table decide a file descriptor.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo);
 
 #endif

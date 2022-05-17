@@ -7,7 +7,6 @@
 #include <process.h>
 #include <memoryManager.h>
 #include <scheduler.h>
-#include <graphics.h>
 #include <lib.h>
 #include <string.h>
 
@@ -25,6 +24,7 @@ typedef struct {
     TFdReadHandler readHandler;
     TFdWriteHandler writeHandler;
     TFdCloseHandler closeHandler;
+    TFdDupHandler dupHandler;
 } TFileDescriptorTableEntry;
 
 /**
@@ -159,7 +159,7 @@ int prc_kill(TPid pid) {
     return 0;
 }
 
-int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler) {
+int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler, TFdDupHandler dupHandler) {
     TProcessContext* process;
     if (resource == NULL || !tryGetProcessFromPid(pid, &process))
         return -1;
@@ -194,6 +194,7 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
     process->fdTable[fd].readHandler = readHandler;
     process->fdTable[fd].writeHandler = writeHandler;
     process->fdTable[fd].closeHandler = closeHandler;
+    process->fdTable[fd].dupHandler = dupHandler;
 
     return fd;
 }
@@ -234,6 +235,14 @@ int prc_setIsForeground(TPid pid, int isForeground) {
 
     process->isForeground = (isForeground != 0);
     return 0;
+}
+
+int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo) {
+    TProcessContext* processFrom;
+    if (fdFrom < 0 || !tryGetProcessFromPid(pidFrom, &processFrom) || processFrom->fdTableSize <= fdFrom || processFrom->fdTable[fdFrom].resource == NULL || processFrom->fdTable[fdFrom].dupHandler == NULL)
+        return 1;
+
+    return processFrom->fdTable[fdFrom].dupHandler(pidFrom, pidTo, fdFrom, fdTo, processFrom->fdTable[fdFrom].resource);
 }
 
 ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count) {

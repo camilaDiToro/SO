@@ -58,6 +58,7 @@ typedef struct {
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count);
 static int fdCloseHandler(TPid pid, int fd, void* resource);
+static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
 
 TPipe pipe_create() {
     TPipe pipe;
@@ -162,7 +163,7 @@ int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWr
     if (mapping == NULL)
         return -1;
 
-    int r = prc_mapFd(pid, fd, mapping, allowRead ? &fdReadHandler : NULL, allowWrite ? &fdWriteHandler : NULL, &fdCloseHandler);
+    int r = prc_mapFd(pid, fd, mapping, allowRead ? &fdReadHandler : NULL, allowWrite ? &fdWriteHandler : NULL, &fdCloseHandler, &fdDupHandler);
     if (r < 0) {
         mm_free(mapping);
         return r;
@@ -294,4 +295,9 @@ static int fdCloseHandler(TPid pid, int fd, void* resource) {
 
     // unlockPipe();
     return result;
+}
+
+static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource) {
+    TPipeFdMapping* mapping = (TPipeFdMapping*) resource;
+    return pipe_mapToProcessFd(pidTo, fdTo, mapping->pipe, mapping->allowRead, mapping->allowWrite);
 }
