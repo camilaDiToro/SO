@@ -30,7 +30,7 @@ int sys_unblock(TPid pid);
 
 int sys_printmem(void* mem_address);
 
-int sys_createProcess(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
+int sys_createProcess(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo);
 
 void sys_date(char* buffer);
 

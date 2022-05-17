@@ -144,8 +144,8 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
 
     int read;
     while ((read = kbd_readChars(buf, count)) == 0) {
-        sch_blockProcess(pid);
         wq_add(processReadWaitQueue, pid);
+        sch_blockProcess(pid);
         sch_yieldProcess();
     }
 

@@ -70,7 +70,7 @@ static int isNameValid(const char* name) {
             return 1;
 
         // The first character must be a letter. Subsequent characters may be a letter or a number.
-        if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) {
+        if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && c != '_') {
             if (i == 0 || c < '0' || c > '9')
                 return 0;
         }
@@ -166,7 +166,7 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
 
     if (fd < 0) {
         // Look for the lowest available file descriptor.
-        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
+        for (fd = 3; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
     } else {
         // Check that the requested fd is available.
         if (fd < process->fdTableSize && process->fdTable[fd].resource != NULL)
@@ -232,7 +232,7 @@ int prc_setIsForeground(TPid pid, int isForeground) {
     if (!tryGetProcessFromPid(pid, &process))
         return -1;
 
-    return process->isForeground = (isForeground != 0);
+    process->isForeground = (isForeground != 0);
     return 0;
 }
 

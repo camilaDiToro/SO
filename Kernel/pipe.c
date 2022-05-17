@@ -9,6 +9,8 @@
 #include <process.h>
 #include <lib.h>
 #include <graphics.h>
+#include <scheduler.h>
+#include <waitQueueADT.h>
 
 /** The minimum size for a non-null pipe buffer. */
 #define PIPE_MIN_BUFFER_SIZE 512
@@ -44,6 +46,8 @@ struct TPipeInternal {
     size_t remainingBytes;
 
     unsigned int readerFdCount, writerFdCount;
+
+    TWaitQueue readProcessWaitQueue, writeProcessWaitQueue;
 };
 
 typedef struct {
@@ -56,10 +60,15 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
 static int fdCloseHandler(TPid pid, int fd, void* resource);
 
 TPipe pipe_create() {
-    TPipe pipe = mm_malloc(sizeof(struct TPipeInternal));
-    if (pipe == NULL)
+    TPipe pipe;
+    TWaitQueue readQueue = NULL, writeQueue = NULL;
+    if ((pipe = mm_malloc(sizeof(struct TPipeInternal))) == NULL || (readQueue = wq_new()) == NULL || (writeQueue = wq_new()) == NULL) {
+        mm_free(pipe);
+        if (readQueue != NULL)
+            wq_free(readQueue);
         return NULL;
-    
+    }
+
     // Initialize the pipe as empty, don't even allocate a buffer until it's necessary.
     pipe->buffer = NULL;
     pipe->bufferSize = 0;
@@ -67,11 +76,13 @@ TPipe pipe_create() {
     pipe->remainingBytes = 0;
     pipe->readerFdCount = 0;
     pipe->writerFdCount = 0;
+    pipe->readProcessWaitQueue = readQueue;
+    pipe->writeProcessWaitQueue = writeQueue;
     return pipe;
 }
 
 int pipe_free(TPipe pipe) {
-    return mm_free(pipe->buffer) + mm_free(pipe);
+    return mm_free(pipe->buffer) + wq_free(pipe->readProcessWaitQueue) + wq_free(pipe->writeProcessWaitQueue) + mm_free(pipe);
 }
 
 ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
@@ -194,11 +205,15 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
     if (count == 0)
         return 0;
 
-    // TODO: Implement blocking read.
-    // TODO: Make access to the TPipe struct mutually exclusive between processes.
+    // TODO: Make access to the TPipe struct mutually exclusive between processes (but interruptable?)
+
     // lockPipe(); // With a semaphore or somethin
     ssize_t r;
     while ((r = pipe_read(pipe, buf, count)) == 0 && pipe->writerFdCount != 0) {
+        wq_add(pipe->readProcessWaitQueue, pid);
+        sch_blockProcess(pid);
+        sch_yieldProcess();
+
         // Add to queue of blocked
         // unlockPipe();
         // sch_block(pid);
@@ -213,8 +228,9 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
         mm_free(pipe->buffer);
         pipe->buffer = NULL;
         pipe->bufferSize = 0;
-        // TODO: wake up all readers?
-    }
+        wq_unblockAll(pipe->readProcessWaitQueue);
+    } else
+        wq_unblockAll(pipe->writeProcessWaitQueue);
 
     // unlockPipe();
     return r;
@@ -232,6 +248,10 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
     // lockPipe();
     ssize_t r;
     while ((r = pipe_write(pipe, buf, count)) == 0 && pipe->readerFdCount != 0) {
+        wq_add(pipe->writeProcessWaitQueue, pid);
+        sch_blockProcess(pid);
+        sch_yieldProcess();
+
         // Add to queue of blocked
         // unlockPipe();
         // sch_block(pid);
@@ -239,6 +259,8 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
         // sch_yield(pid);
         // lockPipe();
     }
+
+    wq_unblockAll(pipe->readProcessWaitQueue);
 
     // unlockPipe();
     return r == 0 ? -1 : r;
@@ -253,6 +275,9 @@ static int fdCloseHandler(TPid pid, int fd, void* resource) {
     pipe->writerFdCount -= mapping->allowWrite;
     int result = mm_free(mapping);
 
+    wq_remove(pipe->readProcessWaitQueue, pid);
+    wq_remove(pipe->writeProcessWaitQueue, pid);
+
     if (pipe->readerFdCount == 0) {
         if (pipe->writerFdCount == 0) {
             // No more readers nor writers, fully dispose of the pipe.
@@ -262,8 +287,10 @@ static int fdCloseHandler(TPid pid, int fd, void* resource) {
             result += mm_free(pipe->buffer);
             pipe->buffer = NULL;
             pipe->bufferSize = 0;
+            wq_unblockAll(pipe->writeProcessWaitQueue);
         }
-    }
+    } else if (pipe->writerFdCount == 0)
+        wq_unblockAll(pipe->readProcessWaitQueue);
 
     // unlockPipe();
     return result;

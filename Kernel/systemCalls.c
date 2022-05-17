@@ -159,11 +159,12 @@ int sys_unblockProcess_handler(TPid pid) {
     return sch_unblockProcess(pid);
 }
 
-TPid sys_createProcess_handler(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
-    TPid pid = prc_create(name, entryPoint, argc, argv);
+TPid sys_createProcess_handler(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo) {
+    TPid pid = prc_create(createInfo->name, createInfo->entryPoint, createInfo->argc, createInfo->argv);
 
     // TODO: Map them to somewhere else!!
     if (pid >= 0) {
+        prc_setIsForeground(pid, createInfo->isForeground);
         kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
         scr_mapToProcessFd(pid, STDOUT, &GREEN); // Map STDOUT
         scr_mapToProcessFd(pid, STDERR, &BLUE);   // Map STDERR

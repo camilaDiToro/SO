@@ -24,7 +24,7 @@ typedef int8_t TPriority;
  *
  * @returns The process' exit code.
  */
-typedef int (*TProcessEntryPoint)(int argc, const char* argv[]);
+typedef void (*TProcessEntryPoint)(int argc, char* argv[]);
 
 /**
  * @brief Represents a process' information.
@@ -39,6 +39,17 @@ typedef struct {
     TProcessStatus status;
     void* currentRSP;
 } TProcessInfo;
+
+/**
+ * @brief Represents the information needed for a create process request.
+ */
+typedef struct {
+    const char* name;
+    TProcessEntryPoint entryPoint;
+    int isForeground;
+    int argc;
+    const char* const* argv;
+} TProcessCreateInfo;
 
 typedef struct {
     const char* name;
