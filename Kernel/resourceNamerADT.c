@@ -6,6 +6,7 @@
 #include <kernelTypes.h>
 #include <memoryManager.h>
 #include <string.h>
+
 #define BUFFER_CHUNK_SIZE 8
 
 typedef struct {

@@ -178,7 +178,6 @@ TPid sys_createProcess_handler(int stdinMapFd, int stdoutMapFd, int stderrMapFd,
     TPid callerPid = sch_getCurrentPID();
     TPid newPid = prc_create(createInfo->name, createInfo->entryPoint, createInfo->argc, createInfo->argv);
 
-    // TODO: Map them to somewhere else!!
     if (newPid >= 0) {
         prc_setIsForeground(newPid, createInfo->isForeground);
 

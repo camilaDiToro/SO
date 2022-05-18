@@ -23,10 +23,14 @@
 #define PIPE_MAX_BUFFER_SIZE 4096
 
 /**
- * Defines a size rounding operation for pipe buffer size values. The returned value must be equal or greater than the input.
+ * @brief Defines a size rounding operation for pipe buffer size values.
+ * The returned value must be equal or greater than the input.
  */
 #define PIPE_ROUND_BUFFER_SIZE(value) (((value) + 511) / 512 * 512)
 
+/**
+ * @brief Represents a structure that holds all of a pipe's fields.
+ */
 typedef struct {
     /**
      * A pointer to the mm_malloc() allocated buffer that backs this pipe's storage, or null
@@ -49,21 +53,38 @@ typedef struct {
      */
     size_t remainingBytes;
 
+    /**
+     * The amount of currently open read/write file descriptors for this
+     * pipe on all processes combined.
+     */
     unsigned int readerFdCount, writerFdCount;
 
+    /**
+     * Queues the processes that are waiting to be able to read/write to this pipe.
+     */
     TWaitQueue readProcessWaitQueue, writeProcessWaitQueue;
 
+    /**
+     * This pipe's name, or NULL if this pipe is unnamed/unlinked.
+     */
     const char* name;
 } TPipeInternal;
 
+/**
+ * @brief Represents the structure passed in as "resource" whenever a pipe is
+ * mapped to a file descriptor on a process.
+ */
 typedef struct {
     TPipe pipe;
     int allowRead, allowWrite;
 } TPipeFdMapping;
 
-static int nextPipeIdCandidate = 0;
+/** Holds all the pipes. Each slot may have a pipe or be NULL. */
 static TPipeInternal* pipes[MAX_PIPES];
+/** Used to quickly find available slots on the "pipes" array. */
+static int nextPipeIdCandidate = 0;
 
+/** Tracks the name of all named pipes. */
 static TResourceNamer namedPipes = NULL;
 
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count);
@@ -76,6 +97,7 @@ static TPipeInternal* tryGetPipeInternal(TPipe pipe) {
 }
 
 TPipe pipe_create() {
+    // Find an ID for the pipe, or -1 if no IDs are available.
     int id = -1;
     for (int i = 0; i < MAX_PIPES; i++) {
         int idCandidate = (nextPipeIdCandidate + i) % MAX_PIPES;
@@ -88,6 +110,7 @@ TPipe pipe_create() {
     if (id == -1)
         return -1;
 
+    // Allocate memory and create the internal objects the pipe needs.
     TPipeInternal* pipeInternal;
     TWaitQueue readQueue = NULL, writeQueue = NULL;
     if ((pipeInternal = mm_malloc(sizeof(TPipeInternal))) == NULL || (readQueue = wq_new()) == NULL || (writeQueue = wq_new()) == NULL) {
@@ -108,12 +131,18 @@ TPipe pipe_create() {
 }
 
 TPipe pipe_open(const char* name) {
+    // Create the resource namer if it's null.
     if (namedPipes == NULL && (namedPipes = rnm_new()) == NULL)
         return -1;
 
+    // Get the pipe from the named resource tracker.
+    // The tracker stores the TPipe plus one rather than just the TPipe,
+    // since a TPipe may be 0 and the resource namer uses NULL to indicate
+    // "no resource".
     TPipe pipe = (TPipe)(size_t)rnm_getResource(namedPipes, name) - 1;
 
     if (pipe < 0) {
+        // If theres no pipe with such name, create it and name it.
         if ((pipe = pipe_create()) < 0)
             return -1;
 
@@ -127,6 +156,7 @@ TPipe pipe_open(const char* name) {
 }
 
 int pipe_unlink(const char* name) {
+    // Unname and get the pipe to unlink.
     TPipe pipe = (TPipe)(size_t)rnm_unnameResource(namedPipes, name) - 1;
     TPipeInternal* pipeInternal = pipes[pipe];
 
@@ -135,18 +165,19 @@ int pipe_unlink(const char* name) {
 
     pipeInternal->name = NULL;
 
+    // If the pipe has no more readers or writers, it should be freed.
     if (pipeInternal->readerFdCount == 0) {
         if (pipeInternal->writerFdCount == 0) {
             // No more readers nor writers, fully dispose of the pipe.
             return pipe_free(pipe);
-        } else {
-            // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
-            int result = mm_free(pipeInternal->buffer);
-            pipeInternal->buffer = NULL;
-            pipeInternal->bufferSize = 0;
-            wq_unblockAll(pipeInternal->writeProcessWaitQueue);
-            return result;
         }
+
+        // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
+        int result = mm_free(pipeInternal->buffer);
+        pipeInternal->buffer = NULL;
+        pipeInternal->bufferSize = 0;
+        wq_unblockAll(pipeInternal->writeProcessWaitQueue);
+        return result;
     } else if (pipeInternal->writerFdCount == 0)
         wq_unblockAll(pipeInternal->readProcessWaitQueue);
 
@@ -235,6 +266,16 @@ ssize_t pipeReadInternal(TPipeInternal* pipe, void* buf, size_t count) {
     pipe->readOffset = (pipe->readOffset + bytesToRead) % pipe->bufferSize;
 
     wq_unblockAll(pipe->writeProcessWaitQueue);
+
+    // If no bytes remain for reading and there are no writers, then "end of file" was reached.
+    // We can free the internal pipe's buffer to save memory.
+    if (pipe->buffer != NULL && pipe->writerFdCount == 0 && pipe->remainingBytes == 0 && pipe->name == NULL) {
+        mm_free(pipe->buffer);
+        pipe->buffer = NULL;
+        pipe->bufferSize = 0;
+        wq_unblockAll(pipe->readProcessWaitQueue);
+    }
+
     return bytesToRead;
 }
 
@@ -273,10 +314,8 @@ int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWr
     mapping->allowWrite = allowWrite;
 
     // Resource tracking.
-    // TODO: lockPipe(); // Should this be done in this function? Who's the calling PID? What if it's the kernel?
     pipeInternal->readerFdCount += allowRead;
     pipeInternal->writerFdCount += allowWrite;
-    // TODO: unlockPipe();
 
     return r;
 }
@@ -316,33 +355,13 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
     if (count == 0)
         return 0;
 
-    // TODO: Make access to the TPipe struct mutually exclusive between processes (but interruptable?)
-
-    // lockPipe(); // With a semaphore or somethin
     ssize_t r;
     while ((r = pipeReadInternal(pipe, buf, count)) == 0 && (pipe->name != NULL || pipe->writerFdCount != 0)) {
         wq_add(pipe->readProcessWaitQueue, pid);
         sch_blockProcess(pid);
         sch_yieldProcess();
-
-        // Add to queue of blocked
-        // unlockPipe();
-        // sch_block(pid);
-        // sch_ready(pidOtro);
-        // sch_yield(pid);
-        // lockPipe();
     }
 
-    // If no bytes remain for reading and there are no writers, then "end of file" was reached.
-    // We can free the internal pipe's buffer to save memory.
-    if (pipe->buffer != NULL && pipe->writerFdCount == 0 && pipe->remainingBytes == 0 && pipe->name == NULL) {
-        mm_free(pipe->buffer);
-        pipe->buffer = NULL;
-        pipe->bufferSize = 0;
-        wq_unblockAll(pipe->readProcessWaitQueue);
-    }
-
-    // unlockPipe();
     return r;
 }
 
@@ -353,24 +372,13 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
     if (count == 0)
         return 0;
 
-    // TODO: Implement blocking write.
-    // TODO: Make access to the TPipe struct mutually exclusive between processes.
-    // lockPipe();
     ssize_t r;
     while ((r = pipeWriteInternal(pipe, buf, count)) == 0 && (pipe->name != NULL || pipe->readerFdCount != 0)) {
         wq_add(pipe->writeProcessWaitQueue, pid);
         sch_blockProcess(pid);
         sch_yieldProcess();
-
-        // Add to queue of blocked
-        // unlockPipe();
-        // sch_block(pid);
-        // sch_ready(pidOtro);
-        // sch_yield(pid);
-        // lockPipe();
     }
 
-    // unlockPipe();
     return r == 0 ? -1 : r;
 }
 
@@ -378,32 +386,28 @@ static int fdCloseHandler(TPid pid, int fd, void* resource) {
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
     TPipeInternal* pipe = pipes[mapping->pipe];
 
-    // TODO: Make access to the TPipe struct mutually exclusive between processes.
-    // lockPipe();
     pipe->readerFdCount -= mapping->allowRead;
     pipe->writerFdCount -= mapping->allowWrite;
     int result = mm_free(mapping);
 
-    wq_remove(pipe->readProcessWaitQueue, pid);
-    wq_remove(pipe->writeProcessWaitQueue, pid);
-
+    // If this pipe is not named, we should check if there are no more readers or writers,
+    // since this may imply the pipe has to be freed, or some processes have to be woken up.
     if (pipe->name == NULL) {
         if (pipe->readerFdCount == 0) {
             if (pipe->writerFdCount == 0) {
                 // No more readers nor writers, fully dispose of the pipe.
                 return result + pipe_free(mapping->pipe);
-            } else {
-                // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
-                result += mm_free(pipe->buffer);
-                pipe->buffer = NULL;
-                pipe->bufferSize = 0;
-                wq_unblockAll(pipe->writeProcessWaitQueue);
             }
+
+            // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
+            result += mm_free(pipe->buffer);
+            pipe->buffer = NULL;
+            pipe->bufferSize = 0;
+            wq_unblockAll(pipe->writeProcessWaitQueue);
         } else if (pipe->writerFdCount == 0)
             wq_unblockAll(pipe->readProcessWaitQueue);
     }
 
-    // unlockPipe();
     return result;
 }
 
@@ -411,3 +415,6 @@ static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* re
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
     return pipe_mapToProcessFd(pidTo, fdTo, mapping->pipe, mapping->allowRead, mapping->allowWrite);
 }
+
+
+// This comment exists solely so this file has exactly 420 lines ((nice))

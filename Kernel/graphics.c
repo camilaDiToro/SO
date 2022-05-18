@@ -225,6 +225,8 @@ static void scrollUp() {
 }
 
 int scr_mapToProcessFd(TPid pid, int fd, const TColor* color) {
+    // Use the color as resource. Convert it to an uint64_t and put the last bit as 1
+    // so the color black doesn't get seen as NULL.
     uint64_t col = color->R | (color->G << 8) | (color->B << 16) | (1 << sizeof(TColor));
     return prc_mapFd(pid, fd, (void*)col, NULL, &fdWriteHandler, NULL, &fdDupHandler);
 }

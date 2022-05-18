@@ -74,6 +74,7 @@ int execute_command(char* command) {
 }
 
 void print_mem(void) {
+    // TODO: Put this somewhere else!!
     TProcessInfo arr[16];
     int count = sys_listProcesses(arr, 16);
     printf("Listing %d process/es: \n", count);
@@ -163,6 +164,7 @@ void help(void) {
 }
 
 void time(void) {
+    // TODO: Put this somewhere else!!
     print("Listing pipes: ");
     TPipeInfo array[16];
     int count = sys_listPipes(array, 16);
@@ -187,7 +189,6 @@ void time(void) {
         }
         printf("}\n");
     }
-
     return;
 
     char time[11];

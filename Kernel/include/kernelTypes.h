@@ -55,6 +55,9 @@ typedef struct {
     const char* const* argv;
 } TProcessCreateInfo;
 
+/**
+ * @brief Represents a pipe's state information.
+ */
 typedef struct {
     size_t remainingBytes;
     unsigned int readerFdCount;
