@@ -6,6 +6,7 @@
 
 /* Local headers */
 #include <kernelTypes.h>
+#include <scheduler.h>
 
 #define DEFAULT_PRIORITY 0
 #define MIN_PRIORITY 10
