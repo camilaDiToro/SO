@@ -7,31 +7,19 @@
 typedef struct {
     Tsem semId; 
     uint8_t value;
-    //Tlock lock;
+    Tlock lock;
     uint8_t linkedProcesses; 
     char* name;
-    //TWaitQueue lockedProcesses;   // Tracks the processes waiting for the lock  
     TWaitQueue waitingProcesses;  //Tracks the processes waiting for a post in this semaphore
 } TSemaphore;
 
 TSemaphore * semaphores[MAX_SEMAPHORES] = {NULL};
 TResourceNamer namer;
-/*Tlock lock;
+Tlock generalLock;
 
 
-extern int _lock(Tlock * lock);
+extern int _spin_lock(Tlock * lock);
 
-static void tryLockLocalSem(sem){
-    while(_lock(&(semaphores[sem]->lock))!=0){
-        // bloquear el proceso
-        // yield 
-    }
-}
-
-static void unlock(sem){
-    semaphores[sem]->lock = 0;
-    // Si hay lockedProcesses en la wq, desbloquearlos
-}*/
 
 static int sem_free(Tsem sem) {
     int value = rnm_unnameResource(namer, semaphores[sem]->name); 
@@ -67,7 +55,7 @@ int sem_printDebug() {
 
 int sem_init() {
     namer = rnm_new();
-    //lock = 0;
+    generalLock = 0;
     if(namer != 0)
         return SEM_FAILED;
     return 0;
@@ -75,51 +63,69 @@ int sem_init() {
 
 Tsem sem_open(const char * name, uint8_t initialValue) {
 
-    //while(_lock(&lock)!=0);
+    _spin_lock(&generalLock);
 
     TSemaphore * sem = rnm_getResource(namer, name);
 
     if(sem!=NULL){
         sem->linkedProcesses+=1;
-        //lock = 0;
+        generalLock = 0;
         return sem->semId;
     }
     
     int i;
     for( i=0 ; i < MAX_SEMAPHORES && semaphores[i]; ++i );
-    if( i == MAX_SEMAPHORES )
+
+    if(i == MAX_SEMAPHORES) {
+        generalLock = 0;
         return SEM_FAILED;
+    }        
     
     semaphores[i] = mm_malloc(sizeof(TSemaphore));
     if(semaphores[i] == NULL){
+        generalLock = 0;
         return SEM_FAILED;
     }
     semaphores[i]->value = initialValue;
     semaphores[i]->semId = i;
-    //semaphores[i]->lock = 0;
+    semaphores[i]->lock = 0;
     semaphores[i]->linkedProcesses = 1;
     semaphores[i]->waitingProcesses = wq_new();
+
     if(semaphores[i]->waitingProcesses == NULL){
         mm_free(semaphores[i]);
+        generalLock = 0;
         return SEM_FAILED;
     }
 
     if(rnm_nameResource(namer, semaphores[i], name, &(semaphores[i]->name))!=0){
         //check what should be freed
+        generalLock = 0;
         return SEM_FAILED;
     }
-    //lock = 0;
+
+    generalLock = 0;
     return (Tsem) i;
 }
 
 int sem_close(Tsem sem) {
-    if(!isValidSemId(sem) || semaphores[sem] == NULL)
-        return SEM_NOTEXISTS;
 
-    if(semaphores[sem]->linkedProcesses == 1)
-        return sem_free(sem);                    
+    _spin_lock(&generalLock);
+    
+    if(!isValidSemId(sem)){
+        generalLock = 0;
+        return SEM_NOTEXISTS;
+    }
+
+    _spin_lock(&(semaphores[sem]->lock));
+    generalLock = 0;    
+
+    if(semaphores[sem]->linkedProcesses == 1){
+        return sem_free(sem); //The semaphore is destroyed, so we do not care about its lock
+    }                       
     
     semaphores[sem]->linkedProcesses-= 1;
+    semaphores[sem]->lock = 0;
     return SEM_SUCCES;
 }
 
