@@ -110,7 +110,7 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count);
  * 
  * @returns the amount of processes read.
  */
-int prc_listProcesses(TProcessInfo* vec, int maxProcesses);
+int prc_listProcesses(TProcessInfo* array, int maxProcesses);
 
 /**
  * @brief Maps the resource on a file descriptor from a process to a file descriptor

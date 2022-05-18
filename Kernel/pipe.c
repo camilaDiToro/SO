@@ -8,10 +8,13 @@
 #include <memoryManager.h>
 #include <process.h>
 #include <lib.h>
-#include <graphics.h>
 #include <scheduler.h>
 #include <waitQueueADT.h>
 #include <resourceNamerADT.h>
+#include <string.h>
+
+/** The maximum amount of pipes the system can have at a given moment. */
+#define MAX_PIPES 64
 
 /** The minimum size for a non-null pipe buffer. */
 #define PIPE_MIN_BUFFER_SIZE 512
@@ -24,7 +27,7 @@
  */
 #define PIPE_ROUND_BUFFER_SIZE(value) (((value) + 511) / 512 * 512)
 
-struct TPipeInternal {
+typedef struct {
     /**
      * A pointer to the mm_malloc() allocated buffer that backs this pipe's storage, or null
      * if none was allocated yet.
@@ -51,12 +54,15 @@ struct TPipeInternal {
     TWaitQueue readProcessWaitQueue, writeProcessWaitQueue;
 
     const char* name;
-};
+} TPipeInternal;
 
 typedef struct {
     TPipe pipe;
     int allowRead, allowWrite;
 } TPipeFdMapping;
+
+static int nextPipeIdCandidate = 0;
+static TPipeInternal* pipes[MAX_PIPES];
 
 static TResourceNamer namedPipes = NULL;
 
@@ -65,36 +71,55 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
 static int fdCloseHandler(TPid pid, int fd, void* resource);
 static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
 
+static TPipeInternal* tryGetPipeInternal(TPipe pipe) {
+    return (pipe < 0 || pipe >= MAX_PIPES) ? NULL : pipes[pipe];
+}
+
 TPipe pipe_create() {
-    TPipe pipe;
+    int id = -1;
+    for (int i = 0; i < MAX_PIPES; i++) {
+        int idCandidate = (nextPipeIdCandidate + i) % MAX_PIPES;
+        if (pipes[idCandidate] == NULL) {
+            id = idCandidate;
+            break;
+        }
+    }
+
+    if (id == -1)
+        return -1;
+
+    TPipeInternal* pipeInternal;
     TWaitQueue readQueue = NULL, writeQueue = NULL;
-    if ((pipe = mm_malloc(sizeof(struct TPipeInternal))) == NULL || (readQueue = wq_new()) == NULL || (writeQueue = wq_new()) == NULL) {
-        mm_free(pipe);
+    if ((pipeInternal = mm_malloc(sizeof(TPipeInternal))) == NULL || (readQueue = wq_new()) == NULL || (writeQueue = wq_new()) == NULL) {
+        mm_free(pipeInternal);
         if (readQueue != NULL)
             wq_free(readQueue);
-        return NULL;
+        return -1;
     }
 
     // Initialize the pipe as empty, don't even allocate a buffer until it's necessary.
-    memset(pipe, 0, sizeof(struct TPipeInternal));
-    pipe->readProcessWaitQueue = readQueue;
-    pipe->writeProcessWaitQueue = writeQueue;
-    return pipe;
+    memset(pipeInternal, 0, sizeof(TPipeInternal));
+    pipeInternal->readProcessWaitQueue = readQueue;
+    pipeInternal->writeProcessWaitQueue = writeQueue;
+    pipes[id] = pipeInternal;
+
+    nextPipeIdCandidate = (id + 1) % MAX_PIPES;
+    return id;
 }
 
 TPipe pipe_open(const char* name) {
     if (namedPipes == NULL && (namedPipes = rnm_new()) == NULL)
-        return NULL;
+        return -1;
 
-    TPipe pipe = rnm_getResource(namedPipes, name);
+    TPipe pipe = (TPipe)(size_t)rnm_getResource(namedPipes, name) - 1;
 
-    if (pipe == NULL) {
-        if ((pipe = pipe_create()) == NULL)
-            return NULL;
+    if (pipe < 0) {
+        if ((pipe = pipe_create()) < 0)
+            return -1;
 
-        if (rnm_nameResource(namedPipes, pipe, name, &pipe->name) != 0) {
+        if (rnm_nameResource(namedPipes, (void*)(size_t)(pipe + 1), name, &pipes[pipe]->name) != 0) {
             pipe_free(pipe);
-            return NULL;
+            return -1;
         }
     }
 
@@ -102,36 +127,42 @@ TPipe pipe_open(const char* name) {
 }
 
 int pipe_unlink(const char* name) {
-    TPipe pipe = rnm_unnameResource(namedPipes, name);
+    TPipe pipe = (TPipe)(size_t)rnm_unnameResource(namedPipes, name) - 1;
+    TPipeInternal* pipeInternal = pipes[pipe];
 
-    if (pipe == NULL)
+    if (pipe < 0)
         return 1;
 
-    pipe->name = NULL;
+    pipeInternal->name = NULL;
 
-    if (pipe->readerFdCount == 0) {
-        if (pipe->writerFdCount == 0) {
+    if (pipeInternal->readerFdCount == 0) {
+        if (pipeInternal->writerFdCount == 0) {
             // No more readers nor writers, fully dispose of the pipe.
             return pipe_free(pipe);
         } else {
             // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
-            int result = mm_free(pipe->buffer);
-            pipe->buffer = NULL;
-            pipe->bufferSize = 0;
-            wq_unblockAll(pipe->writeProcessWaitQueue);
+            int result = mm_free(pipeInternal->buffer);
+            pipeInternal->buffer = NULL;
+            pipeInternal->bufferSize = 0;
+            wq_unblockAll(pipeInternal->writeProcessWaitQueue);
             return result;
         }
-    } else if (pipe->writerFdCount == 0)
-        wq_unblockAll(pipe->readProcessWaitQueue);
+    } else if (pipeInternal->writerFdCount == 0)
+        wq_unblockAll(pipeInternal->readProcessWaitQueue);
 
     return 0;
 }
 
 int pipe_free(TPipe pipe) {
-    return mm_free(pipe->buffer) + wq_free(pipe->readProcessWaitQueue) + wq_free(pipe->writeProcessWaitQueue) + mm_free(pipe);
+    TPipeInternal* pipeInternal = tryGetPipeInternal(pipe);
+    if (pipeInternal == NULL)
+        return 1;
+
+    pipes[pipe] = NULL;
+    return mm_free(pipeInternal->buffer) + wq_free(pipeInternal->readProcessWaitQueue) + wq_free(pipeInternal->writeProcessWaitQueue) + mm_free(pipeInternal);
 }
 
-ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
+static ssize_t pipeWriteInternal(TPipeInternal* pipe, const void* buf, size_t count) {
     if (pipe->bufferSize < count && pipe->bufferSize < PIPE_MAX_BUFFER_SIZE) {
         // Expand this pipe's buffer to a size of min(count, PIPE_MAX_BUFFER_SIZE) rounded up.
         size_t newBufferSize = count;
@@ -177,10 +208,12 @@ ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
         memcpy(pipe->buffer, buf + firstWriteSize, bytesToWrite - firstWriteSize);
 
     pipe->remainingBytes += bytesToWrite;
+
+    wq_unblockAll(pipe->readProcessWaitQueue);
     return bytesToWrite;
 }
 
-ssize_t pipe_read(TPipe pipe, void* buf, size_t count) {
+ssize_t pipeReadInternal(TPipeInternal* pipe, void* buf, size_t count) {
     // Calculate the amount of bytes to read as min(remainingBytes, count).
     size_t bytesToRead = pipe->remainingBytes;
     if (bytesToRead > count)
@@ -200,10 +233,26 @@ ssize_t pipe_read(TPipe pipe, void* buf, size_t count) {
 
     pipe->remainingBytes -= bytesToRead;
     pipe->readOffset = (pipe->readOffset + bytesToRead) % pipe->bufferSize;
+
+    wq_unblockAll(pipe->writeProcessWaitQueue);
     return bytesToRead;
 }
 
+ssize_t pipe_read(TPipe pipe, void* buf, size_t count) {
+    TPipeInternal* pipeInternal = tryGetPipeInternal(pipe);
+    return pipeInternal == NULL ? -1 : pipeReadInternal(pipeInternal, buf, count);
+}
+
+ssize_t pipe_write(TPipe pipe, const void* buf, size_t count) {
+    TPipeInternal* pipeInternal = tryGetPipeInternal(pipe);
+    return pipeInternal == NULL ? -1 : pipeWriteInternal(pipeInternal, buf, count);
+}
+
 int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWrite) {
+    TPipeInternal* pipeInternal = tryGetPipeInternal(pipe);
+    if (pipeInternal == NULL)
+        return -1;
+
     TPipeFdMapping* mapping = mm_malloc(sizeof(TPipeFdMapping));
     if (mapping == NULL)
         return -1;
@@ -225,28 +274,44 @@ int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWr
 
     // Resource tracking.
     // TODO: lockPipe(); // Should this be done in this function? Who's the calling PID? What if it's the kernel?
-    pipe->readerFdCount += allowRead;
-    pipe->writerFdCount += allowWrite;
+    pipeInternal->readerFdCount += allowRead;
+    pipeInternal->writerFdCount += allowWrite;
     // TODO: unlockPipe();
 
     return r;
 }
 
-void pipe_printDebug(TPipe pipe) {
-    scr_printChar('[');
-    scr_printHex((uint64_t)pipe->buffer);
-    scr_print(", ");
-    scr_printDec(pipe->bufferSize);
-    scr_print(", ");
-    scr_printDec(pipe->readOffset);
-    scr_print(", ");
-    scr_printDec(pipe->remainingBytes);
-    scr_printChar(']');
+int pipe_listPipes(TPipeInfo* array, int maxPipes) {
+    int pipeCounter = 0;
+    for (int i = 0; i < MAX_PIPES && pipeCounter < maxPipes; i++) {
+        TPipeInternal* pipe = pipes[i];
+        if (pipe != NULL) {
+            TPipeInfo* info = &array[pipeCounter++];
+            info->remainingBytes = pipe->remainingBytes;
+            info->readerFdCount = pipe->readerFdCount;
+            info->writerFdCount = pipe->writerFdCount;
+
+            int readPids = wq_getPids(pipe->readProcessWaitQueue, info->readBlockedPids, MAX_PID_ARRAY_LENGTH);
+            if (readPids < MAX_PID_ARRAY_LENGTH)
+                info->readBlockedPids[readPids] = -1;
+
+            int writePids = wq_getPids(pipe->writeProcessWaitQueue, info->writeBlockedPids, MAX_PID_ARRAY_LENGTH);
+            if (writePids < MAX_PID_ARRAY_LENGTH)
+                info->writeBlockedPids[writePids] = -1;
+
+            if (pipe->name == NULL)
+                info->name[0] = '\0';
+            else
+                strncpy(info->name, pipe->name, MAX_NAME_LENGTH);
+        }
+    }
+
+    return pipeCounter;
 }
 
 static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t count) {
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
-    TPipe pipe = mapping->pipe;
+    TPipeInternal* pipe = pipes[mapping->pipe];
 
     if (count == 0)
         return 0;
@@ -255,7 +320,7 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
 
     // lockPipe(); // With a semaphore or somethin
     ssize_t r;
-    while ((r = pipe_read(pipe, buf, count)) == 0 && (pipe->name != NULL || pipe->writerFdCount != 0)) {
+    while ((r = pipeReadInternal(pipe, buf, count)) == 0 && (pipe->name != NULL || pipe->writerFdCount != 0)) {
         wq_add(pipe->readProcessWaitQueue, pid);
         sch_blockProcess(pid);
         sch_yieldProcess();
@@ -275,8 +340,7 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
         pipe->buffer = NULL;
         pipe->bufferSize = 0;
         wq_unblockAll(pipe->readProcessWaitQueue);
-    } else
-        wq_unblockAll(pipe->writeProcessWaitQueue);
+    }
 
     // unlockPipe();
     return r;
@@ -284,7 +348,7 @@ static ssize_t fdReadHandler(TPid pid, int fd, void* resource, char* buf, size_t
 
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count) {
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
-    TPipe pipe = mapping->pipe;
+    TPipeInternal* pipe = pipes[mapping->pipe];
 
     if (count == 0)
         return 0;
@@ -293,7 +357,7 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
     // TODO: Make access to the TPipe struct mutually exclusive between processes.
     // lockPipe();
     ssize_t r;
-    while ((r = pipe_write(pipe, buf, count)) == 0 && (pipe->name != NULL || pipe->readerFdCount != 0)) {
+    while ((r = pipeWriteInternal(pipe, buf, count)) == 0 && (pipe->name != NULL || pipe->readerFdCount != 0)) {
         wq_add(pipe->writeProcessWaitQueue, pid);
         sch_blockProcess(pid);
         sch_yieldProcess();
@@ -306,15 +370,14 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
         // lockPipe();
     }
 
-    wq_unblockAll(pipe->readProcessWaitQueue);
-
     // unlockPipe();
     return r == 0 ? -1 : r;
 }
 
 static int fdCloseHandler(TPid pid, int fd, void* resource) {
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
-    TPipe pipe = mapping->pipe;
+    TPipeInternal* pipe = pipes[mapping->pipe];
+
     // TODO: Make access to the TPipe struct mutually exclusive between processes.
     // lockPipe();
     pipe->readerFdCount -= mapping->allowRead;
@@ -328,7 +391,7 @@ static int fdCloseHandler(TPid pid, int fd, void* resource) {
         if (pipe->readerFdCount == 0) {
             if (pipe->writerFdCount == 0) {
                 // No more readers nor writers, fully dispose of the pipe.
-                return result + pipe_free(pipe);
+                return result + pipe_free(mapping->pipe);
             } else {
                 // No more readers, we don't need to keep any data inside the pipe. Free the internal buffer.
                 result += mm_free(pipe->buffer);

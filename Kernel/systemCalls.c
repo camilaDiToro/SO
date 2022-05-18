@@ -116,10 +116,10 @@ int sys_pipe_handler(int pipefd[2]) {
     TPipe pipe;
     int readFd = -1, writeFd = -1;
 
-    if ((pipe = pipe_create()) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
+    if ((pipe = pipe_create()) < 0 || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
         if (readFd >= 0)
             prc_unmapFd(pid, readFd);
-        if (pipe != NULL)
+        if (pipe >= 0)
             pipe_free(pipe);
         return 1;
     }
@@ -135,10 +135,10 @@ int sys_openPipe_handler(const char* name, int pipefd[2]) {
     TPipe pipe;
     int readFd = -1, writeFd = -1;
 
-    if ((pipe = pipe_open(name)) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
+    if ((pipe = pipe_open(name)) < 0 || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
         if (readFd >= 0)
             prc_unmapFd(pid, readFd);
-        if (pipe != NULL)
+        if (pipe >= 0)
             pipe_free(pipe);
         return 1;
     }
@@ -153,7 +153,7 @@ int sys_unlinkPipe_handler(const char* name) {
 }
 
 int sys_listPipes_handler(TPipeInfo* array, int maxPipes) {
-    return 420;
+    return pipe_listPipes(array, maxPipes);
 }
 
 int sys_killProcess_handler(TPid pid) {

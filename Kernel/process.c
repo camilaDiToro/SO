@@ -263,12 +263,12 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count) {
     return entry->writeHandler(pid, fd, entry->resource, buf, count);
 }
 
-int prc_listProcesses(TProcessInfo* vec, int maxProcesses) {
+int prc_listProcesses(TProcessInfo* array, int maxProcesses) {
     int processCounter = 0;
     for (int i = 0; i < MAX_PROCESSES && processCounter < maxProcesses; ++i) {
         TProcessContext* processContext = &processes[i];
         if (processContext->stackEnd != NULL) {
-            TProcessInfo* info = &vec[processCounter++];
+            TProcessInfo* info = &array[processCounter++];
             info->pid = i;
             strncpy(info->name, processContext->name, MAX_NAME_LENGTH);
             info->stackEnd = processContext->stackEnd;
