@@ -19,6 +19,21 @@ typedef struct TPipeInternal* TPipe;
 TPipe pipe_create();
 
 /**
+ * @brief Gets the pipe with the given name, or creates it if it doesn't exist.
+ * 
+ * @returns The named pipe, or NULL if the operation failed.
+ */
+TPipe pipe_open(const char* name);
+
+/**
+ * @brief Unnames a named pipe, making the name available for future pipes.
+ * The pipe is not disposed until no more processes are using it.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int pipe_unlink(const char* name);
+
+/**
  * @brief Frees all resources used by a pipe. Using a pipe after it was
  * freed results in undefined behaviour.
  * 

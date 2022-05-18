@@ -104,21 +104,22 @@ int rnm_nameResource(TResourceNamer namer, void* resource, const char* name, con
     return 0;
 }
 
-int rnm_unnameResource(TResourceNamer namer, const char* name) {
+void* rnm_unnameResource(TResourceNamer namer, const char* name) {
     int c;
     int index = findResourceIndex(namer, name, &c);
+    void* resource = namer->buffer[index].resource;
 
     // If there is no such resource with that name, return 1.
     if (c != 0)
-        return 1;
+        return NULL;
 
-    int result = mm_free(namer->buffer[index].name);
+    mm_free(namer->buffer[index].name);
     namer->count--;
 
     for (; index < namer->count; index++)
         namer->buffer[index] = namer->buffer[index + 1];
 
-    return result;
+    return resource;
 }
 
 void* rnm_getResource(TResourceNamer namer, const char* name) {

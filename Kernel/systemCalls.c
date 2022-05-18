@@ -117,10 +117,10 @@ int sys_pipe_handler(int pipefd[2]) {
     int readFd = -1, writeFd = -1;
 
     if ((pipe = pipe_create()) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
-        if (pipe != NULL)
-            pipe_free(pipe);
         if (readFd >= 0)
             prc_unmapFd(pid, readFd);
+        if (pipe != NULL)
+            pipe_free(pipe);
         return 1;
     }
 
@@ -130,11 +130,26 @@ int sys_pipe_handler(int pipefd[2]) {
 }
 
 int sys_openPipe_handler(const char* name, int pipefd[2]) {
-    return 420;
+    TPid pid = sch_getCurrentPID();
+
+    TPipe pipe;
+    int readFd = -1, writeFd = -1;
+
+    if ((pipe = pipe_open(name)) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
+        if (readFd >= 0)
+            prc_unmapFd(pid, readFd);
+        if (pipe != NULL)
+            pipe_free(pipe);
+        return 1;
+    }
+
+    pipefd[0] = readFd;
+    pipefd[1] = writeFd;
+    return 0;
 }
 
 int sys_unlinkPipe_handler(const char* name) {
-    return 420;
+    return pipe_unlink(name);
 }
 
 int sys_listPipes_handler(TPipeInfo* array, int maxPipes) {
@@ -173,12 +188,12 @@ TPid sys_createProcess_handler(int stdinMapFd, int stdoutMapFd, int stderrMapFd,
             prc_dupFd(callerPid, newPid, stdinMapFd, STDIN);
 
         if (stdoutMapFd < 0)
-            scr_mapToProcessFd(newPid, STDOUT, &GREEN);
+            scr_mapToProcessFd(newPid, STDOUT, &GRAY);
         else
             prc_dupFd(callerPid, newPid, stdoutMapFd, STDOUT);
 
         if (stderrMapFd < 0)
-            scr_mapToProcessFd(newPid, STDERR, &BLUE);
+            scr_mapToProcessFd(newPid, STDERR, &ORANGE);
         else
             prc_dupFd(callerPid, newPid, stderrMapFd, STDERR);
     }
@@ -231,7 +246,6 @@ int sys_waitSem_handler(TSem* sem) {
 int sys_listSemaphores_handler(TSemaphoreInfo* array, int maxSemaphores) {
     return 420;
 }
-
 
 static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x00 */ (TSyscallHandlerFunction)sys_read_handler,

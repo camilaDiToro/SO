@@ -31,10 +31,10 @@ int rnm_nameResource(TResourceNamer namer, void* resource, const char* name, con
 /**
  * @brief Unmaps a given resource to a given name.
  * 
- * @returns 0 if the operation succeeded, 1 if the resource was not present,
- * or -1 if the operation failed for other reasons.
+ * @returns The resource whose name was removed, or NULL if no resource
+ * had such name.
  */
-int rnm_unnameResource(TResourceNamer namer, const char* name);
+void* rnm_unnameResource(TResourceNamer namer, const char* name);
 
 /**
  * @brief Gets a resource by it's name.
