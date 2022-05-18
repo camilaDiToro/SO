@@ -270,7 +270,7 @@ int prc_listProcesses(TProcessInfo* vec, int maxProcesses) {
         if (processContext->stackEnd != NULL) {
             TProcessInfo* info = &vec[processCounter++];
             info->pid = i;
-            info->name = processContext->name;
+            strncpy(info->name, processContext->name, MAX_NAME_LENGTH);
             info->stackEnd = processContext->stackEnd;
             info->stackStart = processContext->stackStart;
             info->isForeground = processContext->isForeground;

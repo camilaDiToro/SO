@@ -3,10 +3,9 @@
 
 /* Local Headers */
 #include <resourceNamerADT.h>
+#include <kernelTypes.h>
 #include <memoryManager.h>
 #include <string.h>
-
-#define MAX_NAME_LENGTH 16
 #define BUFFER_CHUNK_SIZE 8
 
 typedef struct {

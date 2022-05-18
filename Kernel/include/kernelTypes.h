@@ -3,6 +3,10 @@
 
 /* Standard library */
 #include <stdint.h>
+#include <stddef.h>
+
+#define MAX_NAME_LENGTH 16
+#define MAX_PID_ARRAY_LENGTH 8
 
 /**
  * @brief Represents a process status.
@@ -31,7 +35,7 @@ typedef void (*TProcessEntryPoint)(int argc, char* argv[]);
  */
 typedef struct {
     TPid pid;
-    const char* name;
+    char name[MAX_NAME_LENGTH + 1];
     void* stackEnd;
     void* stackStart;
     int isForeground;
@@ -52,7 +56,12 @@ typedef struct {
 } TProcessCreateInfo;
 
 typedef struct {
-    const char* name;
+    size_t remainingBytes;
+    unsigned int readerFdCount;
+    unsigned int writerFdCount;
+    TPid readBlockedPids[MAX_PID_ARRAY_LENGTH];
+    TPid writeBlockedPids[MAX_PID_ARRAY_LENGTH];
+    char name[MAX_NAME_LENGTH + 1];
 } TPipeInfo;
 
 /**
