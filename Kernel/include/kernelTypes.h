@@ -70,7 +70,7 @@ typedef struct {
 /**
  * @brief Represents a semaphore.
  */
-typedef uint8_t Tsem;
+typedef int8_t TSem;
 
 typedef struct {
     const char* name;

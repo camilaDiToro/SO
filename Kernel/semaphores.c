@@ -5,9 +5,9 @@
 // Now just are being counted the number of processes, but this could lead to an inconsistency if,
 // for example, a process tries to close the same semaphore twice
 typedef struct {
-    Tsem semId; 
+    TSem semId; 
     uint8_t value;
-    Tlock lock;
+    TLock lock;
     uint8_t linkedProcesses; 
     char* name;
     TWaitQueue waitingProcesses;  //Tracks the processes waiting for a post in this semaphore
@@ -15,13 +15,16 @@ typedef struct {
 
 TSemaphore * semaphores[MAX_SEMAPHORES] = {NULL};
 TResourceNamer namer;
-Tlock generalLock;
+TLock generalLock;
 
 
-extern int _spin_lock(Tlock * lock);
+extern int _spin_lock(TLock * lock);
+static int sem_free(TSem sem);
+static int isValidSemId(TSem sem);
+static int adquireSem(TSem sem);
 
 
-static int sem_free(Tsem sem) {
+static int sem_free(TSem sem) {
     int value = rnm_unnameResource(namer, semaphores[sem]->name); 
     value += wq_free(semaphores[sem]->waitingProcesses);
     value += mm_free(semaphores[sem]);
@@ -31,8 +34,20 @@ static int sem_free(Tsem sem) {
     return SEM_SUCCES;
 }
 
-static int isValidSemId(Tsem sem) {
+static int isValidSemId(TSem sem) {
     return sem>=0 && sem<MAX_SEMAPHORES && semaphores[sem]!=NULL;
+}
+
+static int adquireSem(TSem sem){
+    _spin_lock(&generalLock);
+    
+    if(!isValidSemId(sem)){
+        generalLock = 0;
+        return SEM_NOTEXISTS;
+    }
+
+    _spin_lock(&(semaphores[sem]->lock));
+    generalLock = 0;
 }
 
 int sem_printDebug() {
@@ -61,7 +76,7 @@ int sem_init() {
     return 0;
 }
 
-Tsem sem_open(const char * name, uint8_t initialValue) {
+TSem sem_open(const char * name, uint8_t initialValue) {
 
     _spin_lock(&generalLock);
 
@@ -105,20 +120,14 @@ Tsem sem_open(const char * name, uint8_t initialValue) {
     }
 
     generalLock = 0;
-    return (Tsem) i;
+    return (TSem) i;
 }
 
-int sem_close(Tsem sem) {
+int sem_close(TSem sem) {
 
-    _spin_lock(&generalLock);
-    
-    if(!isValidSemId(sem)){
-        generalLock = 0;
+    if(adquireSem(sem)== SEM_NOTEXISTS){
         return SEM_NOTEXISTS;
     }
-
-    _spin_lock(&(semaphores[sem]->lock));
-    generalLock = 0;    
 
     if(semaphores[sem]->linkedProcesses == 1){
         return sem_free(sem); //The semaphore is destroyed, so we do not care about its lock
@@ -129,35 +138,42 @@ int sem_close(Tsem sem) {
     return SEM_SUCCES;
 }
 
-int sem_post(Tsem sem) {
-    if(!isValidSemId(sem))
+int sem_post(TSem sem) {
+
+    if(adquireSem(sem)== SEM_NOTEXISTS){
         return SEM_NOTEXISTS;
-    
-    if(semaphores[sem]->value > 0 || wq_unblockSingle(semaphores[sem]->waitingProcesses) != 0){
-        semaphores[sem]->value+=1;
     }
+    
+    semaphores[sem]->value++;
+    wq_unblockSingle(semaphores[sem]->waitingProcesses);
+
+    semaphores[sem]->lock = 0;
     return SEM_SUCCES;
 }
 
-int sem_wait(Tsem sem) {
-    if(!isValidSemId(sem))
+int sem_wait(TSem sem) {
+
+    if(adquireSem(sem)== SEM_NOTEXISTS){
         return SEM_NOTEXISTS;
+    }           
     
     if(semaphores[sem]->value > 0){
-        semaphores[sem]->value-=1;
+        semaphores[sem]->value--;
+        semaphores[sem]->lock = 0;
         return SEM_SUCCES;
     }
 
     TPid cpid = sch_getCurrentPID();
 
-    scr_printDec(cpid);
-    scr_printDec(1);
-    if((wq_addIfNotExists(semaphores[sem]->waitingProcesses, cpid ))==0) {
-        scr_printDec(cpid);
-        scr_printDec(2);
+    while (semaphores[sem]->value == 0) {
+        wq_add(semaphores[sem]->waitingProcesses, cpid);
         sch_blockProcess(cpid);
+        semaphores[sem]->lock = 0;
         sch_yieldProcess();
+        _spin_lock(&(semaphores[sem]->lock));
     }
 
+    semaphores[sem]->value--;
+    semaphores[sem]->lock = 0;
     return SEM_SUCCES;
 }

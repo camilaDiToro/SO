@@ -14,24 +14,24 @@
 #define SEM_FAILED -1
 #define SEM_NOTEXISTS -2
 
-typedef int8_t Tlock;
+typedef int8_t TLock;
 
 /**
- * @brief Initialize Scheduler
+ * @brief Initialize the semaphore system.
  * 
  * @returns 0 if the operation succeeded, SEM_FAILED otherwise.
  *
  */
 int sem_init();
 
-Tsem sem_open(const char * name, uint8_t initialValue);
+TSem sem_open(const char * name, uint8_t initialValue);
 
-int sem_close(Tsem sem);
+int sem_close(TSem sem);
 
 int sem_printDebug();
 
-int sem_wait(Tsem sem);
+int sem_wait(TSem sem);
 
-int sem_post(Tsem sem);
+int sem_post(TSem sem);
 
 #endif

@@ -223,11 +223,11 @@ int sys_listProcesses_handler(TProcessInfo* array, int maxProcesses) {
     return prc_listProcesses(array, maxProcesses);
 }
 
-Tsem sys_openSem_handler(const char* name, unsigned int value) {
+TSem sys_openSem_handler(const char* name, unsigned int value) {
     return sem_open(name, value);
 }
 
-int sys_closeSem_handler(Tsem sem) {
+int sys_closeSem_handler(TSem sem) {
     return sem_close(sem);
 }
 
@@ -237,11 +237,11 @@ int sys_unlinkSem_handler(const char* name) {
     return 420;
 }
 
-int sys_postSem_handler(Tsem sem) {
+int sys_postSem_handler(TSem sem) {
     return sem_post(sem);
 }
 
-int sys_waitSem_handler(Tsem sem) {
+int sys_waitSem_handler(TSem sem) {
     return sem_wait(sem);
 }
 
