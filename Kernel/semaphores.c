@@ -34,7 +34,7 @@ static int sem_free(TSem sem) {
 }
 
 static int isValidSemId(TSem sem) {
-    return sem>=0 && sem<MAX_SEMAPHORES && semaphores[sem]!=NULL;
+    return sem>0 && sem<MAX_SEMAPHORES && semaphores[sem]!=NULL;
 }
 
 static int adquireSem(TSem sem){
@@ -113,7 +113,9 @@ TSem sem_open(const char * name, uint8_t initialValue) {
     }
 
     if(rnm_nameResource(namer,(void *)(int64_t)i, name, &(semaphores[i]->name))!=0){
-        //check what should be freed
+        wq_free(semaphores[i]->waitingProcesses);
+        mm_free(semaphores[i]);
+        semaphores[i] = NULL;
         generalLock = 0;
         return SEM_FAILED;
     }
@@ -155,19 +157,13 @@ int sem_wait(TSem sem) {
     if(adquireSem(sem)== SEM_NOTEXISTS){
         return SEM_NOTEXISTS;
     }           
-    
-    if(semaphores[sem]->value > 0){
-        semaphores[sem]->value--;
-        semaphores[sem]->lock = 0;
-        return SEM_SUCCES;
-    }
 
     TPid cpid = sch_getCurrentPID();
 
     while (semaphores[sem]->value == 0) {
         wq_add(semaphores[sem]->waitingProcesses, cpid);
-        sch_blockProcess(cpid);
         semaphores[sem]->lock = 0;
+        sch_blockProcess(cpid);
         sch_yieldProcess();
         _spin_lock(&(semaphores[sem]->lock));
     }
