@@ -19,6 +19,7 @@ typedef struct color {
 
 /* From graphicMode.c */
 extern const TColor RED;
+extern const TColor ORANGE;
 extern const TColor GREEN;
 extern const TColor BLUE;
 extern const TColor WHITE;

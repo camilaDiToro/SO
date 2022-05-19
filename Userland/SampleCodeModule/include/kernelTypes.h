@@ -3,6 +3,10 @@
 
 /* Standard library */
 #include <stdint.h>
+#include <stddef.h>
+
+#define MAX_NAME_LENGTH 16
+#define MAX_PID_ARRAY_LENGTH 8
 
 /**
  * @brief Represents a process status.
@@ -24,14 +28,14 @@ typedef int8_t TPriority;
  *
  * @returns The process' exit code.
  */
-typedef int (*TProcessEntryPoint)(int argc, const char* argv[]);
+typedef void (*TProcessEntryPoint)(int argc, char* argv[]);
 
 /**
  * @brief Represents a process' information.
  */
 typedef struct {
     TPid pid;
-    const char* name;
+    char name[MAX_NAME_LENGTH + 1];
     void* stackEnd;
     void* stackStart;
     int isForeground;
@@ -40,8 +44,27 @@ typedef struct {
     void* currentRSP;
 } TProcessInfo;
 
+/**
+ * @brief Represents the information needed for a create process request.
+ */
 typedef struct {
     const char* name;
+    TProcessEntryPoint entryPoint;
+    int isForeground;
+    int argc;
+    const char* const* argv;
+} TProcessCreateInfo;
+
+/**
+ * @brief Represents a pipe's state information.
+ */
+typedef struct {
+    size_t remainingBytes;
+    unsigned int readerFdCount;
+    unsigned int writerFdCount;
+    TPid readBlockedPids[MAX_PID_ARRAY_LENGTH];
+    TPid writeBlockedPids[MAX_PID_ARRAY_LENGTH];
+    char name[MAX_NAME_LENGTH + 1];
 } TPipeInfo;
 
 /**

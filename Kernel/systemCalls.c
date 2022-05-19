@@ -116,11 +116,11 @@ int sys_pipe_handler(int pipefd[2]) {
     TPipe pipe;
     int readFd = -1, writeFd = -1;
 
-    if ((pipe = pipe_create()) == NULL || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
-        if (pipe != NULL)
-            pipe_free(pipe);
+    if ((pipe = pipe_create()) < 0 || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
         if (readFd >= 0)
             prc_unmapFd(pid, readFd);
+        if (pipe >= 0)
+            pipe_free(pipe);
         return 1;
     }
 
@@ -130,15 +130,30 @@ int sys_pipe_handler(int pipefd[2]) {
 }
 
 int sys_openPipe_handler(const char* name, int pipefd[2]) {
-    return 420;
+    TPid pid = sch_getCurrentPID();
+
+    TPipe pipe;
+    int readFd = -1, writeFd = -1;
+
+    if ((pipe = pipe_open(name)) < 0 || (readFd = pipe_mapToProcessFd(pid, -1, pipe, 1, 0)) < 0 || (writeFd = pipe_mapToProcessFd(pid, -1, pipe, 0, 1)) < 0) {
+        if (readFd >= 0)
+            prc_unmapFd(pid, readFd);
+        if (pipe >= 0)
+            pipe_free(pipe);
+        return 1;
+    }
+
+    pipefd[0] = readFd;
+    pipefd[1] = writeFd;
+    return 0;
 }
 
 int sys_unlinkPipe_handler(const char* name) {
-    return 420;
+    return pipe_unlink(name);
 }
 
 int sys_listPipes_handler(TPipeInfo* array, int maxPipes) {
-    return 420;
+    return pipe_listPipes(array, maxPipes);
 }
 
 int sys_killProcess_handler(TPid pid) {
@@ -159,17 +174,30 @@ int sys_unblockProcess_handler(TPid pid) {
     return sch_unblockProcess(pid);
 }
 
-TPid sys_createProcess_handler(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
-    TPid pid = prc_create(name, entryPoint, argc, argv);
+TPid sys_createProcess_handler(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo) {
+    TPid callerPid = sch_getCurrentPID();
+    TPid newPid = prc_create(createInfo->name, createInfo->entryPoint, createInfo->argc, createInfo->argv);
 
-    // TODO: Map them to somewhere else!!
-    if (pid >= 0) {
-        kbd_mapToProcessFd(pid, STDIN);          // Map STDIN
-        scr_mapToProcessFd(pid, STDOUT, &GREEN); // Map STDOUT
-        scr_mapToProcessFd(pid, STDERR, &BLUE);   // Map STDERR
+    if (newPid >= 0) {
+        prc_setIsForeground(newPid, createInfo->isForeground);
+
+        if (stdinMapFd < 0)
+            kbd_mapToProcessFd(newPid, STDIN);
+        else
+            prc_dupFd(callerPid, newPid, stdinMapFd, STDIN);
+
+        if (stdoutMapFd < 0)
+            scr_mapToProcessFd(newPid, STDOUT, &GRAY);
+        else
+            prc_dupFd(callerPid, newPid, stdoutMapFd, STDOUT);
+
+        if (stderrMapFd < 0)
+            scr_mapToProcessFd(newPid, STDERR, &ORANGE);
+        else
+            prc_dupFd(callerPid, newPid, stderrMapFd, STDERR);
     }
 
-    return pid;
+    return newPid;
 }
 
 void sys_yield_handler() {
@@ -217,7 +245,6 @@ int sys_waitSem_handler(TSem* sem) {
 int sys_listSemaphores_handler(TSemaphoreInfo* array, int maxSemaphores) {
     return 420;
 }
-
 
 static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x00 */ (TSyscallHandlerFunction)sys_read_handler,

@@ -7,7 +7,6 @@
 #include <process.h>
 #include <memoryManager.h>
 #include <scheduler.h>
-#include <graphics.h>
 #include <lib.h>
 #include <string.h>
 
@@ -25,6 +24,7 @@ typedef struct {
     TFdReadHandler readHandler;
     TFdWriteHandler writeHandler;
     TFdCloseHandler closeHandler;
+    TFdDupHandler dupHandler;
 } TFileDescriptorTableEntry;
 
 /**
@@ -70,7 +70,7 @@ static int isNameValid(const char* name) {
             return 1;
 
         // The first character must be a letter. Subsequent characters may be a letter or a number.
-        if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) {
+        if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z') && c != '_') {
             if (i == 0 || c < '0' || c > '9')
                 return 0;
         }
@@ -159,14 +159,14 @@ int prc_kill(TPid pid) {
     return 0;
 }
 
-int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler) {
+int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler, TFdDupHandler dupHandler) {
     TProcessContext* process;
     if (resource == NULL || !tryGetProcessFromPid(pid, &process))
         return -1;
 
     if (fd < 0) {
         // Look for the lowest available file descriptor.
-        for (fd = 0; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
+        for (fd = 3; fd < process->fdTableSize && process->fdTable[fd].resource != NULL; fd++);
     } else {
         // Check that the requested fd is available.
         if (fd < process->fdTableSize && process->fdTable[fd].resource != NULL)
@@ -194,6 +194,7 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
     process->fdTable[fd].readHandler = readHandler;
     process->fdTable[fd].writeHandler = writeHandler;
     process->fdTable[fd].closeHandler = closeHandler;
+    process->fdTable[fd].dupHandler = dupHandler;
 
     return fd;
 }
@@ -232,8 +233,16 @@ int prc_setIsForeground(TPid pid, int isForeground) {
     if (!tryGetProcessFromPid(pid, &process))
         return -1;
 
-    return process->isForeground = (isForeground != 0);
+    process->isForeground = (isForeground != 0);
     return 0;
+}
+
+int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo) {
+    TProcessContext* processFrom;
+    if (fdFrom < 0 || !tryGetProcessFromPid(pidFrom, &processFrom) || processFrom->fdTableSize <= fdFrom || processFrom->fdTable[fdFrom].resource == NULL || processFrom->fdTable[fdFrom].dupHandler == NULL)
+        return 1;
+
+    return processFrom->fdTable[fdFrom].dupHandler(pidFrom, pidTo, fdFrom, fdTo, processFrom->fdTable[fdFrom].resource);
 }
 
 ssize_t prc_handleReadFd(TPid pid, int fd, char* buf, size_t count) {
@@ -254,14 +263,14 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count) {
     return entry->writeHandler(pid, fd, entry->resource, buf, count);
 }
 
-int prc_listProcesses(TProcessInfo* vec, int maxProcesses) {
+int prc_listProcesses(TProcessInfo* array, int maxProcesses) {
     int processCounter = 0;
     for (int i = 0; i < MAX_PROCESSES && processCounter < maxProcesses; ++i) {
         TProcessContext* processContext = &processes[i];
         if (processContext->stackEnd != NULL) {
-            TProcessInfo* info = &vec[processCounter++];
+            TProcessInfo* info = &array[processCounter++];
             info->pid = i;
-            info->name = processContext->name;
+            strncpy(info->name, processContext->name, MAX_NAME_LENGTH);
             info->stackEnd = processContext->stackEnd;
             info->stackStart = processContext->stackStart;
             info->isForeground = processContext->isForeground;

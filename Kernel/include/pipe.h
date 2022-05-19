@@ -9,14 +9,29 @@
 /* Local headers */
 #include <kernelTypes.h>
 
-typedef struct TPipeInternal* TPipe;
+typedef int TPipe;
 
 /**
  * @brief Creates a new pipe.
  * 
- * @returns The newly created pipe, or NULL if the operation failed.
+ * @returns The newly created pipe, or -1 if the operation failed.
  */
 TPipe pipe_create();
+
+/**
+ * @brief Gets the pipe with the given name, or creates it if it doesn't exist.
+ * 
+ * @returns The named pipe, or -1 if the operation failed.
+ */
+TPipe pipe_open(const char* name);
+
+/**
+ * @brief Unnames a named pipe, making the name available for future pipes.
+ * The pipe is not disposed until no more processes are using it.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int pipe_unlink(const char* name);
 
 /**
  * @brief Frees all resources used by a pipe. Using a pipe after it was
@@ -50,6 +65,11 @@ ssize_t pipe_read(TPipe pipe, void* buf, size_t count);
  */
 int pipe_mapToProcessFd(TPid pid, int fd, TPipe pipe, int allowRead, int allowWrite);
 
-void pipe_printDebug(TPipe pipe);
+/**
+ * @brief Gets the information of up to maxPipes pipes.
+ * 
+ * @returns the amount of pipes read.
+ */
+int pipe_listPipes(TPipeInfo* array, int maxPipes);
 
 #endif

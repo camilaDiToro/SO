@@ -49,6 +49,7 @@ struct vbe_mode_info_structure {
 } __attribute__((packed));
 
 const TColor RED = {0xFF, 0x00, 0x00};
+const TColor ORANGE = {0xFF, 0x66, 0x18};
 const TColor GREEN = {0x00, 0xFF, 0x00};
 const TColor BLUE = {0x00, 0x00, 0xFF};
 const TColor WHITE = {0xFF, 0xFF, 0xFF};
@@ -66,7 +67,7 @@ static void checkSpace();
 static void scrollUp();
 
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count);
-static int fdCloseHandler(TPid pid, int fd, void* resource);
+static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
 
 static void* getPixelAddress(int i, int j) {
     return (void*)((size_t)graphicModeInfo->framebuffer + 3 * (graphicModeInfo->width * i + j));
@@ -224,14 +225,10 @@ static void scrollUp() {
 }
 
 int scr_mapToProcessFd(TPid pid, int fd, const TColor* color) {
-
-    int r = prc_mapFd(pid, fd, (void*) color, NULL, &fdWriteHandler, &fdCloseHandler);
-    if (r < 0)
-        return r;
-
-    // TODO: process tracking? "Who is using the screen" so we can print them?
-
-    return r;
+    // Use the color as resource. Convert it to an uint64_t and put the last bit as 1
+    // so the color black doesn't get seen as NULL.
+    uint64_t col = color->R | (color->G << 8) | (color->B << 16) | (1 << sizeof(TColor));
+    return prc_mapFd(pid, fd, (void*)col, NULL, &fdWriteHandler, NULL, &fdDupHandler);
 }
 
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count) {
@@ -240,13 +237,11 @@ static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf,
         return -1;
 
     for (size_t i = 0; i < count; i++)
-        scr_printCharFormat(buf[i], (const TColor*) resource, &BLACK);
+        scr_printCharFormat(buf[i], (const TColor*)&resource, &BLACK);
 
     return count;
 }
 
-static int fdCloseHandler(TPid pid, int fd, void* resource) {
-    // TODO: process tracking? "Who is using the screen" so we can print them?
-
-    return 0;
+static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource) {
+    return scr_mapToProcessFd(pidTo, fdTo, (const TColor*)&resource);
 }

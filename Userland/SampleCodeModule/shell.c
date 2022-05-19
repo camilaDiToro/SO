@@ -74,6 +74,7 @@ int execute_command(char* command) {
 }
 
 void print_mem(void) {
+    // TODO: Put this somewhere else!!
     TProcessInfo arr[16];
     int count = sys_listProcesses(arr, 16);
     printf("Listing %d process/es: \n", count);
@@ -163,6 +164,33 @@ void help(void) {
 }
 
 void time(void) {
+    // TODO: Put this somewhere else!!
+    print("Listing pipes: ");
+    TPipeInfo array[16];
+    int count = sys_listPipes(array, 16);
+    printf("%d\n", count);
+
+    for (int i = 0; i < count; i++) {
+        printf("bytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount, (unsigned int)array[i].writerFdCount, array[i].name);
+
+        printf(", readBlocked={");
+        for (int c = 0; c < MAX_PID_ARRAY_LENGTH && array[i].readBlockedPids[c] >= 0; c++) {
+            if (c != 0)
+                printf(", ");
+            printf("%d", array[i].readBlockedPids[c]);
+        }
+        printf("}");
+
+        printf(", writeBlocked={");
+        for (int c = 0; c < MAX_PID_ARRAY_LENGTH && array[i].writeBlockedPids[c] >= 0; c++) {
+            if (c != 0)
+                printf(", ");
+            printf("%d", array[i].writeBlockedPids[c]);
+        }
+        printf("}\n");
+    }
+    return;
+
     char time[11];
     sys_time(time);
     printf("\n Hora: %s \n", time);
