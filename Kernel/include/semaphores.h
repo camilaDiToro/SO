@@ -68,4 +68,11 @@ int sem_wait(TSem sem);
  */
 int sem_post(TSem sem);
 
+/**
+ * @brief Gets the information of up to maxSemaphores semaphores.
+ * 
+ * @returns the amount of semaphores read.
+ */
+int sem_listSemaphores(TSemaphoreInfo* array, int maxSemaphores);
+
 #endif

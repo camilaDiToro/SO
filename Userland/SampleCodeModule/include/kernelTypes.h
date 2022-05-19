@@ -8,6 +8,9 @@
 #define MAX_NAME_LENGTH 16
 #define MAX_PID_ARRAY_LENGTH 8
 
+#define MAX_NAME_LENGTH 16
+#define MAX_PID_ARRAY_LENGTH 8
+
 /**
  * @brief Represents a process status.
  */
@@ -73,7 +76,10 @@ typedef struct {
 typedef int8_t TSem;
 
 typedef struct {
-    const char* name;
+    int value;
+    int linkedProcesses; 
+    char name[MAX_NAME_LENGTH+1];
+    TPid waitingProcesses[MAX_PID_ARRAY_LENGTH+1];
 } TSemaphoreInfo;
 
 #endif

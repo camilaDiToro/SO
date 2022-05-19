@@ -246,7 +246,7 @@ int sys_waitSem_handler(TSem sem) {
 }
 
 int sys_listSemaphores_handler(TSemaphoreInfo* array, int maxSemaphores) {
-    return 420;
+    return sem_listSemaphores(array, maxSemaphores);
 }
 
 static TSyscallHandlerFunction syscallHandlers[] = {

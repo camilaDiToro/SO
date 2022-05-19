@@ -172,3 +172,27 @@ int sem_wait(TSem sem) {
     semaphores[sem]->lock = 0;
     return SEM_SUCCES;
 }
+
+int sem_listSemaphores(TSemaphoreInfo* array, int maxSemaphores){
+    _spin_lock(&generalLock);
+    int semCounter = 0;
+
+    for(int i=1; i<MAX_SEMAPHORES && semCounter < maxSemaphores ; ++i){
+        TSemaphore * sem = semaphores[i];
+        if(sem!=NULL){
+            TSemaphoreInfo * info = &array[semCounter++];
+            info->value = sem->value;
+            info->linkedProcesses = sem->linkedProcesses;
+            
+            if (sem->name == NULL)
+                info->name[0] = '\0';
+            else
+                strncpy(info->name, sem->name, MAX_NAME_LENGTH);
+            
+            int waitingPids = wq_getPids(sem->waitingProcesses, info->waitingProcesses, wq_count(sem->waitingProcesses));
+            info->waitingProcesses[waitingPids] = -1;
+        }
+    }
+    generalLock = 0;
+    return semCounter;
+}
