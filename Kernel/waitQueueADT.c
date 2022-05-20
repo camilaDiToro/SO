@@ -91,7 +91,6 @@ int wq_unblockSingle(TWaitQueue queue) {
         queue->offset = (queue->offset + 1) % queue->bufSize;
         queue->count--;
 
-        //Check if there is a chance of leaving the cpu to the process that was waiting for a semaphore
         if (sch_unblockProcess(pid) == 0)
             return 0;
         failed++;

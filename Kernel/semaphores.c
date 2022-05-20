@@ -1,5 +1,11 @@
 #include <semaphores.h>
 #include <graphics.h>
+#include <string.h>
+#include <scheduler.h>
+#include <lib.h>
+#include <memoryManager.h>
+#include <resourceNamerADT.h>
+#include <waitQueueADT.h>
 
 // A list might be implemented to track de asociated processes to a semaphore
 // Now just are being counted the number of processes, but this could lead to an inconsistency if,
@@ -12,10 +18,9 @@ typedef struct {
     TWaitQueue waitingProcesses;  //Tracks the processes waiting for a post in this semaphore
 } TSemaphore;
 
-TSemaphore * semaphores[MAX_SEMAPHORES] = {NULL};
-TResourceNamer namer;
-TLock generalLock;
-
+static TSemaphore * semaphores[MAX_SEMAPHORES] = {NULL};
+static TResourceNamer namer;
+static TLock generalLock;
 
 extern int _spin_lock(TLock * lock);
 static int sem_free(TSem sem);

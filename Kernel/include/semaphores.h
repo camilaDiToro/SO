@@ -2,14 +2,10 @@
 #define _SEMAPHORE_H_
 
 #include <stddef.h>
-#include <lib.h>
-#include <memoryManager.h>
-#include <resourceNamerADT.h>
-#include <waitQueueADT.h>
 #include <kernelTypes.h>
-#include <scheduler.h>
 
-#define MAX_SEMAPHORES 128
+
+#define MAX_SEMAPHORES 127
 #define SEM_SUCCES 0
 #define SEM_FAILED -1
 #define SEM_NOTEXISTS -2
