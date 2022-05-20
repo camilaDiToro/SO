@@ -1,48 +1,55 @@
+/* Standard library */
+#include <stdint.h>
+
 /* Local headers */
 #include <graphics.h>
 #include <keyboard.h>
-#include <exceptions.h>
 #include <scheduler.h>
 #include <process.h>
 #include <kernel.h>
 #include <interrupts.h>
 
-typedef void (*TException)(void);
-
-static void zero_division();
-static void invalid_opcode();
-static void general_protection();
-static void page_fault();
-static void excepHandler(int exception, const char* msg);
-
-static TException exceptions[] = {
-    /* 0x00 */ &zero_division, 0, 0, 0, 0, 0,
-    /* 0x06 */ &invalid_opcode, 0, 0, 0, 0, 0, 0,
-    /* 0x0D */ &general_protection,
-    /* 0x0E */ &page_fault
+static const char* exceptionMessages[] = {
+    /* 0x00 */ "Divide by Zero",
+    /* 0x01 */ 0,
+    /* 0x02 */ 0,
+    /* 0x03 */ 0,
+    /* 0x04 */ 0,
+    /* 0x05 */ 0,
+    /* 0x06 */ "Invalid Opcode",
+    /* 0x07 */ 0,
+    /* 0x08 */ 0,
+    /* 0x09 */ 0,
+    /* 0x0A */ 0,
+    /* 0x0B */ 0,
+    /* 0x0C */ 0,
+    /* 0x0D */ "General Protection",
+    /* 0x0E */ "Page Fault",
 };
 
-void exceptionDispatcher(int exception) {
-    TException ex = exceptions[exception];
-    if (ex == 0) {
-        excepHandler(exception, "Unknown exception");
-    } else {
-        ex();
-    }
-}
+static const char* registerNames[18] = {
+    "RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RBP", "RSP", "R8 ", "R9 ", "R10", "R11", "R12", "R13", "R14", "R15", "RIP", "RFLAGS"
+};
 
-static void excepHandler(int exception, const char* msg) {
+void exceptionDispatcher(uint64_t exception, const uint64_t regdata[17]) {
     TPid pid = sch_getCurrentPID();
     scr_print("PID ");
     scr_printDec(pid);
-    scr_print(" CRASHED! ");
-    scr_print(msg);
-    scr_print(" (0x");
+    scr_print(" CRASHED! Unhandled exception: (0x");
     scr_printHex(exception);
-    scr_print(")\n");
+    scr_print(") ");
+    scr_print(exception < (sizeof(exceptionMessages) / sizeof(exceptionMessages[0])) ? exceptionMessages[exception] : "Unknown");
+    scr_printLine();
+
+    for (int i = 0; i < (sizeof(registerNames) / sizeof(registerNames[0])); i++) {
+        scr_print(registerNames[i]);
+        scr_print(": ");
+        scr_printRegisterFormat(regdata[i]);
+        scr_print(i % 4 == 3 ? "\n" : "    ");
+    }
 
     if (pid == 0) { // TO DO: check if shell PID is ALWAYS 0.
-        scr_print("Press ENTER to restart the shell.");
+        scr_print("\nPress ENTER to restart the shell.");
 
         // TODO: This can't be handled like this, hlt would stop the entire system.
         // Consider: finding a way to stop just this process, or just kill all processes
@@ -62,20 +69,4 @@ static void excepHandler(int exception, const char* msg) {
     }
 
     sch_yieldProcess();
-}
-
-static void zero_division() {
-    excepHandler(0x00, "Zero Division Exception");
-}
-
-static void invalid_opcode() {
-    excepHandler(0x06, "Invalid Opcode Exception");
-}
-
-static void general_protection() {
-    excepHandler(0x0D, "General Protection Exception");
-}
-
-static void page_fault() {
-    excepHandler(0x0E, "Page Fault Exception");
 }

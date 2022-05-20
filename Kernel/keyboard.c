@@ -13,10 +13,8 @@
 #define LEFT_SHIFT 0x2A
 #define RIGHT_SHIFT 0x36
 #define BUFFER_MAX_SIZE 256
-#define CAPTURE_REGISTERS '-'
 
 // libasm.asm
-extern void save_registers();
 extern unsigned int kbd_readKey();
 
 static uint8_t keyMapRow = 0;
@@ -68,10 +66,7 @@ void kbd_interruptHandler() {
             keyMapRow |= 0x01;
         } else {
             uint8_t keyChar = keyMap[keyMapRow][code];
-            if (keyChar == CAPTURE_REGISTERS) {
-                // Inforeg - if it's the special key that save registers
-                save_registers();
-            } else if (keyChar != 0 && bufferSize < BUFFER_MAX_SIZE) {
+            if (keyChar != 0 && bufferSize < BUFFER_MAX_SIZE) {
                 uint16_t bufferEnd = (bufferStart + bufferSize) % BUFFER_MAX_SIZE;
                 buffer[bufferEnd] = keyChar;
                 bufferSize++;

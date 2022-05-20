@@ -58,43 +58,7 @@ int sys_printmem_handler(void* address) {
     return 0;
 }
 
-static char store[900];
-void store_registers(uint64_t* start) {
-
-    char* reg_text[] = {"RAX: 0x", "R15: 0x", "R14: 0x", "R13: 0x", "R12: 0x", "R11: 0x", "R10: 0x", "R9:  0x",
-                        "R8:  0x", "RSI: 0x", "RDI: 0x", "RBP: 0x", "RDX: 0x", "RCX: 0x", "RBX: 0x", "RSP: 0x", 0};
-    uint32_t j = 0; // store counter
-
-    for (int i = 0; reg_text[i]; ++i) {
-        // Agregamos el string al store
-        int m = 0;
-        while (reg_text[i][m])
-            store[j++] = reg_text[i][m++];
-
-        // Agregamos el nro al store
-        uint64_t aux = start[i];
-        int64_t count = 16;
-        while (aux) {
-            aux = aux >> 4;
-            --count;
-        }
-        for (int k = 0; k < count; k++) {
-            store[j++] = '0';
-        }
-
-        if (start[i]) {
-            j += uintToBase(start[i], store + j, 16);
-        }
-        store[j++] = '\n';
-    }
-    store[j] = 0;
-}
-
 int sys_infoReg_handler() {
-    if (!store[0])
-        scr_print("Debes presionar '-' para guardar el estado de los registros en un momento especifico \n");
-
-    scr_print(store);
     return 0;
 }
 
