@@ -120,4 +120,12 @@ int prc_listProcesses(TProcessInfo* array, int maxProcesses);
  */
 int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo);
 
+/**
+ * @brief Adds a process to another process' "unblock on killed" list.
+ * This will not change the state of any of the involved processes.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int prc_unblockOnKilled(TPid pidToUnblock, TPid pidToWait);
+
 #endif

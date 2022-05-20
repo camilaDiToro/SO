@@ -9,6 +9,7 @@
 #include <scheduler.h>
 #include <lib.h>
 #include <string.h>
+#include <waitQueueADT.h>
 
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
@@ -46,6 +47,8 @@ typedef struct {
 
     char** argv;
     int argc;
+
+    TWaitQueue waitpidQueue;
 } TProcessContext;
 
 static TProcessContext processes[MAX_PROCESSES];
@@ -126,6 +129,7 @@ TPid prc_create(const char* name, TProcessEntryPoint entryPoint, int argc, const
     process->fdTableSize = 0;
     process->argv = argvCopy;
     process->argc = argc;
+    process->waitpidQueue = NULL;
 
     sch_onProcessCreated(pid, entryPoint, process->stackStart, argc, (const char* const*)argvCopy);
 
@@ -143,6 +147,12 @@ int prc_kill(TPid pid) {
             handleUnmapFdUnchecked(process, pid, fd);
 
     sch_onProcessKilled(pid);
+
+    if (process->waitpidQueue != NULL) {
+        wq_unblockAll(process->waitpidQueue);
+        wq_free(process->waitpidQueue);
+        process->waitpidQueue = NULL;
+    }
 
     for (int i = 0; i < process->argc; i++) {
         mm_free(process->argv[i]);
@@ -279,4 +289,16 @@ int prc_listProcesses(TProcessInfo* array, int maxProcesses) {
     }
 
     return processCounter;
+}
+
+int prc_unblockOnKilled(TPid pidToUnblock, TPid pidToWait) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pidToWait, &process))
+        return 1;
+
+    if (process->waitpidQueue == NULL && (process->waitpidQueue = wq_new()) == NULL)
+        return -1;
+
+    wq_addIfNotExists(process->waitpidQueue, pidToUnblock);
+    return 0;
 }

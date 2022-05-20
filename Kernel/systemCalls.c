@@ -129,10 +129,13 @@ static int sys_listProcesses_handler(TProcessInfo* array, int maxProcesses) {
 }
 
 static int sys_waitpid_handler(TPid pid) {
-    if (pid == sch_getCurrentPID())
+    TPid currentPid = sch_getCurrentPID();
+    if (pid == currentPid || prc_unblockOnKilled(currentPid, pid))
         return 1;
-    
-    return 1;
+
+    sch_blockProcess(currentPid);
+    sch_yieldProcess();
+    return 0;
 }
 
 static int sys_pipe_handler(int pipefd[2]) {
