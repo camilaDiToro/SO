@@ -11,7 +11,7 @@
 /**
  * @brief Represents a process status.
  */
-typedef enum status { READY = 0, BLOCKED, KILLED } TProcessStatus;
+typedef enum status { READY = 0, RUNNING, BLOCKED, KILLED } TProcessStatus;
 
 /**
  * @brief Represents process PID
@@ -22,6 +22,10 @@ typedef int TPid;
  * @brief Represents process priority
  */
 typedef int8_t TPriority;
+
+#define DEFAULT_PRIORITY 0
+#define MIN_PRIORITY 10
+#define MAX_PRIORITY -10
 
 /**
  * @brief Represents a process' entrypoint function.
@@ -51,6 +55,7 @@ typedef struct {
     const char* name;
     TProcessEntryPoint entryPoint;
     int isForeground;
+    TPriority priority;
     int argc;
     const char* const* argv;
 } TProcessCreateInfo;

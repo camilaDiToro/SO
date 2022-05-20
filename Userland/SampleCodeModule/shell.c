@@ -79,8 +79,11 @@ void ps(void) {
     int count = sys_listProcesses(arr, 16);
     printf("Listing %d process/es: \n", count);
     for (int i = 0; i < count; i++) {
-        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%d, rsp=%x\n",
-        arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, (int) arr[i].status, arr[i].currentRSP);
+        const char* status = arr[i].status == READY ? "READY" : arr[i].status == RUNNING ? "RUNNING" : arr[i].status == BLOCKED
+            ? "BLOCKED" : arr[i].status == KILLED ? "KILLED" : "UNKNOWN";
+
+        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
+        arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, status, arr[i].currentRSP);
     }
 }
 

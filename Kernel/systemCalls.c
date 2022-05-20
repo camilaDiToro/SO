@@ -68,26 +68,25 @@ static TPid sys_getPid_handler() {
 
 static TPid sys_createProcess_handler(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo) {
     TPid callerPid = sch_getCurrentPID();
-    TPid newPid = prc_create(createInfo->name, createInfo->entryPoint, createInfo->argc, createInfo->argv);
+    TPid newPid = prc_create(createInfo);
 
-    if (newPid >= 0) {
-        prc_setIsForeground(newPid, createInfo->isForeground);
+    if (newPid < 0)
+        return newPid;
 
-        if (stdinMapFd < 0)
-            kbd_mapToProcessFd(newPid, STDIN);
-        else
-            prc_dupFd(callerPid, newPid, stdinMapFd, STDIN);
+    if (stdinMapFd < 0)
+        kbd_mapToProcessFd(newPid, STDIN);
+    else
+        prc_dupFd(callerPid, newPid, stdinMapFd, STDIN);
 
-        if (stdoutMapFd < 0)
-            scr_mapToProcessFd(newPid, STDOUT, &GRAY);
-        else
-            prc_dupFd(callerPid, newPid, stdoutMapFd, STDOUT);
+    if (stdoutMapFd < 0)
+        scr_mapToProcessFd(newPid, STDOUT, &GRAY);
+    else
+        prc_dupFd(callerPid, newPid, stdoutMapFd, STDOUT);
 
-        if (stderrMapFd < 0)
-            scr_mapToProcessFd(newPid, STDERR, &ORANGE);
-        else
-            prc_dupFd(callerPid, newPid, stderrMapFd, STDERR);
-    }
+    if (stderrMapFd < 0)
+        scr_mapToProcessFd(newPid, STDERR, &ORANGE);
+    else
+        prc_dupFd(callerPid, newPid, stderrMapFd, STDERR);
 
     return newPid;
 }
@@ -257,8 +256,7 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x62 */ (TSyscallHandlerFunction)sys_unlinkSem_handler,
     /* 0x63 */ (TSyscallHandlerFunction)sys_postSem_handler,
     /* 0x64 */ (TSyscallHandlerFunction)sys_waitSem_handler,
-    /* 0x65 */ (TSyscallHandlerFunction)sys_listSemaphores_handler
-};
+    /* 0x65 */ (TSyscallHandlerFunction)sys_listSemaphores_handler};
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {
     TSyscallHandlerFunction handler;
