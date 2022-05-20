@@ -62,8 +62,8 @@ typedef struct {
     size_t remainingBytes;
     unsigned int readerFdCount;
     unsigned int writerFdCount;
-    TPid readBlockedPids[MAX_PID_ARRAY_LENGTH];
-    TPid writeBlockedPids[MAX_PID_ARRAY_LENGTH];
+    TPid readBlockedPids[MAX_PID_ARRAY_LENGTH + 1];
+    TPid writeBlockedPids[MAX_PID_ARRAY_LENGTH + 1];
     char name[MAX_NAME_LENGTH + 1];
 } TPipeInfo;
 

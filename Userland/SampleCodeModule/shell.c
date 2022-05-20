@@ -174,7 +174,7 @@ void time(void) {
         printf("bytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount, (unsigned int)array[i].writerFdCount, array[i].name);
 
         printf(", readBlocked={");
-        for (int c = 0; c < MAX_PID_ARRAY_LENGTH && array[i].readBlockedPids[c] >= 0; c++) {
+        for (int c = 0; array[i].readBlockedPids[c] >= 0; c++) {
             if (c != 0)
                 printf(", ");
             printf("%d", array[i].readBlockedPids[c]);
@@ -182,7 +182,7 @@ void time(void) {
         printf("}");
 
         printf(", writeBlocked={");
-        for (int c = 0; c < MAX_PID_ARRAY_LENGTH && array[i].writeBlockedPids[c] >= 0; c++) {
+        for (int c = 0; array[i].writeBlockedPids[c] >= 0; c++) {
             if (c != 0)
                 printf(", ");
             printf("%d", array[i].writeBlockedPids[c]);

@@ -331,12 +331,10 @@ int pipe_listPipes(TPipeInfo* array, int maxPipes) {
             info->writerFdCount = pipe->writerFdCount;
 
             int readPids = wq_getPids(pipe->readProcessWaitQueue, info->readBlockedPids, MAX_PID_ARRAY_LENGTH);
-            if (readPids < MAX_PID_ARRAY_LENGTH)
-                info->readBlockedPids[readPids] = -1;
+            info->readBlockedPids[readPids] = -1;
 
             int writePids = wq_getPids(pipe->writeProcessWaitQueue, info->writeBlockedPids, MAX_PID_ARRAY_LENGTH);
-            if (writePids < MAX_PID_ARRAY_LENGTH)
-                info->writeBlockedPids[writePids] = -1;
+            info->writeBlockedPids[writePids] = -1;
 
             if (pipe->name == NULL)
                 info->name[0] = '\0';
