@@ -5,13 +5,22 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef enum { NODE, BUDDY } TMemoryManagerType;
+
+typedef struct {
+    size_t total;
+    size_t used;
+    TMemoryManagerType type;
+    unsigned int chunks;
+} TMemoryState;
+
 #define MAX_NAME_LENGTH 16
 #define MAX_PID_ARRAY_LENGTH 8
 
 /**
  * @brief Represents a process status.
  */
-typedef enum status { READY = 0, RUNNING, BLOCKED, KILLED } TProcessStatus;
+typedef enum { READY = 0, RUNNING, BLOCKED, KILLED } TProcessStatus;
 
 /**
  * @brief Represents process PID

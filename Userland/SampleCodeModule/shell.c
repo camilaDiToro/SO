@@ -19,6 +19,7 @@ static void help();
 static void time();
 static void ps();
 static void pipe();
+static void mem();
 
 static TCommand valid_commands[] = {
     {&help, "help"},
@@ -27,6 +28,7 @@ static TCommand valid_commands[] = {
     {&invalidOp, "invalidop"},
     {&ps, "ps"},
     {&pipe, "pipe"},
+    {&mem, "mem"},
     {0, 0}};
 
 void welcome_message() {
@@ -147,4 +149,18 @@ static void pipe() {
         }
         printf("}\n");
     }
+}
+
+static void mem() {
+    TMemoryState memoryState;
+    if (sys_memState(&memoryState)) {
+        print("Failed to get memory state.\n");
+        return;
+    }
+
+    printf("Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY" : "UNKNOWN");
+    printf("Total memory: %u.", memoryState.total);
+    printf(" Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
+    printf(" Available: %u.\n", memoryState.total - memoryState.used);
+    printf("Total chunks: %u\n", memoryState.chunks);
 }

@@ -25,6 +25,7 @@ void sys_date(char* buffer);
 void* sys_malloc(size_t size);
 int sys_free(void* ptr);
 void* sys_realloc(void* ptr, size_t size);
+int sys_memState(TMemoryState* memoryState);
 
 TPid sys_getPid();
 int sys_createProcess(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo);

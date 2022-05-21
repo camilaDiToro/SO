@@ -62,6 +62,10 @@ static void* sys_realloc_handler(void* ptr, size_t size) {
     return mm_realloc(ptr, size);
 }
 
+static int sys_memState_handler(TMemoryState* memoryState) {
+    return mm_getState(memoryState);
+}
+
 static TPid sys_getPid_handler() {
     return sch_getCurrentPID();
 }
@@ -228,7 +232,8 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x30 */ (TSyscallHandlerFunction)sys_malloc_handler,
     /* 0x31 */ (TSyscallHandlerFunction)sys_free_handler,
     /* 0x32 */ (TSyscallHandlerFunction)sys_realloc_handler,
-    /* 0x33 -> 0x3F */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    /* 0x33 */ (TSyscallHandlerFunction)sys_memState_handler,
+    /* 0x34 -> 0x3F */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
     /* Process-related syscalls */
     /* 0x40 */ (TSyscallHandlerFunction)sys_getPid_handler,
