@@ -116,7 +116,8 @@ int sch_unblockProcess(TPid pid) {
     TProcessState* processState;
     if (!tryGetProcessState(pid, &processState))
         return 1;
-
+    
+    // this check is unnecessary
     if (processState->status == READY)
         return 0;
 
