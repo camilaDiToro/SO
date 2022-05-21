@@ -255,10 +255,10 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* Semaphore syscalls */
     /* 0x60 */ (TSyscallHandlerFunction)sys_openSem_handler,
     /* 0x61 */ (TSyscallHandlerFunction)sys_closeSem_handler,
-    /* 0x62 */ (TSyscallHandlerFunction)sys_unlinkSem_handler,
+    /* 0x62 */ (TSyscallHandlerFunction)NULL,
     /* 0x63 */ (TSyscallHandlerFunction)sys_postSem_handler,
     /* 0x64 */ (TSyscallHandlerFunction)sys_waitSem_handler,
-    /* 0x65 */ (TSyscallHandlerFunction)sys_listSemaphores_handler};
+    /* 0x65 */ (TSyscallHandlerFunction)sys_listSemaphores_handler
 };
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {
