@@ -1,9 +1,14 @@
 GLOBAL _createProcessContext
 
+; Wrapper for the process entry point. Calls the exit syscall when control is returned.
+entrypointWrapper:
+    call rdx
+    mov rax, 0x42
+    int 80h
+
 ;                                 rdi                 rsi          rdx                      rcx
 ; void* _createProcessContext(int argc, const char* argv[], void * rsp, TProcessEntryPoint entryPoint);
 _createProcessContext:
-    
     push rbp
     mov rbp, rsp
     
@@ -12,11 +17,11 @@ _createProcessContext:
     push rdx     ; RSP
     push 0x202   ; RFLAGS
     push 0x8     ; CS
-    push rcx     ; entryPoint
+    push entrypointWrapper     ; entryPoint (wrapped)
     
     push 0x01    ; RBX
     push 0x02    ; RCX
-    push 0x03    ; RDX
+    push rcx     ; RDX (entryPoint)
     push rdx     ; RBP (initally, RBP = RSP)
 	push rdi     ; RDI --> argc
 	push rsi     ; RSI --> argv
