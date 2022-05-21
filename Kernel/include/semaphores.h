@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <kernelTypes.h>
 
-
 #define MAX_SEMAPHORES 127
 #define SEM_SUCCES 0
 #define SEM_FAILED -1
@@ -15,11 +14,10 @@ typedef int8_t TLock;
 /**
  * @brief Initialize the semaphore system.
  * 
- * @returns 0 if the operation succeeded, SEM_FAILED otherwise.
+ * @returns SEM_SUCCES (0) if the operation succeeded, SEM_FAILED (-1) otherwise.
  *
  */
 int sem_init();
-
 
 /**
  * @brief Creates a semaphore with the indicated name, or opens it if
@@ -29,13 +27,12 @@ int sem_init();
  */
 TSem sem_open(const char * name, uint8_t initialValue);
 
-
 /**
  * @brief Closes a semaphore. A semaphore will be destroyed once all
  * the processes that where linked to it, close it. 
  * 
- * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the semaphore
- * did not exist. 
+ * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the requested semaphore 
+ * does not exist.
  */
 int sem_close(TSem sem);
 
@@ -49,18 +46,18 @@ int sem_printDebug();
  * immediately.  If the semaphore currently has the value zero, then the call blocks
  * until the semaphore value rises above zero.
  * 
- * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the semaphore
- * did not exist. 
+ * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the requested semaphore 
+ * does not exist.
  */
 int sem_wait(TSem sem);
 
 /**
  * @brief Increments or unlocks the semaphore pointed to by sem. If the semaphore's 
- * value consequently becomes greater than zero, then another process or thread 
- * blocked in a sem_wait call will be woken up
+ * value consequently becomes greater than zero, then another process blocked in a sem_wait call 
+ * will be woken up
  * 
- * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the semaphore
- * did not exist. 
+ * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the requested semaphore 
+ * does not exist.
  */
 int sem_post(TSem sem);
 

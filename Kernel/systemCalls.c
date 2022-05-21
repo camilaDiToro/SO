@@ -231,12 +231,6 @@ int sys_closeSem_handler(TSem sem) {
     return sem_close(sem);
 }
 
-//Not implemented
-int sys_unlinkSem_handler(const char* name) {
-    sem_printDebug();
-    return 420;
-}
-
 int sys_postSem_handler(TSem sem) {
     return sem_post(sem);
 }
@@ -284,7 +278,7 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x1F */ (TSyscallHandlerFunction)NULL,
     /* 0x20 */ (TSyscallHandlerFunction)sys_openSem_handler,
     /* 0x21 */ (TSyscallHandlerFunction)sys_closeSem_handler,
-    /* 0x22 */ (TSyscallHandlerFunction)sys_unlinkSem_handler,
+    /* 0x22 */ (TSyscallHandlerFunction)NULL,
     /* 0x23 */ (TSyscallHandlerFunction)sys_postSem_handler,
     /* 0x24 */ (TSyscallHandlerFunction)sys_waitSem_handler,
     /* 0x25 */ (TSyscallHandlerFunction)sys_listSemaphores_handler
