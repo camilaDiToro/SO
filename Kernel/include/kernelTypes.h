@@ -17,6 +17,9 @@ typedef struct {
 #define MAX_NAME_LENGTH 16
 #define MAX_PID_ARRAY_LENGTH 8
 
+#define MAX_NAME_LENGTH 16
+#define MAX_PID_ARRAY_LENGTH 8
+
 /**
  * @brief Represents a process status.
  */
@@ -84,10 +87,17 @@ typedef struct {
 /**
  * @brief Represents a semaphore.
  */
-typedef int TSem;
+typedef int8_t TSem;
 
 typedef struct {
-    const char* name;
+    int value;
+    int linkedProcesses; 
+    char name[MAX_NAME_LENGTH+1];
+    //Diference with pipes: allways save space for -1, so that the only condition
+    // that needs to be checked is thatone.
+    // Otherwise, the user shoud check if the pid is -1 or if they have reached MAX_PID_ARRAY_LENGHT
+    // TODO: Check what to change so that to be consistent
+    TPid waitingProcesses[MAX_PID_ARRAY_LENGTH+1];
 } TSemaphoreInfo;
 
 #endif

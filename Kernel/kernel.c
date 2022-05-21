@@ -16,6 +16,7 @@
 #include <systemCalls.h>
 #include <kernelTypes.h>
 #include <kernel.h>
+#include <semaphores.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -72,6 +73,7 @@ int main() {
     mm_init(startHeapAddres, (size_t)(endHeapAddres - startHeapAddres));
     kbd_init();
     sch_init();
+    sem_init();
 
     initializeShell();
 

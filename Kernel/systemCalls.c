@@ -13,6 +13,7 @@
 #include <process.h>
 #include <scheduler.h>
 #include <pipe.h>
+#include <semaphores.h>
 
 typedef size_t (*TSyscallHandlerFunction)(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8);
 
@@ -187,28 +188,24 @@ static int sys_listPipes_handler(TPipeInfo* array, int maxPipes) {
     return pipe_listPipes(array, maxPipes);
 }
 
-static int sys_openSem_handler(const char* name, TSem* sem, unsigned int value) {
-    return 420;
+static TSem sys_openSem_handler(const char* name, unsigned int value) {
+    return sem_open(name, value);
 }
 
-static int sys_closeSem_handler(TSem* sem) {
-    return 420;
+static int sys_closeSem_handler(TSem sem) {
+    return sem_close(sem);
 }
 
-static int sys_unlinkSem_handler(const char* name) {
-    return 420;
+static int sys_postSem_handler(TSem sem) {
+    return sem_post(sem);
 }
 
-static int sys_postSem_handler(TSem* sem) {
-    return 420;
-}
-
-static int sys_waitSem_handler(TSem* sem) {
-    return 420;
+static int sys_waitSem_handler(TSem sem) {
+    return sem_wait(sem);
 }
 
 static int sys_listSemaphores_handler(TSemaphoreInfo* array, int maxSemaphores) {
-    return 420;
+    return sem_listSemaphores(array, maxSemaphores);
 }
 
 static TSyscallHandlerFunction syscallHandlers[] = {
@@ -262,6 +259,7 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x63 */ (TSyscallHandlerFunction)sys_postSem_handler,
     /* 0x64 */ (TSyscallHandlerFunction)sys_waitSem_handler,
     /* 0x65 */ (TSyscallHandlerFunction)sys_listSemaphores_handler};
+};
 
 size_t sysCallDispatcher(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8, size_t rax) {
     TSyscallHandlerFunction handler;
