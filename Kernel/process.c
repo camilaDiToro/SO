@@ -9,6 +9,7 @@
 #include <scheduler.h>
 #include <lib.h>
 #include <string.h>
+#include <waitQueueADT.h>
 
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
@@ -46,6 +47,8 @@ typedef struct {
 
     char** argv;
     int argc;
+
+    TWaitQueue waitpidQueue;
 } TProcessContext;
 
 static TProcessContext processes[MAX_PROCESSES];
@@ -79,26 +82,26 @@ static int isNameValid(const char* name) {
     return 0;
 }
 
-TPid prc_create(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]) {
+TPid prc_create(const TProcessCreateInfo* createInfo) {
     TPid pid = 0;
     for (; pid < MAX_PROCESSES && processes[pid].stackEnd != NULL; pid++);
 
-    if (argc < 0 || pid == MAX_PROCESSES || !isNameValid(name))
+    if (createInfo->argc < 0 || pid == MAX_PROCESSES || !isNameValid(createInfo->name))
         return -1;
 
     void* stackEnd = NULL;
     char* nameCopy = NULL;
     char** argvCopy = NULL;
     if ((stackEnd = mm_malloc(PROCESS_STACK_SIZE)) == NULL
-        || (name != NULL && (nameCopy = mm_malloc(strlen(name) + 1)) == NULL)
-        || (argc != 0 && (argvCopy = mm_malloc(sizeof(char*) * argc)) == NULL)) {
+        || (createInfo->name != NULL && (nameCopy = mm_malloc(strlen(createInfo->name) + 1)) == NULL)
+        || (createInfo->argc != 0 && (argvCopy = mm_malloc(sizeof(char*) * createInfo->argc)) == NULL)) {
         mm_free(stackEnd);
         mm_free(nameCopy);
         return -1;
     }
 
-    for (int i = 0; i < argc; ++i) {
-        size_t length = strlen(argv[i]) + 1;
+    for (int i = 0; i < createInfo->argc; ++i) {
+        size_t length = strlen(createInfo->argv[i]) + 1;
 
         if ((argvCopy[i] = mm_malloc(length)) == NULL) {
             mm_free(stackEnd);
@@ -111,23 +114,24 @@ TPid prc_create(const char* name, TProcessEntryPoint entryPoint, int argc, const
             return -1;
         }
 
-        memcpy(argvCopy[i], argv[i], length);
+        memcpy(argvCopy[i], createInfo->argv[i], length);
     }
 
-    if (name != NULL)
-        strcpy(nameCopy, name);
+    if (createInfo->name != NULL)
+        strcpy(nameCopy, createInfo->name);
 
     TProcessContext* process = &processes[pid];
     process->stackEnd = stackEnd;
     process->stackStart = stackEnd + PROCESS_STACK_SIZE;
-    process->isForeground = 1;
+    process->isForeground = createInfo->isForeground;
     process->name = nameCopy;
     process->fdTable = NULL;
     process->fdTableSize = 0;
     process->argv = argvCopy;
-    process->argc = argc;
+    process->argc = createInfo->argc;
+    process->waitpidQueue = NULL;
 
-    sch_onProcessCreated(pid, entryPoint, process->stackStart, argc, (const char* const*)argvCopy);
+    sch_onProcessCreated(pid, createInfo->entryPoint, createInfo->priority, process->stackStart, createInfo->argc, (const char* const*)argvCopy);
 
     return pid;
 }
@@ -143,6 +147,12 @@ int prc_kill(TPid pid) {
             handleUnmapFdUnchecked(process, pid, fd);
 
     sch_onProcessKilled(pid);
+
+    if (process->waitpidQueue != NULL) {
+        wq_unblockAll(process->waitpidQueue);
+        wq_free(process->waitpidQueue);
+        process->waitpidQueue = NULL;
+    }
 
     for (int i = 0; i < process->argc; i++) {
         mm_free(process->argv[i]);
@@ -279,4 +289,16 @@ int prc_listProcesses(TProcessInfo* array, int maxProcesses) {
     }
 
     return processCounter;
+}
+
+int prc_unblockOnKilled(TPid pidToUnblock, TPid pidToWait) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pidToWait, &process))
+        return 1;
+
+    if (process->waitpidQueue == NULL && (process->waitpidQueue = wq_new()) == NULL)
+        return -1;
+
+    wq_addIfNotExists(process->waitpidQueue, pidToUnblock);
+    return 0;
 }

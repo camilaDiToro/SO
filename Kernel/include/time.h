@@ -8,6 +8,7 @@
 #define TICKS_TO_MILLISECONDS(x) ((x) * 5000 / 91)
 
 void rtc_interruptHandler();
+
 unsigned long rtc_getElapsedTicks();
 unsigned long rtc_getElapsedSeconds();
 

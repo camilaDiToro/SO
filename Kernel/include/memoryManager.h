@@ -4,6 +4,9 @@
 /* Standard library */
 #include <stddef.h>
 
+/* Local headers */
+#include <kernelTypes.h>
+
 /**
  * @brief Initializes the memory manager with a given memory segment
  *
@@ -42,6 +45,11 @@ int mm_free(void* ptr);
  */
 void* mm_realloc(void* ptr, size_t size);
 
-void mm_printDebug();
+/**
+ * @brief Gets the status of the system memory.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int mm_getState(TMemoryState* memoryState);
 
 #endif

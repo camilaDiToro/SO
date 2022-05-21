@@ -29,7 +29,7 @@ static int adquireSem(TSem sem);
 
 
 static int sem_free(TSem sem) {
-    int value = rnm_unnameResource(namer, semaphores[sem]->name); 
+    int value = rnm_unnameResource(namer, semaphores[sem]->name) == NULL;
     value += wq_free(semaphores[sem]->waitingProcesses);
     value += mm_free(semaphores[sem]);
     semaphores[sem] = NULL;

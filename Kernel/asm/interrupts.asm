@@ -22,7 +22,6 @@ GLOBAL _sysCallHandler
 
 EXTERN irqDispatcher
 EXTERN sysCallDispatcher
-EXTERN print_registers
 EXTERN exceptionDispatcher
 EXTERN sch_switchProcess
 
@@ -79,16 +78,36 @@ SECTION .text
 %endmacro
 
 %macro exceptionHandler 1
-	pushState
+; Registers are saved in a the regdata vector in the following order:
+; rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, r8, r9, r10, r11, r12, r13, r14, r15, rip, rflags
 
-	call print_registers
+	mov [regdata], rax
+	mov [regdata+8], rbx
+	mov [regdata+16], rcx
+	mov [regdata+24], rdx
+	mov [regdata+32], rsi
+	mov [regdata+40], rdi
+	mov [regdata+48], rbp
+	mov [regdata+64], r8
+	mov [regdata+72], r9
+	mov [regdata+80], r10
+	mov [regdata+88], r11
+	mov [regdata+96], r12
+	mov [regdata+104], r13
+	mov [regdata+112], r14
+	mov [regdata+120], r15
 
-	mov rdi, %1 
-	call exceptionDispatcher
+	mov rax, [rsp+24] ; We get the value of RSP from the value pushed to the stack by the interruption.
+	mov [regdata+56], rax
+	mov rax, [rsp] ; We get the value of RIP when the exception ocurred by taking the interruption's return address.
+	mov [regdata+128], rax
+	mov rax, [rsp+16] ; We get the value of RFLAGS the same way (it is pushed when an interrupt occurs).
+	mov [regdata+136], rax
 
-	popState
-	iretq
-
+	mov rdi, %1
+	mov rsi, regdata
+	call exceptionDispatcher ; This function should not return.
+	jmp haltcpu
 %endmacro
 
 haltcpu:
@@ -185,4 +204,4 @@ _sti:
 	ret
 
 SECTION .bss
-	aux resq 1
+regdata	resq	18	; reserve space for 18 qwords (one for each register we want to show on exceptions).

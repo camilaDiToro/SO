@@ -1,7 +1,6 @@
 /* Local headers */
 #include <memoryManager.h>
 #include <lib.h>
-#include <graphics.h>
 
 /**
  * Represents a structure prepended to all allocated memory chunks to track said memory chunks.
@@ -16,6 +15,10 @@ typedef struct memoryBlockNode {
     size_t checksum;
 } TMemoryBlockNode;
 
+static size_t totalMemory;
+static size_t usedMemory;
+static unsigned int memoryChunks;
+
 static TMemoryBlockNode* firstBlock = NULL;
 
 static void calcNodeChecksum(const TMemoryBlockNode* node, size_t* result) {
@@ -27,6 +30,10 @@ void mm_init(void* memoryStart, size_t memorySize) {
     void* actualStart = (void*)WORD_ALIGN_UP(memoryStart);
     memorySize -= (actualStart - memoryStart);
     memorySize = WORD_ALIGN_DOWN(memorySize);
+
+    totalMemory = memorySize;
+    usedMemory = sizeof(TMemoryBlockNode);
+    memoryChunks = 1;
 
     // Allocate space for a first TMemoryBlockNode at the start of our segment.
     firstBlock = (TMemoryBlockNode*)actualStart;
@@ -62,8 +69,9 @@ void* mm_malloc(size_t size) {
 
     if (node->size == 0) {
         node->size = size;
-        node->leftoverSize -= node->size;
+        node->leftoverSize -= size;
         calcNodeChecksum(node, &node->checksum);
+        usedMemory += size;
         return (void*)node + sizeof(TMemoryBlockNode);
     }
 
@@ -82,6 +90,9 @@ void* mm_malloc(size_t size) {
 
     calcNodeChecksum(newNode, &newNode->checksum);
     calcNodeChecksum(node, &node->checksum);
+
+    memoryChunks++;
+    usedMemory += totalSizeWithNode;
     return (void*)newNode + sizeof(TMemoryBlockNode);
 }
 
@@ -108,6 +119,7 @@ void* mm_realloc(void* ptr, size_t size) {
 
     if (size < node->size) {
         node->leftoverSize += node->size - size;
+        usedMemory -= node->size - size;
         node->size = size;
         calcNodeChecksum(node, &node->checksum);
         return ptr;
@@ -117,6 +129,7 @@ void* mm_realloc(void* ptr, size_t size) {
     if (node->leftoverSize >= extraRequiredSize) {
         node->leftoverSize -= extraRequiredSize;
         node->size = size;
+        usedMemory += extraRequiredSize;
         calcNodeChecksum(node, &node->checksum);
         return ptr;
     }
@@ -143,10 +156,13 @@ int mm_free(void* ptr) {
     if (node->previous == NULL) {
         node->leftoverSize += node->size;
         node->size = 0;
+        usedMemory -= node->size;
         calcNodeChecksum(node, &node->checksum);
     } else {
         node->previous->leftoverSize += node->size + node->leftoverSize + sizeof(TMemoryBlockNode);
         node->previous->next = node->next;
+        usedMemory -= node->size + sizeof(TMemoryBlockNode);
+        memoryChunks--;
         calcNodeChecksum(node->previous, &node->previous->checksum);
 
         if (node->next != NULL) {
@@ -158,53 +174,10 @@ int mm_free(void* ptr) {
     return 0;
 }
 
-void mm_printDebug() {
-    scr_print("\nMM debug:");
-    int i = 0;
-    for (TMemoryBlockNode* node = firstBlock; node != NULL; node = node->next, i++) {
-        scr_printChar('\n');
-        scr_printDec(i);
-        scr_printChar('[');
-        scr_printDec(node->size);
-        scr_print(", ");
-        scr_printDec(node->leftoverSize);
-        scr_print(", ");
-        if (node->previous == NULL)
-            scr_print("NULL");
-        else
-            scr_printDec(node->previous->size);
-        scr_print(", ");
-        if (node->next == NULL)
-            scr_print("NULL");
-        else
-            scr_printDec(node->next->size);
-        scr_printChar(']');
-
-        if (i > 16) {
-            scr_print("\n...\n");
-            TMemoryBlockNode* prev;
-            for (; node != NULL; prev = node, node = node->next, i++)
-                ;
-            i--;
-            node = prev;
-            scr_printDec(i);
-            scr_printChar('[');
-            scr_printDec(node->size);
-            scr_print(", ");
-            scr_printDec(node->leftoverSize);
-            scr_print(", ");
-            if (node->previous == NULL)
-                scr_print("NULL");
-            else
-                scr_printDec(node->previous->size);
-            scr_print(", ");
-            if (node->next == NULL)
-                scr_print("NULL");
-            else
-                scr_printDec(node->next->size);
-            scr_printChar(']');
-
-            break;
-        }
-    }
+int mm_getState(TMemoryState* memoryState) {
+    memoryState->total = totalMemory;
+    memoryState->used = usedMemory;
+    memoryState->type = NODE;
+    memoryState->chunks = memoryChunks;
+    return 0;
 }

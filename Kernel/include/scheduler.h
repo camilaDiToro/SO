@@ -7,10 +7,6 @@
 /* Local headers */
 #include <kernelTypes.h>
 
-#define DEFAULT_PRIORITY 0
-#define MIN_PRIORITY 10
-#define MAX_PRIORITY -10
-
 /**
  * @brief Initialize Scheduler
  *
@@ -22,7 +18,7 @@ void sch_init();
  *
  * @returns 0 if the operation succeeded.
  */
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* const argv[]);
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, TPriority priority, void* currentRSP, int argc, const char* const argv[]);
 
 /**
  * @brief Called by process.c whenever a process is being killed.

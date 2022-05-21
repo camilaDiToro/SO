@@ -5,6 +5,4 @@
 #define STDOUT 1
 #define STDERR 2
 
-void store_registers(uint64_t* start);
-
 #endif

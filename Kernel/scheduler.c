@@ -71,9 +71,12 @@ void sch_init() {
     quantums = 0;
 }
 
-int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, void* currentRSP, int argc, const char* const argv[]) {
+int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, TPriority priority, void* currentRSP, int argc, const char* const argv[]) {
+    if (priority < MAX_PRIORITY || priority > MIN_PRIORITY)
+        priority = DEFAULT_PRIORITY;
+
     // Processes, by default, are created in the state READY.
-    processStates[pid].priority = DEFAULT_PRIORITY;
+    processStates[pid].priority = priority;
     processStates[pid].status = READY;
     processStates[pid].currentRSP = _createProcessContext(argc, argv, currentRSP, entryPoint);
     return 0;
@@ -101,9 +104,6 @@ int sch_blockProcess(TPid pid) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
-    if (processState->status == BLOCKED)
-        return 0;
-
     processState->status = BLOCKED;
 
     if (currentRunningPID == pid)
@@ -116,9 +116,8 @@ int sch_unblockProcess(TPid pid) {
     TProcessState* processState;
     if (!tryGetProcessState(pid, &processState))
         return 1;
-    
-    // this check is unnecessary
-    if (processState->status == READY)
+
+    if (processState->status == READY || processState->status == RUNNING)
         return 0;
 
     processState->status = READY;
@@ -138,9 +137,6 @@ int sch_setProcessPriority(TPid pid, TPriority newPriority) {
     if (newPriority < MAX_PRIORITY || newPriority > MIN_PRIORITY)
         return 1;
 
-    if (processState->priority == newPriority)
-        return 0;
-
     processState->priority = newPriority;
 
     return 0;
@@ -152,8 +148,11 @@ void sch_yieldProcess() {
 }
 
 void* sch_switchProcess(void* currentRSP) {
-    if (currentRunningPID >= 0)
+    if (currentRunningPID >= 0) {
         processStates[currentRunningPID].currentRSP = currentRSP;
+        if (processStates[currentRunningPID].status == RUNNING)
+            processStates[currentRunningPID].status = READY;
+    }
     else if (currentRunningPID == PSEUDOPID_KERNEL)
         mainRSP = currentRSP;
 
@@ -170,6 +169,7 @@ void* sch_switchProcess(void* currentRSP) {
         quantums -= 1;
     }
 
+    processStates[currentRunningPID].status = RUNNING;
     return processStates[currentRunningPID].currentRSP;
 }
 
@@ -178,8 +178,8 @@ int sch_getProcessInfo(TPid pid, TProcessInfo* info) {
     if (!tryGetProcessState(pid, &processState))
         return 1;
 
-    info->status = processStates->status;
-    info->priority = processStates->priority;
+    info->status = processState->status;
+    info->priority = processState->priority;
     info->currentRSP = processState->currentRSP;
     return 0;
 }

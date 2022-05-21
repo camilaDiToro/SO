@@ -17,15 +17,18 @@ typedef struct {
 static int execute_command(char* command);
 static void help();
 static void time();
-static void print_mem();
+static void ps();
+static void pipe();
+static void mem();
 
 static TCommand valid_commands[] = {
     {&help, "help"},
     {&time, "time"},
     {&divideByZero, "dividezero"},
     {&invalidOp, "invalidop"},
-    {&print_mem, "printmem"},
-    {&sys_inforeg, "inforeg"},
+    {&ps, "ps"},
+    {&pipe, "pipe"},
+    {&mem, "mem"},
     {0, 0}};
 
 void welcome_message() {
@@ -73,70 +76,16 @@ int execute_command(char* command) {
     return 0;
 }
 
-void print_mem(void) {
-    // TODO: Put this somewhere else!!
+void ps(void) {
     TProcessInfo arr[16];
     int count = sys_listProcesses(arr, 16);
     printf("Listing %d process/es: \n", count);
     for (int i = 0; i < count; i++) {
-        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%d, rsp=%x\n",
-        arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, (int) arr[i].status, arr[i].currentRSP);
-    }
-    return;
+        const char* status = arr[i].status == READY ? "READY" : arr[i].status == RUNNING ? "RUNNING" : arr[i].status == BLOCKED
+            ? "BLOCKED" : arr[i].status == KILLED ? "KILLED" : "UNKNOWN";
 
-    
-    signed int counter = 0;
-    char c;
-    uint64_t value = 0;
-    printf("Ingrese una direccion de memoria en formato hexadecimal: ");
-
-    uint8_t num[32];
-
-    while ((c = getChar()) != '\n' && counter < 32) {
-        if ((c >= '0' && c <= '9')) {
-            num[counter++] = (c - '0');
-        } else if ((c >= 'A') && (c <= 'F')) {
-            num[counter++] = (c - 'A' + 10);
-        } else if ((c >= 'a') && (c <= 'f')) {
-            num[counter++] = (c - 'a' + 10);
-        } else if (c == '\b') {
-            if (counter > 0) {
-                putChar(c);
-                num[--counter] = 0;
-            }
-        } else {
-            num[counter++] = 16 + c;
-        }
-        if (c != '\b') {
-            putChar(c);
-        }
-    }
-
-    if (counter > 16) {
-        char* msg_error = "La direccion ingresada no puede tener mas de 64 bits (16 digitos hexa).";
-        putChar('\n');
-        fprint(STDERR, msg_error);
-        putChar('\n');
-        return;
-    }
-
-    for (int i = 0; i < counter; i++) {
-        if (num[i] < 16) {
-            value = (value << 4) + num[i];
-        } else {
-            char* msg_error2 = "Formato hexa invalido.";
-            putChar('\n');
-            fprint(STDERR, msg_error2);
-            putChar('\n');
-            return;
-        }
-    }
-
-    putChar('\n');
-    char* msg_error3 = "Acceso a memoria invalido.";
-    if (sys_printmem((void*)value) == -1) {
-        fprint(STDERR, msg_error3);
-        putChar('\n');
+        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
+        arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, status, arr[i].currentRSP);
     }
 }
 
@@ -164,7 +113,18 @@ void help(void) {
 }
 
 void time(void) {
-    // TODO: Put this somewhere else!!
+    char time[11];
+    sys_time(time);
+    printf("\n Time: %s", time);
+
+    char date[11];
+    sys_date(date);
+    printf("\n Date: %s", date);
+
+    printf("\n Millis since startup: %u\n", (unsigned int)sys_millis());
+}
+
+static void pipe() {
     print("Listing pipes: ");
     TPipeInfo array[16];
     int count = sys_listPipes(array, 16);
@@ -189,13 +149,18 @@ void time(void) {
         }
         printf("}\n");
     }
-    return;
+}
 
-    char time[11];
-    sys_time(time);
-    printf("\n Hora: %s \n", time);
+static void mem() {
+    TMemoryState memoryState;
+    if (sys_memState(&memoryState)) {
+        print("Failed to get memory state.\n");
+        return;
+    }
 
-    char date[11];
-    sys_date(date);
-    printf("\n Fecha: %s \n", date);
+    printf("Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY" : "UNKNOWN");
+    printf("Total memory: %u.", memoryState.total);
+    printf(" Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
+    printf(" Available: %u.\n", memoryState.total - memoryState.used);
+    printf("Total chunks: %u\n", memoryState.chunks);
 }

@@ -49,7 +49,7 @@ typedef int (*TFdCloseHandler)(TPid pid, int fd, void* resource);
  *
  * @returns The newly created TProcess, or -1 if process creation failed.
  */
-TPid prc_create(const char* name, TProcessEntryPoint entryPoint, int argc, const char* const argv[]);
+TPid prc_create(const TProcessCreateInfo* createInfo);
 
 /**
  * @brief Kills a process and frees associated resources. Using a process after
@@ -119,5 +119,13 @@ int prc_listProcesses(TProcessInfo* array, int maxProcesses);
  * @returns 0 if the operation succeeded.
  */
 int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo);
+
+/**
+ * @brief Adds a process to another process' "unblock on killed" list.
+ * This will not change the state of any of the involved processes.
+ * 
+ * @returns 0 if the operation succeeded.
+ */
+int prc_unblockOnKilled(TPid pidToUnblock, TPid pidToWait);
 
 #endif
