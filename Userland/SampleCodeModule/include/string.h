@@ -12,4 +12,6 @@ char* strncpy(char* dest, const char* src, size_t size);
 
 int strcmp(const char* s1, const char* s2);
 
+int strdiv(char* str, char** other, char token);
+
 #endif

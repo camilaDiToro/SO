@@ -25,6 +25,10 @@ void fprintf(int fd, const char* frmt, ...);
 
 int atoi(const char* str);
 
+int getLine(char *buffer, int maxSize);
+
+int fgetLine(int fd, char *buffer, int maxSize);
+
 void invalidOp();
 
 void divideByZero();

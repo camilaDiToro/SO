@@ -30,3 +30,15 @@ char* strncpy(char* dest, const char* src, size_t size) {
     *dest = '\0';
     return ret;
 }
+
+int strdiv(char* str, char** other, char token) {
+    while (*str) {
+        if (*str == token) {
+            *str = '\0';
+            *other = str + 1;
+            return 0;
+        }
+        str++;
+    }
+    return -1;
+}

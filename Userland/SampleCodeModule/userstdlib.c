@@ -64,6 +64,48 @@ void sleep(unsigned long millis) {
     } while (sys_millis() - start < millis);
 }
 
+int getLine(char* buffer, int maxSize) {
+    return fgetLine(STDIN, buffer, maxSize);
+}
+
+int fgetLine(int fd, char* buffer, int maxSize) {
+    int count = 0;
+    char c;
+
+    while ((c = fgetChar(fd)) != '\n') {
+        if (c != -1) {
+            if (count < maxSize) {
+                if (c == '\b') { // Backspace
+                    if (count == 0) {
+                        continue;
+                    }
+                    count--;
+                } else {
+                    buffer[count++] = c;
+                }
+                putChar(c);
+            } else {
+                if (c == '\b') {
+                    count--;
+                } else {
+                    count++;
+                }
+                putChar(c);
+            }
+        }
+    }
+
+    putChar(c);
+
+    if (count > maxSize) {
+        buffer[maxSize] = '\0';
+        return -1;
+    }
+
+    buffer[count] = '\0';
+    return count;
+}
+
 char* convert(unsigned int num, unsigned int base) {
     static char Representation[] = "0123456789ABCDEF";
     static char buff[33];
