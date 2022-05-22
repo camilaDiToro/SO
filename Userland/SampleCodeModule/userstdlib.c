@@ -57,6 +57,15 @@ int atoi(const char* str) {
     return neg * answer;
 }
 
+void sleep(unsigned long millis) {
+	int start = sys_millis();
+    int current;
+    do{
+         current = sys_millis();
+         sys_yield();
+    }while (current - start < millis);
+}
+
 char* convert(unsigned int num, unsigned int base) {
     static char Representation[] = "0123456789ABCDEF";
     static char buff[33];

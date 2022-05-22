@@ -6,6 +6,7 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 #include <philosophers.h>
+#include <loop.h>
 
 
 typedef void (*TVoidFunction)(void);
@@ -113,8 +114,19 @@ void help(void) {
     printf("   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
 }
 
+void loop(void){
+    TProcessCreateInfo pci = {
+        .name = "loop",
+        .isForeground = 1,
+        .priority = DEFAULT_PRIORITY,
+        .entryPoint = (TProcessEntryPoint) loopProcess,
+        .argc = 0,
+        .argv = NULL
+    };
+    sys_createProcess(-1,-1,-1, &pci);
+}
+
 void time(void) {
-    phylo();
     char time[11];
     sys_time(time);
     printf("\n Time: %s", time);

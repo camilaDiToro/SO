@@ -13,6 +13,7 @@ TSem chopSems[MAX_PHILOSOPHERS];
 TPhiloState philos[MAX_PHILOSOPHERS];
 
 void philosopherLifecycle(int argc, char * argv[]){
+    sleep(5);
     printf("%s %s", argv[0],argv[1]);
 }
 
