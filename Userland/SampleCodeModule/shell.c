@@ -5,6 +5,7 @@
 #include <shell.h>
 #include <syscalls.h>
 #include <userstdlib.h>
+#include <philosophers.h>
 
 
 typedef void (*TVoidFunction)(void);
@@ -113,6 +114,7 @@ void help(void) {
 }
 
 void time(void) {
+    phylo();
     char time[11];
     sys_time(time);
     printf("\n Time: %s", time);
