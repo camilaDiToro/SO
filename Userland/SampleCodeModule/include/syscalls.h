@@ -28,7 +28,7 @@ void* sys_realloc(void* ptr, size_t size);
 int sys_memState(TMemoryState* memoryState);
 
 TPid sys_getPid();
-int sys_createProcess(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo);
+TPid sys_createProcess(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo);
 int sys_exit();
 int sys_block(TPid pid);
 int sys_unblock(TPid pid);
