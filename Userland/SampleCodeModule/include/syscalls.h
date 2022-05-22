@@ -45,7 +45,6 @@ int sys_listPipes(TPipeInfo* array, int maxPipes);
 
 TSem sys_openSem(const char* name, unsigned int value);
 int sys_closeSem(TSem sem);
-int sys_unlinkSem(const char* name);
 int sys_postSem(TSem sem);
 int sys_waitSem(TSem sem);
 int sys_listSemaphores(TSemaphoreInfo* array, int maxSemaphores);

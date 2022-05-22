@@ -76,7 +76,6 @@ sys_listPipes: syscall 0x53
 
 sys_openSem: syscall 0x60
 sys_closeSem: syscall 0x61
-sys_unlinkSem: syscall 0x62
 sys_postSem: syscall 0x63
 sys_waitSem: syscall 0x64
 sys_listSemaphores: syscall 0x65
