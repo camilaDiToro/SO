@@ -160,11 +160,10 @@ TPipe pipe_open(const char* name) {
 int pipe_unlink(const char* name) {
     // Unname and get the pipe to unlink.
     TPipe pipe = (TPipe)(size_t)rnm_unnameResource(namedPipes, name) - 1;
-    TPipeInternal* pipeInternal = pipes[pipe];
-
     if (pipe < 0)
         return 1;
 
+    TPipeInternal* pipeInternal = pipes[pipe];
     pipeInternal->name = NULL;
 
     // If the pipe has no more readers or writers, it should be freed.
@@ -413,7 +412,6 @@ static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* re
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
     return pipe_mapToProcessFd(pidTo, fdTo, mapping->pipe, mapping->allowRead, mapping->allowWrite);
 }
-
 
 
 

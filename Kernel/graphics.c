@@ -61,7 +61,6 @@ const TColor BLACK = {0x00, 0x00, 0x00};
 static uint8_t current_i, current_j;
 static uint8_t width, height;
 
-static char buffer[64] = {'0'};
 static const struct vbe_mode_info_structure* graphicModeInfo = (struct vbe_mode_info_structure*)0x5C00;
 
 static void getNextPosition();
@@ -177,6 +176,7 @@ void scr_printBin(uint64_t value) {
 }
 
 void scr_printBase(uint64_t value, uint32_t base) {
+    static char buffer[65] = {'\0'};
     uintToBase(value, buffer, base);
     scr_print(buffer);
 }

@@ -27,10 +27,6 @@ unsigned long rtc_getElapsedTicks() {
     return ticks;
 }
 
-unsigned long rtc_getElapsedSeconds() {
-    return TICKS_TO_SECONDS(ticks);
-}
-
 uint8_t rtc_getCurrentSeconds() {
     return bcdToDec(rtc_readValue(SECONDS));
 }

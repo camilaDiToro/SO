@@ -33,7 +33,7 @@ static const char* registerNames[18] = {
     "RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RBP", "RSP", "R8 ", "R9 ", "R10", "R11", "R12", "R13", "R14", "R15", "RIP", "RFLAGS"
 };
 
-void exceptionDispatcher(uint64_t exception, const uint64_t regdata[17]) {
+void exceptionDispatcher(uint64_t exception, const uint64_t regdata[18]) {
     TPid pid = sch_getCurrentPID();
     scr_print("PID ");
     scr_printDec(pid);
@@ -57,11 +57,10 @@ void exceptionDispatcher(uint64_t exception, const uint64_t regdata[17]) {
         // Consider: finding a way to stop just this process, or just kill all processes
         // and restart the whole system when the shell crashes.
         kbd_clearBuffer();
-        int c;
         do {
             _hlt(); // halts the central processing unit until the next external interrupt is fired.
             _cli();
-        } while ((c = kbd_getChar()) != '\n');
+        } while (kbd_getChar() != '\n');
 
         prc_kill(pid);
         scr_clear();

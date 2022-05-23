@@ -41,7 +41,6 @@ void mm_init(void* memoryStart, size_t memorySize) {
 
     // Allocate space for a first TMemoryBlockNode at the start of our segment.
     firstBlock = (TMemoryBlockNode*)actualStart;
-    actualStart += sizeof(TMemoryBlockNode);
     memorySize -= sizeof(TMemoryBlockNode);
 
     firstBlock->size = 0;

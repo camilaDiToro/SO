@@ -10,7 +10,6 @@
 void rtc_interruptHandler();
 
 unsigned long rtc_getElapsedTicks();
-unsigned long rtc_getElapsedSeconds();
 
 uint8_t rtc_getCurrentSeconds();
 uint8_t rtc_getCurrentMinutes();
