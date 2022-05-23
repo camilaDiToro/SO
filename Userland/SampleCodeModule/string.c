@@ -42,3 +42,63 @@ int strdiv(char* str, char** other, char token) {
     }
     return -1;
 }
+
+char* strchr(char* str, char token) {
+    while (*str) {
+        if (*str == token) {
+            return str;
+        }
+        str++;
+    }
+    return NULL;
+}
+
+int strchrCounter(char* str, char token) {
+    int i = 0;
+    while (*str) {
+        if (*str == token) {
+            i++;
+        }
+        str++;
+    }
+    return i;
+}
+
+int parseCommand(char* str, char* argv[]) {
+
+    int argLen = 0;
+    int argc = 0;
+    int i = 0;
+    char* arg = str;
+
+    //Ignore initial spaces 
+    while (str[i] == ' ') {
+        i++;
+        arg++;
+    }
+
+    for (; str[i] && argc < MAX_ARGS-1; i++) {
+        if (str[i] != ' ') {
+            argLen++;
+        } else {
+            while (str[i] == ' ') {
+                i++;
+            }
+            i--;
+            argv[argc] = arg;
+            argv[argc][argLen] = '\0';
+            argLen = 0;
+            arg = str + i + 1;
+            argc++;
+        }
+    }
+
+    if ((str[i-1] != '\0') && (str[i-1] != ' ')) {
+        argv[argc] = arg;
+        argv[argc][argLen] = '\0';
+        argc++;
+    }
+
+    argv[argc] = NULL;
+    return argc;
+}
