@@ -87,6 +87,8 @@ int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, cons
         return -1;
     }
 
+    sys_clearScreen();
+
     return 1;
 }
 
@@ -101,7 +103,7 @@ int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
     char time[11];
     sys_time(time);
-    printf("Time: %s", time);
+    printf(" Time: %s", time);
 
     char date[11];
     sys_date(date);
@@ -122,6 +124,7 @@ int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int arg
     }
 
     divideByZero();
+
     return 1;
 }
 
@@ -135,6 +138,7 @@ int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, 
     }
 
     invalidOp();
+
     return 1;
 }
 
@@ -200,7 +204,7 @@ int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
     TPid pidToKill = atoi(argv[1]);
 
-    if(pidToKill == 0){
+    if (pidToKill == 0) {
         fprint(STDERR, "Cannot kill the shell.\n");
         return -1;
     }
@@ -225,13 +229,13 @@ int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const
     }
 
     TPid pidToChange = atoi(argv[1]);
-    if(pidToChange == 0){
+    if (pidToChange == 0) {
         fprint(STDERR, "Cannot change the priority of the shell.\n");
         return -1;
     }
 
     TPriority newPriority = atoi(argv[2]);
-    if(newPriority == 0){
+    if (newPriority == 0) {
         fprint(STDERR, "Invalid value of priority.\n");
         return -1;
     }
@@ -256,7 +260,7 @@ int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, cons
     }
 
     TPid pidToBlock = atoi(argv[1]);
-    if(pidToBlock == 0){
+    if (pidToBlock == 0) {
         fprint(STDERR, "Cannot block the shell.\n");
         return -1;
     }
@@ -281,7 +285,7 @@ int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, co
     }
 
     TPid pidToUnblock = atoi(argv[1]);
-    if(pidToUnblock == 0){
+    if (pidToUnblock == 0) {
         fprint(STDERR, "Cannot unblock the shell.\n");
         return -1;
     }
@@ -307,7 +311,6 @@ int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 
     return 1;
 }
-
 
 //------------------------------------------------------------------------------------------------------------
 
@@ -351,6 +354,8 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
+//TO DO/FINISH.....
+
 void cat(void) {
     int c;
     while ((c = getChar()) != -1) {
@@ -373,6 +378,8 @@ int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 }
 
 //------------------------------------------------------------------------------------------------------------
+
+//TO DO/FINISH.....
 
 void wc(void) {
     int c;
@@ -401,6 +408,8 @@ int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
 //------------------------------------------------------------------------------------------------------------
 
+//TO DO/FINISH.....
+
 void filter(void) {
     int c;
     while ((c = getChar()) != -1) {
@@ -426,6 +435,8 @@ int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, con
 
 //------------------------------------------------------------------------------------------------------------
 
+//TO DO/FINISH.....
+
 void loop(void) {
     //
     //
@@ -448,6 +459,8 @@ int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const
 }
 
 //------------------------------------------------------------------------------------------------------------
+
+//TO DO/FINISH.....
 
 int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 

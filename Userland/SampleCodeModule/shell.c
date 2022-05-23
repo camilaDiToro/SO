@@ -39,7 +39,6 @@ TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str) {
 
     // Check if it's a valid command
     const TCommand* command = getCommandByName(argv[0]);
-    //const TCommand* command = getCommandByName(str);
     if (command == NULL) {
         fprint(STDERR, "Invalid command \n");
         return -1;
@@ -63,6 +62,8 @@ void readCommand(char* str) {
         executeCommand(STDIN, STDOUT, STDERR, str);
         return;
     } else {
+        
+        //TO DO/FINISH.....
 
         // Only one pipe
         int pipe_fds[2];
