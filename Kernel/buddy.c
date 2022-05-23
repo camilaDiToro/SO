@@ -1,4 +1,7 @@
-#ifdef BUDDY
+#ifdef USE_BUDDY
+
+/* Standard library */
+#include <stdint.h>
 
 /* Local headers */
 #include <lib.h>

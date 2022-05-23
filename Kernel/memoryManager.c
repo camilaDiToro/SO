@@ -1,4 +1,4 @@
-#ifndef BUDDY
+#ifndef USE_BUDDY
 
 /* Local headers */
 #include <memoryManager.h>

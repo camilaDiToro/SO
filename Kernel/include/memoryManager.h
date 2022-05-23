@@ -3,7 +3,6 @@
 
 /* Standard library */
 #include <stddef.h>
-#include <stdint.h>
 
 /* Local headers */
 #include <kernelTypes.h>
