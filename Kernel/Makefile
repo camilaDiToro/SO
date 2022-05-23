@@ -11,6 +11,7 @@ OBJECTS_INTERRUPTIONS=$(SOURCES_INTERRUPTIONS:interruptions/%.c=obj/%.o)
 OBJECTS_ASM=$(SOURCES_ASM:asm/%.asm=obj/%.asm.o)
 
 LOADERSRC=loader.asm
+MEMORY_MANAGER=USE_BUDDY 
 
 LOADEROBJECT=$(LOADERSRC:%.asm=obj/%.asm.o)
 STATICLIBS=
@@ -30,7 +31,7 @@ obj/%.asm.o : asm/%.asm
 	$(ASM) $(ASMFLAGS) $< -o $@
 
 obj/%.o: %.c
-	$(GCC) $(GCCFLAGS) -I./include -I./interruptions -c $< -o $@
+	$(GCC) $(GCCFLAGS) -I./include -I./interruptions -c $< -o $@ -D $(MEMORY_MANAGER)
 
 $(LOADEROBJECT):
 	mkdir -p obj
