@@ -1,6 +1,7 @@
-#ifndef _TEST_H_
-#define _TEST_H_
+#ifndef _TESTING_H_
+#define _TESTING_H_
 
+/* Standard library */
 #include <stdint.h>
 
 uint64_t test_mm(uint64_t argc, char *argv[]);

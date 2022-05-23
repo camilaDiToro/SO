@@ -5,7 +5,6 @@
 #include <shell.h>
 #include <syscalls.h>
 #include <userstdlib.h>
-#include <philosophers.h>
 #include <loop.h>
 #include <namedPipes.h>
 #include <test.h>
@@ -23,7 +22,7 @@ static void time();
 static void ps();
 static void pipe();
 static void mem();
-
+/* Local headers */
 static TCommand valid_commands[] = {
     {&help, "help"},
     {&time, "time"},
@@ -194,7 +193,6 @@ void testProcesses(void){
 }
 
 void time(void) {
-    test_prio();
     char time[11];
     sys_time(time);
     printf("\n Time: %s", time);

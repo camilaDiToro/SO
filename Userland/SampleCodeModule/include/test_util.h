@@ -1,3 +1,7 @@
+#ifndef _TEST_UTIL_H_
+#define _TEST_UTIL_H_
+
+/* Standard library */
 #include <stdint.h>
 
 uint32_t GetUint();
@@ -8,3 +12,5 @@ void bussy_wait(uint64_t n);
 void endless_loop();
 void endless_loop_print();
 void* setmem(void* destiny, int32_t c, size_t length);
+
+#endif

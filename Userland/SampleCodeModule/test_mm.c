@@ -1,4 +1,7 @@
+/* Standard library */
 #include <string.h>
+
+/* Local headers */
 #include "syscalls.h"
 #include "test_util.h"
 #include <userstdlib.h>
