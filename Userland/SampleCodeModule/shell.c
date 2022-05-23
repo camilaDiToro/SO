@@ -8,6 +8,7 @@
 #include <philosophers.h>
 #include <loop.h>
 #include <namedPipes.h>
+#include <test.h>
 
 typedef void (*TVoidFunction)(void);
 
@@ -138,8 +139,20 @@ void namedPipes(void){
     sys_createProcess(-1,-1,-1, &pci);
 }
 
+void testMM(void){
+    TProcessCreateInfo pci = {
+        .name = "testMM",
+        .isForeground = 1,
+        .priority = DEFAULT_PRIORITY,
+        .entryPoint = (TProcessEntryPoint)test_mm,
+        .argc = 0,
+        .argv = NULL
+    };
+    sys_createProcess(-1,-1,-1, &pci);
+}
+
 void time(void) {
-    namedPipes();
+    testMM();
     char time[11];
     sys_time(time);
     printf("\n Time: %s", time);
