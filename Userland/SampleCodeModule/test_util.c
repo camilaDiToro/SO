@@ -60,12 +60,12 @@ void endless_loop(){
   while(1);
 }
 
-void endless_loop_print(uint64_t wait){
+void endless_loop_print(){
   int64_t pid = sys_getPid();
 
   while(1){
     printf("%d ",pid);
-    bussy_wait(wait);
+    bussy_wait(9000000);
   }
 }
 

@@ -194,7 +194,7 @@ void testProcesses(void){
 }
 
 void time(void) {
-    testProcesses();
+    test_prio();
     char time[11];
     sys_time(time);
     printf("\n Time: %s", time);
