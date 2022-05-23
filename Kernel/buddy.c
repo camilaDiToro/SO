@@ -1,16 +1,18 @@
-/* Standard Library */
-#include <stdint.h>
-#include <stddef.h>
+#ifdef BUDDY
+
+/* Local headers */
 #include <lib.h>
+#include <memoryManager.h>
+#include <graphics.h>
 
 /*
-    Buddy is a method of memory allocation where available space
-    is repeatedly split into halves, know as buddies.
-    It keeps splitting buddies until it chooses the smallest
-    possible block that can contain the file.
-    This algorithm requires units of space to be a power of two
-    and leads to considerable internal fragmentation. However,
-    the buddy method is fast to allocate and deallocate memory.
+*   Buddy is a method of memory allocation where available space
+*   is repeatedly split into halves, know as buddies.
+*   It keeps splitting buddies until it chooses the smallest
+*   possible block that can contain the file.
+*   This algorithm requires units of space to be a power of two
+*   and leads to considerable internal fragmentation. However,
+*   the buddy method is fast to allocate and deallocate memory.
 */
 
 /* Maximum block size (inclusive) */
@@ -28,8 +30,11 @@
 /* Maximun nodes quantity */
 #define MAX_NODES 65535
 
+/* Constants used as parameters in static functions */
 #define TRUE 1
 #define FALSE (!TRUE)
+#define POSITIVE_DELTA 1
+#define NEGATIVE_DELTA -1
 
 typedef struct {
     /* Whether this node is in use by a malloc. */
@@ -39,27 +44,11 @@ typedef struct {
     unsigned int occupiedSubnodes;
 } TNode;
 
+/* Pointer to the first address of the heap */
 static void* heapStart;
+
+/* Binary tree array implementation */
 static TNode* nodes;
-
-static size_t wrapDownToPowerOfTwo(size_t value) {
-    int power = 0;
-    while (value != 0) {
-        value >>= 1;
-        power++;
-    }
-    return 1 << (power - 1);
-}
-
-static size_t wrapUpToPowerOfTwo(size_t value) {
-    value--;
-    int power = 0;
-    while (value != 1) {
-        value >>= 1;
-        power++;
-    }
-    return 1 << power;
-}
 
 static inline unsigned int getLeftChildIndex(unsigned int index) {
     return (index << 1) + 1;
@@ -71,10 +60,6 @@ static inline unsigned int getRightChildIndex(unsigned int index) {
 
 static inline unsigned int getParentIndex(unsigned int index) {
     return ((index + 1) >> 1) - 1;
-}
-
-static inline unsigned int getBuddyIndex(unsigned int index) {
-    return isLeftChild(index) ? getRightChildIndex(getParentIndex(index)) : getLeftChildIndex(getParentIndex(index));
 }
 
 static inline unsigned int getFirstIndexOfLevel(unsigned int level) {
@@ -157,9 +142,7 @@ static int getStartSearchingIdx(void * ptr, int maxLevel){
     return getFirstIndexOfLevel(maxLevel) + (relativeAddress/(1<<maxLevel));
 }
 
-
-void bd_init(void* memoryStart, size_t memorySize) {
-
+void mm_init(void* memoryStart, size_t memorySize) {
     // Word-allign memoryStart by rounding up to a multiple of 8.
     void* actualStart = (void*)WORD_ALIGN_UP(memoryStart);
     memorySize -= (actualStart - memoryStart);
@@ -181,7 +164,7 @@ void bd_init(void* memoryStart, size_t memorySize) {
     }
 }
 
-void* bd_malloc(size_t size) {
+void* mm_malloc(size_t size) {
     unsigned int level;
     if (size > HEAP_MEMORY_SIZE || size == 0 || (level = getLevel(size)) > MAX_LEVEL)
         return NULL;
@@ -195,13 +178,13 @@ void* bd_malloc(size_t size) {
     if (index < 0)
         return NULL;
 
-    updateParents(index, 1);
+    updateParents(index, POSITIVE_DELTA);
     setAsOccupied(index, TRUE);
-
+    
     return getAddress(index, level);
 }
 
-int bd_free(void* ptr) {
+int mm_free(void* ptr) {
     if (ptr == NULL)
         return 0;
 
@@ -216,43 +199,26 @@ int bd_free(void* ptr) {
     if (index < 0)
         return -1;
 
-    updateParents(index, -1);
+    updateParents(index, NEGATIVE_DELTA);
     setAsOccupied(index, FALSE);
 
     return 0;
 }
 
-void* bd_realloc(void* ptr, size_t size) {
-    void* newPtr = bd_malloc(ptr);
+void* mm_realloc(void* ptr, size_t size) {
+    void* newPtr = mm_malloc(size);
 
     if (newPtr != NULL) {
-        memcpy(newPtr, ptr, size);
-        bd_free(ptr);
+        if (ptr >= heapStart)
+            memcpy(newPtr, ptr, size);
+        mm_free(ptr);
     }
 
     return newPtr;
 }
 
-// Debbuging
-#include <graphics.h>
-static void debug(unsigned int index, unsigned int level) {
-    if (index >= MAX_NODES)
-        return;
-
-    if (nodes[index].occupied) {
-        scr_print("Node: index=");
-        scr_printDec(index);
-        scr_print(", occupiedSubnodes=");
-        scr_printDec(nodes[index].occupiedSubnodes);
-        scr_print(", level=");
-        scr_printDec(level);
-        scr_print("\n");
-    } else {
-        debug(getLeftChildIndex(index), level - 1);
-        debug(getRightChildIndex(index), level - 1);
-    }
+int mm_getState(TMemoryState* memoryState){
+    return -1;
 }
 
-void bd_printDebug() {
-    debug(0, MAX_LEVEL);
-}
+#endif

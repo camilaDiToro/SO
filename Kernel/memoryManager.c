@@ -1,3 +1,5 @@
+#ifndef BUDDY
+
 /* Local headers */
 #include <memoryManager.h>
 #include <lib.h>
@@ -181,3 +183,5 @@ int mm_getState(TMemoryState* memoryState) {
     memoryState->chunks = memoryChunks;
     return 0;
 }
+
+#endif
