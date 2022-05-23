@@ -19,6 +19,8 @@
 .vscode
 [Bb]in/
 [Oo]bj/
+check
+.config
 
 #Other files
 *.ini
