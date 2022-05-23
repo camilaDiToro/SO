@@ -70,7 +70,7 @@ void kbd_interruptHandler() {
                 uint16_t bufferEnd = (bufferStart + bufferSize) % BUFFER_MAX_SIZE;
                 buffer[bufferEnd] = keyChar;
                 bufferSize++;
-                wq_unblockSingle(processReadWaitQueue);
+                wq_unblockAll(processReadWaitQueue);
             }
         }
     } else { // Key released

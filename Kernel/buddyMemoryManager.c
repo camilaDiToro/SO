@@ -4,19 +4,18 @@
 #include <stdint.h>
 
 /* Local headers */
-#include <lib.h>
 #include <memoryManager.h>
-#include <graphics.h>
+#include <lib.h>
 
 /*
-*   Buddy is a method of memory allocation where available space
-*   is repeatedly split into halves, know as buddies.
-*   It keeps splitting buddies until it chooses the smallest
-*   possible block that can contain the file.
-*   This algorithm requires units of space to be a power of two
-*   and leads to considerable internal fragmentation. However,
-*   the buddy method is fast to allocate and deallocate memory.
-*/
+ *   Buddy is a method of memory allocation where available space
+ *   is repeatedly split into halves, know as buddies.
+ *   It keeps splitting buddies until it chooses the smallest
+ *   possible block that can contain the file.
+ *   This algorithm requires units of space to be a power of two
+ *   and leads to considerable internal fragmentation. However,
+ *   the buddy method is fast to allocate and deallocate memory.
+ */
 
 /* Maximum block size (inclusive) */
 #define MAX_LEVEL 23
@@ -53,6 +52,10 @@ static void* heapStart;
 /* Binary tree array implementation */
 static TNode* nodes;
 
+static size_t totalMemory;
+static size_t usedMemory;
+static unsigned int memoryChunks;
+
 static inline unsigned int getLeftChildIndex(unsigned int index) {
     return (index << 1) + 1;
 }
@@ -83,9 +86,9 @@ static int getFirstFreeIndexOfLevel(unsigned int level) {
 }
 
 static void setAsOccupied(int idx, int occupied) {
-    if (idx >= MAX_NODES) {
+    if (idx >= MAX_NODES)
         return;
-    }
+
     nodes[idx].occupied = occupied;
     setAsOccupied(getRightChildIndex(idx), occupied);
     setAsOccupied(getLeftChildIndex(idx), occupied);
@@ -99,24 +102,22 @@ static void updateParents(unsigned int idx, int occupiedDelta) {
     }
 }
 
-static void* getAddress(int index, int level) {
+static inline void* getAddress(int index, int level) {
     return heapStart + (index - getFirstIndexOfLevel(level)) * (1 << level);
 }
 
-static int searchNode(int idx, int level, void* ptr) {
-    if (level < MIN_LEVEL) 
+static int searchNode(int idx, int* level, void* ptr) {
+    if (*level < MIN_LEVEL)
         return -1;
 
     if (!nodes[idx].occupied) {
-        void* address = getAddress(getRightChildIndex(idx), level - 1);
-        if (ptr < address)
-            return searchNode(getLeftChildIndex(idx), level - 1, ptr);
-        return searchNode(getRightChildIndex(idx), level - 1, ptr);
+        (*level)--;
+        int rightChildIndex = getRightChildIndex(idx);
+        void* address = getAddress(rightChildIndex, *level);
+        return searchNode(ptr < address ? getLeftChildIndex(idx) : rightChildIndex, level, ptr);
     }
 
-    if (ptr == getAddress(idx, level))
-        return idx;
-    return -1;
+    return ptr == getAddress(idx, *level) ? idx : -1;
 }
 
 static unsigned int getLevel(size_t size) {
@@ -129,7 +130,7 @@ static unsigned int getLevel(size_t size) {
     return level;
 }
 
-static int getMaxPosibleLevel(void * ptr) {
+static int getMaxPosibleLevel(void* ptr) {
     int relativeAddress = ptr - heapStart;
     int level = MAX_LEVEL;
     int powOfTwo = 1 << MAX_LEVEL;
@@ -140,9 +141,9 @@ static int getMaxPosibleLevel(void * ptr) {
     return level;
 }
 
-static int getStartSearchingIdx(void * ptr, int maxLevel){
+static int getStartSearchingIdx(void* ptr, int maxLevel) {
     int relativeAddress = ptr - heapStart;
-    return getFirstIndexOfLevel(maxLevel) + (relativeAddress/(1<<maxLevel));
+    return getFirstIndexOfLevel(maxLevel) + (relativeAddress / (1 << maxLevel));
 }
 
 void mm_init(void* memoryStart, size_t memorySize) {
@@ -150,15 +151,18 @@ void mm_init(void* memoryStart, size_t memorySize) {
     void* actualStart = (void*)WORD_ALIGN_UP(memoryStart);
     memorySize -= (actualStart - memoryStart);
 
-    if (memorySize < MIN_MEMORY_SIZE) {
+    if (memorySize < MIN_MEMORY_SIZE)
         return;
-    }
 
     // Allocate an array to represent a complete binary tree
     nodes = actualStart;
     size_t nodesMemorySize = sizeof(TNode) * MAX_NODES;
     actualStart += nodesMemorySize;
     heapStart = actualStart;
+
+    totalMemory = HEAP_MEMORY_SIZE;
+    usedMemory = 0;
+    memoryChunks = 0;
 
     // Set all nodes as free
     for (int i = 0; i < MAX_NODES; ++i) {
@@ -183,7 +187,10 @@ void* mm_malloc(size_t size) {
 
     updateParents(index, POSITIVE_DELTA);
     setAsOccupied(index, TRUE);
-    
+
+    memoryChunks++;
+    usedMemory += (1 << level);
+
     return getAddress(index, level);
 }
 
@@ -194,16 +201,17 @@ int mm_free(void* ptr) {
     if (ptr < heapStart || ptr >= (heapStart + HEAP_MEMORY_SIZE))
         return -1;
 
-
-    int maxLevel = getMaxPosibleLevel(ptr);
-
-    int index = searchNode(getStartSearchingIdx(ptr, maxLevel), maxLevel, ptr);
+    int level = getMaxPosibleLevel(ptr);
+    int index = searchNode(getStartSearchingIdx(ptr, level), &level, ptr);
 
     if (index < 0)
         return -1;
 
     updateParents(index, NEGATIVE_DELTA);
     setAsOccupied(index, FALSE);
+
+    memoryChunks--;
+    usedMemory -= (1 << level);
 
     return 0;
 }
@@ -220,8 +228,12 @@ void* mm_realloc(void* ptr, size_t size) {
     return newPtr;
 }
 
-int mm_getState(TMemoryState* memoryState){
-    return -1;
+int mm_getState(TMemoryState* memoryState) {
+    memoryState->total = totalMemory;
+    memoryState->used = usedMemory;
+    memoryState->type = BUDDY;
+    memoryState->chunks = memoryChunks;
+    return 0;
 }
 
 #endif
