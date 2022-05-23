@@ -1,36 +1,72 @@
 /* Local headers */
 #include <commands.h>
 #include <syscalls.h>
+#include <string.h>
 #include <userstdlib.h>
+
+#define IS_VOCAL(c) ((c) == 'a' || (c) == 'A' || (c) == 'e' || (c) == 'E' || (c) == 'i' || \
+                     (c) == 'I' || (c) == 'o' || (c) == 'O' || (c) == 'u' || (c) == 'U')
+
+static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+// Physical memory management
+static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+// Procesos, context switching y scheduling
+static int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+// Sincronización
+static int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+// Inter process communication
+static int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+
+static TCommand valid_commands[] = {
+    {(TCommandFunction)runHelp, "help", "Displays a list of all available commands.\n"},
+    {(TCommandFunction)runClear, "clear", "Clear windows' shell.\n"},
+    {(TCommandFunction)runTime, "time", "Displays the system's day and time.\n"},
+    {(TCommandFunction)runDivideByZero, "dividezero", "Throws an exception caused by dividing by 0.\n"},
+    {(TCommandFunction)runInvalidOp, "invalidop", "Throws an exception caused by an invalid operation.\n"},
+    {(TCommandFunction)runMem, "mem", "Displays information about the memory status. \n"},
+    {(TCommandFunction)runPs, "ps", "Displays a list of all the processes with their properties: name, ID, priority, stack, base pointer and foreground.\n"},
+    {(TCommandFunction)runLoop, "loop", "Prints PID once every count of seconds. \n"},
+    {(TCommandFunction)runKill, "kill", "Kill the process with the given ID. \n"},
+    {(TCommandFunction)runNice, "nice", "Changes the priority of the process with the given ID. \n"},
+    {(TCommandFunction)runBlock, "block", "Blocks the process with the given ID. \n"},
+    {(TCommandFunction)runSem, "sem", "Displays a list of all the semaphores with their properties: state and the blocked processes in each.\n"},
+    {(TCommandFunction)runCat, "cat", "Prints the standard input on the standard output. \n"},
+    {(TCommandFunction)runWc, "wc", "Pritns the newlines' count the standard input on the standard output. \n"},
+    {(TCommandFunction)runFilter, "filter", "Filters the vowels of the standard input. \n"},
+    {(TCommandFunction)runPipe, "pipe", "Displays a list of all the pipes with their properties: state and the blocked processes in each.\n"},
+    {(TCommandFunction)runPhylo, "phylo", "Resolve the Dining philosophers problem.\n"},
+};
+
+const TCommand * getCommandByName(const char * name){
+    for (int i=0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
+        if (!strcmp(name, valid_commands[i].name)) {
+            return &valid_commands[i];
+        }
+    }
+    return NULL;
+}
+
+//------------------------------------------------------------------------------------------------------------
 
 int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
     print("The available commands are:\n");
 
-    for (int i = 0; i < COUNT_COMMANDS; i++) {
+    for (int i = 0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
         printf("\t '%s' \t - %s", valid_commands[i].name, valid_commands[i].description);
     }
-
-    /*
-    print("The available commands are:\n")
-    print("\thelp - Displays a list of all available commands.\n");
-    print("\tclear - Clear windows' shell.\n");
-    print("\ttime - Displays the system's day and time.\n");
-    print("\tdividezero - Throws an exception caused by dividing by 0.\n");
-    print("\tinvalidop - Throws an exception caused by an invalid operation.\n");
-    print("\tmem - Displays information about the memory status.\n");
-    print("\tps - Displays a list of all the processes with their properties: name, ID, priority, stack, base pointer and foreground.\n");
-    print("\tloop - Prints PID once every count of seconds.\n");
-    print("\tkill - Kill the process with the given ID.\n");
-    print("\tnice - Changes the priority of the process with the given ID.\n");
-    print("\tblock -  Blocks the process with the given ID.\n");
-    print("\tsem - Displays a list of all the semaphores with their properties: state and the blocked processes in each.\n");
-    print("\tcat - Prints the standard input on the standard output.\n");
-    print("\twc - Pritns the newlines' count the standard input on the standard output.\n");
-    print("\tfilter - Filters the vowels of the standard input.\n");
-    print("\tpipe - Displays a list of all the pipes with their properties: state and the blocked processes in each.\n");
-    print("\tphylo - Resolve the Dining philosophers problem.\n");
-    */
 
     return 1;
 }
@@ -116,7 +152,15 @@ void loop(void) {
 }
 
 int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-    TProcessCreateInfo p_loop = {"loop", loop, isForeground, DEFAULT_PRIORITY, argc, argv};
+     TProcessCreateInfo p_loop = {
+        .name = "loop",
+        .entryPoint = (TProcessEntryPoint) loop,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+    //TProcessCreateInfo p_loop = {"loop", loop, isForeground, DEFAULT_PRIORITY, argc, argv};
     return sys_createProcess(stdin, stdout, stderr, &p_loop);
     // return atoi(argv[0]);   //Thomas me dijo que el pid estaba en argv[0]
 }
@@ -180,15 +224,22 @@ int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 //------------------------------------------------------------------------------------------------------------
 
 void cat(void) {
-    // Leer de STDIN e imprime
     int c;
-    while ((c = getChar()) != -1) {
+    while ((c = getChar()) != '\n') {
         putChar(c);
     }
 }
 
 int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-    TProcessCreateInfo p_cat = {"cat", cat, isForeground, DEFAULT_PRIORITY, argc, argv};
+    TProcessCreateInfo p_cat = {
+        .name = "cat",
+        .entryPoint = (TProcessEntryPoint) cat,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+    //TProcessCreateInfo p_cat = {"cat", cat, isForeground, DEFAULT_PRIORITY, argc, argv};
     *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_cat);
     return 1;
 }
@@ -198,7 +249,6 @@ int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 void wc(void) {
     int c;
     int cantLines = 0;
-    // Leer de STDIN la cantidad de '\n'
     while ((c = getChar()) != -1) {
         if (c == '\n') {
             cantLines++;
@@ -208,7 +258,15 @@ void wc(void) {
 }
 
 int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-    TProcessCreateInfo p_wc = {"wc", wc, isForeground, DEFAULT_PRIORITY, argc, argv};
+    TProcessCreateInfo p_wc = {
+        .name = "wc",
+        .entryPoint = (TProcessEntryPoint) wc,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+    //TProcessCreateInfo p_wc = {"wc", wc, isForeground, DEFAULT_PRIORITY, argc, argv};
     *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_wc);
     return 1;
 }
@@ -217,7 +275,6 @@ int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
 void filter(void) {
     int c;
-    // Leer de STDIN e mprimir solo las vocales
     while ((c = getChar()) != -1) {
         if (IS_VOCAL(c)) {
             putChar(c);
@@ -226,7 +283,15 @@ void filter(void) {
 }
 
 int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-    TProcessCreateInfo p_filter = {"filter", filter, isForeground, DEFAULT_PRIORITY, argc, argv};
+    TProcessCreateInfo p_filter = {
+        .name = "filter",
+        .entryPoint = (TProcessEntryPoint) filter,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+    //TProcessCreateInfo p_filter = {"filter", filter, isForeground, DEFAULT_PRIORITY, argc, argv};
     *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_filter);
     return 1;
 }
@@ -241,7 +306,7 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
     for (int i = 0; i < count; i++) {
         printf("bytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount,
-                                                             (unsigned int)array[i].writerFdCount, array[i].name);
+               (unsigned int)array[i].writerFdCount, array[i].name);
 
         printf(", readBlocked={");
         for (int c = 0; array[i].readBlockedPids[c] >= 0; c++) {
@@ -265,6 +330,6 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
-int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess){
+int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     return 1;
 }
