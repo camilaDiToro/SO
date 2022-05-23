@@ -47,7 +47,7 @@ TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str) {
 
     // 1 foreground ?
     if ((command->function(fd_in, fd_out, fd_err, 1, argc, argv, &pid)) < 0) {
-        fprint(STDERR, "Error while executing command\n");
+        fprint(STDERR, "Error while executing command.\n");
         return -1;
     }
 
