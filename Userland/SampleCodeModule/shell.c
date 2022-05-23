@@ -181,8 +181,20 @@ void testSync(void){
     sys_createProcess(-1,-1,-1, &pci);
 }
 
+void testProcesses(void){
+    TProcessCreateInfo pci = {
+        .name = "testSync",
+        .isForeground = 0,
+        .priority = DEFAULT_PRIORITY,
+        .entryPoint = (TProcessEntryPoint)test_processes,
+        .argc = 0,
+        .argv = NULL
+    };
+    sys_createProcess(-1,-1,-1, &pci);
+}
+
 void time(void) {
-    testMM();
+    testProcesses();
     char time[11];
     sys_time(time);
     printf("\n Time: %s", time);
