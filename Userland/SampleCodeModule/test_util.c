@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
-#include "syscall.h"
+#include "syscalls.h"
 
 //Random
 static uint32_t m_z = 362436069;
@@ -67,4 +67,13 @@ void endless_loop_print(uint64_t wait){
     printf("%d ",pid);
     bussy_wait(wait);
   }
+}
+
+void* setmem(void* destiation, int32_t c, size_t length) {
+    uint8_t chr = (uint8_t)c;
+    char* dst = (char*)destiation;
+    while (length--) {
+        dst[length] = chr;
+    }
+    return destiation;
 }

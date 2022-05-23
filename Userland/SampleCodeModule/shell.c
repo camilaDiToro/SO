@@ -151,6 +151,36 @@ void testMM(void){
     sys_createProcess(-1,-1,-1, &pci);
 }
 
+void testAsync(void){
+    // TODO check if the 5 could be asked to the user
+    printf("Async testing... \n");
+    char * argv[] = {"5", "0", NULL};
+    TProcessCreateInfo pci = {
+        .name = "testAsync",
+        .isForeground = 1,
+        .priority = DEFAULT_PRIORITY,
+        .entryPoint = (TProcessEntryPoint)test_sync,
+        .argc = 2,
+        .argv = (const char* const*)argv
+    };
+    sys_createProcess(-1,-1,-1, &pci);
+}
+
+void testSync(void){
+    // TODO check if the 5 could be asked to the user
+    printf("Sync testing... \n");
+    char * argv[] = {"5", "1", NULL};
+    TProcessCreateInfo pci = {
+        .name = "testSync",
+        .isForeground = 1,
+        .priority = DEFAULT_PRIORITY,
+        .entryPoint = (TProcessEntryPoint)test_sync,
+        .argc = 2,
+        .argv = (const char* const*)argv
+    };
+    sys_createProcess(-1,-1,-1, &pci);
+}
+
 void time(void) {
     testMM();
     char time[11];

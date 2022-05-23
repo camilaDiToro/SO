@@ -50,7 +50,7 @@ void phylo(void){
         argv[0] = sem1;
         sem2[4] = '0' + ((i+1)%INITIAL_PHILOSOPHERS);
         argv[1] = sem2;
-        pci.argv = argv;
+        pci.argv = (const char* const*)argv;
         sys_createProcess(-1,-1,-1,&pci);
     }
 }
