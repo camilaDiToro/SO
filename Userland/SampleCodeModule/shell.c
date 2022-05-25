@@ -22,7 +22,6 @@ static void time();
 static void ps();
 static void pipe();
 static void mem();
-/* Local headers */
 static TCommand valid_commands[] = {
     {&help, "help"},
     {&time, "time"},
