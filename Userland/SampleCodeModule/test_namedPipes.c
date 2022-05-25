@@ -1,5 +1,5 @@
 /* Local headers */
-#include <namedPipes.h>
+#include <test.h>
 #include <kernelTypes.h>
 #include <syscalls.h>
 #include <userstdlib.h>

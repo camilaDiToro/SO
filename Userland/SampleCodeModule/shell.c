@@ -6,7 +6,6 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 #include <loop.h>
-#include <namedPipes.h>
 #include <test.h>
 
 typedef void (*TVoidFunction)(void);
