@@ -10,8 +10,7 @@
 // A list might be implemented to track de asociated processes to a semaphore
 // Now just are being counted the number of processes, but this could lead to an inconsistency if,
 // for example, a process tries to close the same semaphore twice
-typedef struct
-{
+typedef struct {
     uint8_t value;
     TLock lock;
     uint8_t linkedProcesses;
