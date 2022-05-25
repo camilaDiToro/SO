@@ -178,18 +178,18 @@ int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const c
         return -1;
     }
 
-    TProcessInfo arr[16];
-    int count = sys_listProcesses(arr, 16);
+    TProcessInfo array[16];
+    int count = sys_listProcesses(array, 16);
     printf("Listing %d process/es: \n", count);
 
     for (int i = 0; i < count; i++) {
-        const char* status = arr[i].status == READY ? "READY" : arr[i].status == RUNNING ? "RUNNING"
-                                                            : arr[i].status == BLOCKED   ? "BLOCKED"
-                                                            : arr[i].status == KILLED    ? "KILLED"
-                                                                                         : "UNKNOWN";
+        const char* status = array[i].status == READY ? "READY" : array[i].status == RUNNING ? "RUNNING"
+                                                            : array[i].status == BLOCKED   ? "BLOCKED"
+                                                            : array[i].status == KILLED    ? "KILLED"
+                                                                                           : "UNKNOWN";
 
         printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
-               arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, status, arr[i].currentRSP);
+               array[i].pid, array[i].name, array[i].stackEnd, array[i].stackStart, array[i].isForeground, array[i].priority, status, array[i].currentRSP);
     }
 
     return 1;
@@ -312,6 +312,22 @@ int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const 
     }
 
     // TO DO:...........
+    TSemaphoreInfo array[16];
+    int count = sys_listSemaphores(array, 16);
+    printf("Listing %d semaphore/s: \n", count);
+
+    for (int i = 0; i < count; i++) {
+        printf("name=%s, value=%d, linkedProcesses=%d", array[i].name, array[i].value, array[i].linkedProcesses);
+
+        printf(", waitingProcesses={");
+        for (int c = 0; array[i].waitingProcesses[c] >= 0; c++) {
+            if (c != 0) {
+                printf(", ");
+            }
+            printf("%d", array[i].waitingProcesses[c]);
+        }
+        printf("}");
+    }
 
     return 1;
 }
@@ -325,10 +341,9 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
         return -1;
     }
 
-    print("Listing pipes: ");
     TPipeInfo array[16];
     int count = sys_listPipes(array, 16);
-    printf("%d\n", count);
+    printf("Listing %d pipe/s: \n", count);
 
     for (int i = 0; i < count; i++) {
         printf("bytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount,
@@ -385,7 +400,7 @@ int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 
 //------------------------------------------------------------------------------------------------------------
 
-void wcProcess(int argc, const char* const argv[]) {
+void wcProcess(int argc, char* argv[]) {
     int c;
     int cantLines = 0;
     while ((c = getChar()) >= 0) {
@@ -417,7 +432,7 @@ int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
 //------------------------------------------------------------------------------------------------------------
 
-void filterProcess(int argc, const char* const argv[]) {
+void filterProcess(int argc, char* argv[]) {
     int c;
     while ((c = getChar()) >= 0) {
         if (!IS_VOCAL(c)) {
