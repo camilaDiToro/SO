@@ -58,12 +58,10 @@ int atoi(const char* str) {
 }
 
 void sleep(unsigned long millis) {
-	int start = sys_millis();
-    int current;
-    do{
-         current = sys_millis();
+    unsigned long start = sys_millis();
+    do {
          sys_yield();
-    }while (current - start < millis);
+    } while (sys_millis() - start < millis);
 }
 
 char* convert(unsigned int num, unsigned int base) {
