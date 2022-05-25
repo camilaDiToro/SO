@@ -2,11 +2,11 @@
 #include <string.h>
 
 /* Local headers */
+#include <loop.h>
 #include <shell.h>
 #include <syscalls.h>
-#include <userstdlib.h>
-#include <loop.h>
 #include <test.h>
+#include <userstdlib.h>
 
 typedef void (*TVoidFunction)(void);
 
@@ -81,11 +81,13 @@ void ps(void) {
     int count = sys_listProcesses(arr, 16);
     printf("Listing %d process/es: \n", count);
     for (int i = 0; i < count; i++) {
-        const char* status = arr[i].status == READY ? "READY" : arr[i].status == RUNNING ? "RUNNING" : arr[i].status == BLOCKED
-            ? "BLOCKED" : arr[i].status == KILLED ? "KILLED" : "UNKNOWN";
+        const char* status = arr[i].status == READY ? "READY" : arr[i].status == RUNNING ? "RUNNING"
+                                                            : arr[i].status == BLOCKED   ? "BLOCKED"
+                                                            : arr[i].status == KILLED    ? "KILLED"
+                                                                                         : "UNKNOWN";
 
         printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
-        arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, status, arr[i].currentRSP);
+               arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, status, arr[i].currentRSP);
     }
 }
 
@@ -112,82 +114,76 @@ void help(void) {
     printf("   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
 }
 
-void loop(void){
+void loop(void) {
     TProcessCreateInfo pci = {
         .name = "loop",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint) loopProcess,
+        .entryPoint = (TProcessEntryPoint)loopProcess,
         .argc = 0,
-        .argv = NULL
-    };
-    sys_createProcess(-1,-1,-1, &pci);
+        .argv = NULL};
+    sys_createProcess(-1, -1, -1, &pci);
 }
 
-void namedPipes(void){
+void namedPipes(void) {
     TProcessCreateInfo pci = {
         .name = "namedPipes",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint) namedPipesProcess,
+        .entryPoint = (TProcessEntryPoint)namedPipesProcess,
         .argc = 0,
-        .argv = NULL
-    };
-    sys_createProcess(-1,-1,-1, &pci);
+        .argv = NULL};
+    sys_createProcess(-1, -1, -1, &pci);
 }
 
-void testMM(void){
+void testMM(void) {
     TProcessCreateInfo pci = {
         .name = "testMM",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)test_mm,
         .argc = 0,
-        .argv = NULL
-    };
-    sys_createProcess(-1,-1,-1, &pci);
+        .argv = NULL};
+    sys_createProcess(-1, -1, -1, &pci);
 }
 
-void testAsync(void){
+void testAsync(void) {
     // TODO check if the 5 could be asked to the user
     printf("Async testing... \n");
-    char * argv[] = {"5", "0", NULL};
+    char* argv[] = {"5", "0", NULL};
     TProcessCreateInfo pci = {
         .name = "testAsync",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)test_sync,
         .argc = 2,
-        .argv = (const char* const*)argv
-    };
-    sys_createProcess(-1,-1,-1, &pci);
+        .argv = (const char* const*)argv};
+    sys_createProcess(-1, -1, -1, &pci);
 }
 
-void testSync(void){
+void testSync(void) {
     // TODO check if the 5 could be asked to the user
     printf("Sync testing... \n");
-    char * argv[] = {"5", "1", NULL};
+    char* argv[] = {"5", "1", NULL};
     TProcessCreateInfo pci = {
         .name = "testSync",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)test_sync,
         .argc = 2,
-        .argv = (const char* const*)argv
-    };
-    sys_createProcess(-1,-1,-1, &pci);
+        .argv = (const char* const*)argv};
+    sys_createProcess(-1, -1, -1, &pci);
 }
 
-void testProcesses(void){
+void testProcesses(void) {
     TProcessCreateInfo pci = {
         .name = "testSync",
         .isForeground = 0,
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)test_processes,
         .argc = 0,
-        .argv = NULL
-    };
-    sys_createProcess(-1,-1,-1, &pci);
+        .argv = NULL};
+    sys_createProcess(-1, -1, -1, &pci);
 }
 
 void time(void) {
@@ -236,7 +232,8 @@ static void mem() {
         return;
     }
 
-    printf("Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY" : "UNKNOWN");
+    printf("Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY"
+                                                                                                      : "UNKNOWN");
     printf("Total memory: %u.", memoryState.total);
     printf(" Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
     printf(" Available: %u.\n", memoryState.total - memoryState.used);

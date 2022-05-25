@@ -4,6 +4,6 @@
 /* Standard library */
 #include <stdint.h>
 
-void loopProcess(uint64_t argc, char *argv[]);
+void loopProcess(uint64_t argc, char* argv[]);
 
 #endif

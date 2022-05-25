@@ -1,10 +1,10 @@
-#include <semaphores.h>
 #include <graphics.h>
-#include <string.h>
-#include <scheduler.h>
 #include <lib.h>
 #include <memoryManager.h>
 #include <resourceNamerADT.h>
+#include <scheduler.h>
+#include <semaphores.h>
+#include <string.h>
 #include <waitQueueADT.h>
 
 // A list might be implemented to track de asociated processes to a semaphore
@@ -13,39 +13,38 @@
 typedef struct {
     uint8_t value;
     TLock lock;
-    uint8_t linkedProcesses; 
+    uint8_t linkedProcesses;
     const char* name;
-    TWaitQueue waitingProcesses;  //Tracks the processes waiting for a post in this semaphore
+    TWaitQueue waitingProcesses; // Tracks the processes waiting for a post in this semaphore
 } TSemaphore;
 
-static TSemaphore * semaphores[MAX_SEMAPHORES] = {NULL};
+static TSemaphore* semaphores[MAX_SEMAPHORES] = {NULL};
 static TResourceNamer namer;
 static TLock generalLock;
 
-extern int _spin_lock(TLock * lock);
+extern int _spin_lock(TLock* lock);
 static int sem_free(TSem sem);
 static int isValidSemId(TSem sem);
 static int adquireSem(TSem sem);
-
 
 static int sem_free(TSem sem) {
     int value = rnm_unnameResource(namer, semaphores[sem]->name) == NULL;
     value += wq_free(semaphores[sem]->waitingProcesses);
     value += mm_free(semaphores[sem]);
     semaphores[sem] = NULL;
-    if(value!=0)
+    if (value != 0)
         return SEM_FAILED;
     return SEM_SUCCES;
 }
 
 static int isValidSemId(TSem sem) {
-    return sem>0 && sem<MAX_SEMAPHORES && semaphores[sem]!=NULL;
+    return sem > 0 && sem < MAX_SEMAPHORES && semaphores[sem] != NULL;
 }
 
-static int adquireSem(TSem sem){
+static int adquireSem(TSem sem) {
     _spin_lock(&generalLock);
-    
-    if(!isValidSemId(sem)){
+
+    if (!isValidSemId(sem)) {
         generalLock = 0;
         return SEM_NOTEXISTS;
     }
@@ -57,8 +56,8 @@ static int adquireSem(TSem sem){
 
 int sem_printDebug() {
 
-    for(int sem = 0 ; sem < MAX_SEMAPHORES ; ++sem) {
-        if(semaphores[sem]!=NULL){
+    for (int sem = 0; sem < MAX_SEMAPHORES; ++sem) {
+        if (semaphores[sem] != NULL) {
             scr_print("Id: ");
             scr_printDec(sem);
             scr_print(", \t Value: ");
@@ -76,33 +75,33 @@ int sem_printDebug() {
 int sem_init() {
     namer = rnm_new();
     generalLock = 0;
-    if(namer != 0)
+    if (namer != 0)
         return SEM_FAILED;
     return 0;
 }
 
-TSem sem_open(const char * name, uint8_t initialValue) {
+TSem sem_open(const char* name, uint8_t initialValue) {
 
     _spin_lock(&generalLock);
 
     TSem sem = (TSem)(int64_t)rnm_getResource(namer, name);
 
-    if(sem!=0){
-        semaphores[sem]->linkedProcesses+=1;
+    if (sem != 0) {
+        semaphores[sem]->linkedProcesses += 1;
         generalLock = 0;
         return sem;
     }
-    
-    int i;
-    for( i=1 ; i < MAX_SEMAPHORES && semaphores[i]; ++i );
 
-    if(i == MAX_SEMAPHORES) {
+    int i;
+    for (i = 1; i < MAX_SEMAPHORES && semaphores[i]; ++i);
+
+    if (i == MAX_SEMAPHORES) {
         generalLock = 0;
         return SEM_FAILED;
-    }        
-    
+    }
+
     semaphores[i] = mm_malloc(sizeof(TSemaphore));
-    if(semaphores[i] == NULL){
+    if (semaphores[i] == NULL) {
         generalLock = 0;
         return SEM_FAILED;
     }
@@ -111,13 +110,13 @@ TSem sem_open(const char * name, uint8_t initialValue) {
     semaphores[i]->linkedProcesses = 1;
     semaphores[i]->waitingProcesses = wq_new();
 
-    if(semaphores[i]->waitingProcesses == NULL){
+    if (semaphores[i]->waitingProcesses == NULL) {
         mm_free(semaphores[i]);
         generalLock = 0;
         return SEM_FAILED;
     }
 
-    if(rnm_nameResource(namer,(void *)(int64_t)i, name, &(semaphores[i]->name))!=0){
+    if (rnm_nameResource(namer, (void*)(int64_t)i, name, &(semaphores[i]->name)) != 0) {
         wq_free(semaphores[i]->waitingProcesses);
         mm_free(semaphores[i]);
         semaphores[i] = NULL;
@@ -126,30 +125,30 @@ TSem sem_open(const char * name, uint8_t initialValue) {
     }
 
     generalLock = 0;
-    return (TSem) i;
+    return (TSem)i;
 }
 
 int sem_close(TSem sem) {
 
-    if(adquireSem(sem)== SEM_NOTEXISTS){
+    if (adquireSem(sem) == SEM_NOTEXISTS) {
         return SEM_NOTEXISTS;
     }
 
-    if(semaphores[sem]->linkedProcesses == 1){
-        return sem_free(sem); //The semaphore is destroyed, so we do not care about its lock
-    }                       
-    
-    semaphores[sem]->linkedProcesses-= 1;
+    if (semaphores[sem]->linkedProcesses == 1) {
+        return sem_free(sem); // The semaphore is destroyed, so we do not care about its lock
+    }
+
+    semaphores[sem]->linkedProcesses -= 1;
     semaphores[sem]->lock = 0;
     return SEM_SUCCES;
 }
 
 int sem_post(TSem sem) {
 
-    if(adquireSem(sem)== SEM_NOTEXISTS){
+    if (adquireSem(sem) == SEM_NOTEXISTS) {
         return SEM_NOTEXISTS;
     }
-    
+
     semaphores[sem]->value++;
     wq_unblockSingle(semaphores[sem]->waitingProcesses);
 
@@ -159,9 +158,9 @@ int sem_post(TSem sem) {
 
 int sem_wait(TSem sem) {
 
-    if(adquireSem(sem)== SEM_NOTEXISTS){
+    if (adquireSem(sem) == SEM_NOTEXISTS) {
         return SEM_NOTEXISTS;
-    }           
+    }
 
     TPid cpid = sch_getCurrentPID();
 
@@ -178,22 +177,22 @@ int sem_wait(TSem sem) {
     return SEM_SUCCES;
 }
 
-int sem_listSemaphores(TSemaphoreInfo* array, int maxSemaphores){
+int sem_listSemaphores(TSemaphoreInfo* array, int maxSemaphores) {
     _spin_lock(&generalLock);
     int semCounter = 0;
 
-    for(int i=1; i<MAX_SEMAPHORES && semCounter < maxSemaphores ; ++i){
-        TSemaphore * sem = semaphores[i];
-        if(sem!=NULL){
-            TSemaphoreInfo * info = &array[semCounter++];
+    for (int i = 1; i < MAX_SEMAPHORES && semCounter < maxSemaphores; ++i) {
+        TSemaphore* sem = semaphores[i];
+        if (sem != NULL) {
+            TSemaphoreInfo* info = &array[semCounter++];
             info->value = sem->value;
             info->linkedProcesses = sem->linkedProcesses;
-            
+
             if (sem->name == NULL)
                 info->name[0] = '\0';
             else
                 strncpy(info->name, sem->name, MAX_NAME_LENGTH);
-            
+
             int waitingPids = wq_getPids(sem->waitingProcesses, info->waitingProcesses, wq_count(sem->waitingProcesses));
             info->waitingProcesses[waitingPids] = -1;
         }

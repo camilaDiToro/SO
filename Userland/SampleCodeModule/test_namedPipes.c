@@ -1,24 +1,24 @@
 /* Local headers */
-#include <test.h>
 #include <kernelTypes.h>
 #include <syscalls.h>
+#include <test.h>
 #include <userstdlib.h>
 
 #define pipeName "testingPipe"
 
-void readAndClosePipe(){
+void readAndClosePipe() {
     TPid p = sys_getPid();
     printf("Reading process with pid %d created \n", p);
-    
-    printf("Process %d opening pipe with name %s \n",p, pipeName);
+
+    printf("Process %d opening pipe with name %s \n", p, pipeName);
     int pipeFd[2];
 
-    if(sys_openPipe(pipeName, pipeFd)<0){
+    if (sys_openPipe(pipeName, pipeFd) < 0) {
         printf("Error while trying to open pipe");
         return;
     }
 
-    if(sys_close(pipeFd[1]) < 0){
+    if (sys_close(pipeFd[1]) < 0) {
         printf("Error while trying to close pipe fd");
         return;
     }
@@ -31,36 +31,36 @@ void readAndClosePipe(){
     }
     buffer[count] = '\0';
 
-    printf("Process %d read from pipe \"%s\" the content \"%s\" \n",p, pipeName, buffer);
+    printf("Process %d read from pipe \"%s\" the content \"%s\" \n", p, pipeName, buffer);
 }
 
-void openAndWritePipe(void){
+void openAndWritePipe(void) {
     TPid p = sys_getPid();
     printf("Writing process with pid %d created \n", p);
-    
-    printf("Process %d opening pipe with name \"%s\" \n",p, pipeName);
+
+    printf("Process %d opening pipe with name \"%s\" \n", p, pipeName);
     int pipeFd[2];
 
-    if(sys_openPipe(pipeName, pipeFd)<0){
+    if (sys_openPipe(pipeName, pipeFd) < 0) {
         printf("Error while trying to open pipe");
         return;
     }
-    printf("Process %d writing in pipe with name \"%s\" \n",p, pipeName);
+    printf("Process %d writing in pipe with name \"%s\" \n", p, pipeName);
 
-    if(sys_close(pipeFd[0]) < 0){
+    if (sys_close(pipeFd[0]) < 0) {
         printf("Error while trying to close pipe");
         return;
     }
 
     fprint(pipeFd[1], "This message comes from a dead process");
 
-    if(sys_close(pipeFd[1]) < 0){
+    if (sys_close(pipeFd[1]) < 0) {
         printf("Error while trying to close pipe fd");
         return;
     }
 }
 
-void namedPipesProcess(uint64_t argc, char *argv[]){
+void namedPipesProcess(uint64_t argc, char* argv[]) {
     TPid p = sys_getPid();
     printf("Main process with pid %d created \n", p);
 
@@ -68,14 +68,13 @@ void namedPipesProcess(uint64_t argc, char *argv[]){
         .name = "writeProcess",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint) openAndWritePipe,
+        .entryPoint = (TProcessEntryPoint)openAndWritePipe,
         .argc = 0,
-        .argv = NULL
-    };
+        .argv = NULL};
 
     printf("Process %d creating the process that will open and write the pipe \n", p);
-    TPid wpid = sys_createProcess(-1,-1,-1,&pci);
-    if(wpid<0) {
+    TPid wpid = sys_createProcess(-1, -1, -1, &pci);
+    if (wpid < 0) {
         printf("Error while trying to create the writing process");
         return;
     }
@@ -83,21 +82,20 @@ void namedPipesProcess(uint64_t argc, char *argv[]){
     sys_waitpid(wpid);
     printf("Process %d finished \n", wpid);
 
-    //print processes
-    //print pids
+    // print processes
+    // print pids
 
     TProcessCreateInfo pci2 = {
         .name = "readingProcess",
         .isForeground = 1,
         .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint) readAndClosePipe,
+        .entryPoint = (TProcessEntryPoint)readAndClosePipe,
         .argc = 0,
-        .argv = NULL
-    };
+        .argv = NULL};
 
     printf("Process %d creating the process that will read and close the pipe \n", p);
-    TPid rpid = sys_createProcess(-1,-1,-1,&pci2);
-    if(rpid<0) {
+    TPid rpid = sys_createProcess(-1, -1, -1, &pci2);
+    if (rpid < 0) {
         printf("Error while trying to create the reading process");
         return;
     }
