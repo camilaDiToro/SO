@@ -56,11 +56,11 @@ void bussy_wait(uint64_t n){
   for (i = 0; i < n; i++);
 }
 
-void endless_loop(){
+void endless_loop(uint64_t argc, char *argv[]){
   while(1);
 }
 
-void endless_loop_print(){
+void endless_loop_print(uint64_t argc, char *argv[]){
   int64_t pid = sys_getPid();
 
   while(1){

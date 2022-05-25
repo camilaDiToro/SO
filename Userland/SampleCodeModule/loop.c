@@ -2,7 +2,7 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
-void loopProcess(void){
+void loopProcess(uint64_t argc, char *argv[]){
     TPid pid = sys_getPid();
     while(1){
         printf("Hi! My PID is: %d \n", pid);

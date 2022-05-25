@@ -13,9 +13,9 @@
 
 int64_t prio[TOTAL_PROCESSES] = {LOWEST, MEDIUM, HIGHEST};
 
-void test_prio(){
+void test_prio(uint64_t argc, char *argv[]){
   int64_t pids[TOTAL_PROCESSES];
-  char *argv[] = {0};
+  char *argvAux[] = {0};
   uint64_t i;
 
   TProcessCreateInfo pci = {
@@ -24,7 +24,7 @@ void test_prio(){
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)endless_loop_print,
         .argc = 0,
-        .argv = (const char* const*)argv
+        .argv = (const char* const*)argvAux
     };
     
 
