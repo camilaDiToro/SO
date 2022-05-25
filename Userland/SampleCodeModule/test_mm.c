@@ -6,7 +6,7 @@
 #include "test_util.h"
 #include <userstdlib.h>
 
-#define MAX_BLOCKS 4 * 1024
+#define MAX_BLOCKS (4 * 1024)
 
 typedef struct MM_rq{
   void *address;
