@@ -9,6 +9,7 @@
 
 #define MAX_COMMAND 128
 #define MAX_ARGS 10
+#define PIPE_CHARACTER '-'
 
 static void readCommand(char* buffer);
 static TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str);
@@ -55,27 +56,26 @@ TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str) {
 
 void readCommand(char* str) {
 
-    char* p = strchr(str, '|');
+    char* p = strchr(str, PIPE_CHARACTER);
 
     // If there isn't a pipe
     if (p == NULL) {
         executeCommand(STDIN, STDOUT, STDERR, str);
         return;
     } else {
-        
         //TO DO/FINISH.....
-
         // Only one pipe
+
+        *p = '\0';
+        char* command1 = str;
+        char* command2 = p + 1;
+
         int pipe_fds[2];
 
         if ((sys_openPipe("pipe", pipe_fds)) < 0) {
             fprint(STDERR, "Error opening pipe \n");
             return;
         }
-
-        *p = '\0';
-        char* command1 = str;
-        char* command2 = p + 1;
 
         TPid pid = executeCommand(pipe_fds[0], STDOUT, STDERR, command2);
         executeCommand(STDIN, pipe_fds[1], STDERR, command1);

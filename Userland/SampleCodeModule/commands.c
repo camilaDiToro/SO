@@ -4,6 +4,8 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
+//#define MAX_INPUT_SIZE 256
+
 #define IS_VOCAL(c) ((c) == 'a' || (c) == 'A' || (c) == 'e' || (c) == 'E' || (c) == 'i' || \
                      (c) == 'I' || (c) == 'o' || (c) == 'O' || (c) == 'u' || (c) == 'U')
 
@@ -309,6 +311,8 @@ int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const 
         return -1;
     }
 
+    // TO DO:...........
+
     return 1;
 }
 
@@ -354,37 +358,37 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
-//TO DO/FINISH.....
-
-void cat(void) {
+void catProcess(int argc, char* argv[]) {
     int c;
-    while ((c = getChar()) != -1) {
+    while ((c = getChar()) >= 0) {
         putChar(c);
     }
 }
 
 int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
     TProcessCreateInfo p_cat = {
         .name = "cat",
-        .entryPoint = (TProcessEntryPoint)cat,
+        .entryPoint = (TProcessEntryPoint)catProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
         .argv = argv};
-    // TProcessCreateInfo p_cat = {"cat", cat, isForeground, DEFAULT_PRIORITY, argc, argv};
     *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_cat);
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-//TO DO/FINISH.....
-
-void wc(void) {
+void wcProcess(int argc, const char* const argv[]) {
     int c;
     int cantLines = 0;
-    while ((c = getChar()) != -1) {
+    while ((c = getChar()) >= 0) {
         if (c == '\n') {
             cantLines++;
         }
@@ -394,9 +398,14 @@ void wc(void) {
 
 int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
     TProcessCreateInfo p_wc = {
         .name = "wc",
-        .entryPoint = (TProcessEntryPoint)wc,
+        .entryPoint = (TProcessEntryPoint)wcProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
@@ -408,12 +417,10 @@ int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
 //------------------------------------------------------------------------------------------------------------
 
-//TO DO/FINISH.....
-
-void filter(void) {
+void filterProcess(int argc, const char* const argv[]) {
     int c;
-    while ((c = getChar()) != -1) {
-        if (IS_VOCAL(c)) {
+    while ((c = getChar()) >= 0) {
+        if (!IS_VOCAL(c)) {
             putChar(c);
         }
     }
@@ -421,28 +428,28 @@ void filter(void) {
 
 int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
     TProcessCreateInfo p_filter = {
         .name = "filter",
-        .entryPoint = (TProcessEntryPoint)filter,
+        .entryPoint = (TProcessEntryPoint)filterProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
         .argv = argv};
-    // TProcessCreateInfo p_filter = {"filter", filter, isForeground, DEFAULT_PRIORITY, argc, argv};
     *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_filter);
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-//TO DO/FINISH.....
+// TO DO/FINISH.....
 
 void loop(void) {
-    //
-    //
-    //
-    //
-    //
+    //...
 }
 
 int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
@@ -454,13 +461,12 @@ int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
         .argv = argv};
-    // TProcessCreateInfo p_loop = {"loop", loop, isForeground, DEFAULT_PRIORITY, argc, argv};
     return sys_createProcess(stdin, stdout, stderr, &p_loop);
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-//TO DO/FINISH.....
+// TO DO/FINISH.....
 
 int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
