@@ -11,6 +11,8 @@ int putChar(char c);
 
 int fgetChar(int fd);
 
+void sleep(unsigned long millis);
+
 int fputChar(int fd, char c);
 
 int print(const char* str);
