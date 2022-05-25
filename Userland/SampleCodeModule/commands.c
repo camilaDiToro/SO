@@ -62,6 +62,15 @@ const TCommand* getCommandByName(const char* name) {
     return NULL;
 }
 
+int checkCommand(const char* command) {
+    for (int i = 0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
+        if (!strcmp(command, valid_commands[i].name)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 //------------------------------------------------------------------------------------------------------------
 
 int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
@@ -463,7 +472,7 @@ int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, con
 
 // TO DO/FINISH.....
 
-void loop(void) {
+void loopProcess(void) {
     //...
 }
 
@@ -471,7 +480,7 @@ int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
     TProcessCreateInfo p_loop = {
         .name = "loop",
-        .entryPoint = (TProcessEntryPoint)loop,
+        .entryPoint = (TProcessEntryPoint)loopProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
@@ -483,7 +492,18 @@ int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 // TO DO/FINISH.....
 
+void phyloProcess(void) {
+    //...
+}
+
 int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
-    return 1;
+    TProcessCreateInfo p_phylo = {
+        .name = "phylo",
+        .entryPoint = (TProcessEntryPoint)phyloProcess,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv};
+    return sys_createProcess(stdin, stdout, stderr, &p_phylo);
 }

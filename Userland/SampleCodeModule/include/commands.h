@@ -15,4 +15,6 @@ typedef struct {
 
 const TCommand* getCommandByName(const char* name);
 
+int checkCommand(const char* command);
+
 #endif

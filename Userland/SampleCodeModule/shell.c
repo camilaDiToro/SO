@@ -8,7 +8,7 @@
 #include <userstdlib.h>
 
 #define MAX_COMMAND 128
-#define MAX_ARGS 10
+//#define MAX_ARGS 10
 #define PIPE_CHARACTER '|'
 #define FOREGROUND_CHARACTER '&'
 #define FOREGROUND 0
@@ -38,7 +38,7 @@ void wait_command() {
 TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str, int isForeground) {
 
     char* argv[MAX_ARGS] = {NULL};
-    int argc = parseCommand(str, argv);
+    int argc = parseCommandArgs(str, argv);
     TPid pid = -1;
     int mode;
 
@@ -49,14 +49,10 @@ TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str, int isForegrou
         return -1;
     }
 
-    if (isForeground) {
+    if (!isForeground) {
         mode = BACKGROUND;
     } else {
-        if (argv[argc - 1][0] == FOREGROUND_CHARACTER) {
-            mode = BACKGROUND;
-        } else {
-            mode = FOREGROUND;
-        }
+        mode = FOREGROUND;
     }
 
     // If the command is not built-in, puts in 'pid' the pid of the created process
@@ -70,48 +66,49 @@ TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str, int isForegrou
 
 void readCommand(char* str) {
 
-    char* p = strchr(str, PIPE_CHARACTER);
+    // Check if the command is foreground or background
+    size_t lenght = strlen(str);
+    int isForeground = (str[lenght - 1] != FOREGROUND_CHARACTER);
+    if (!isForeground) {
+        str[lenght - 1] = '\0';
+    }
+
+    int pipe = strchr(str, PIPE_CHARACTER);
 
     // If there isn't a pipe
-    if (p == NULL) {
-        executeCommand(STDIN, STDOUT, STDERR, str, FOREGROUND);
+    if (!pipe) {
+        executeCommand(STDIN, STDOUT, STDERR, str, isForeground);
         return;
     } else {
         // TO DO/FINISH.....
-        // Idea with only one pipe
 
-        *p = '\0';
-        char* command1 = str;
-        char* command2 = p + 1;
+        char* commands[MAX_PIPES] = {NULL};
+        int cantCommands = parseCommandPipes(str, commands, PIPE_CHARACTER);
+        int cantPipes = cantCommands - 1;
 
-        int pipe_fds[2];
-
-        if ((sys_openPipe("pipe", pipe_fds)) < 0) {
-            fprint(STDERR, "Error opening pipe \n");
-            return;
-        }
-
-        TPid pid = executeCommand(pipe_fds[0], STDOUT, STDERR, command2, BACKGROUND);
-        executeCommand(STDIN, pipe_fds[1], STDERR, command1, FOREGROUND);
-
-        sys_waitpid(pid);
-        sys_unlinkPipe("pipe");
-
-        /*
-        int cantPipes = strchrCounter(str, '|');
-        int cantComandos = cantPipes + 1;
-        // Pipear: help algo | cat menem | cat gatito | filter nada
-        int pipes[cantPipes * 2];
-
+        // Check if are all valid commands
         for (int i = 0; i < cantPipes; i++) {
-            sys_pipe(&pipes[i * 2]);
+            if (!checkCommand(commands[i])) {
+                fprint(STDERR, "Invalid command \n");
+                return;
+            }
         }
 
+        // Open the pipes
+        int pipes[cantPipes * 2];
+        for (int i = 0; i < cantPipes; i++) {
+            if (sys_pipe(&pipes[i * 2]) < 0) {
+                fprint(STDERR, "Error opening pipe \n");
+                return;
+            }
+        }
+
+        TPid pidToWait;
         for (int i = 0; i < cantPipes; i++) {
             int fd_in = (i == 0 ? STDIN : pipes[(i - 1) * 2]);
             int fd_out = (i == (cantPipes - 1) ? STDOUT : pipes[i * 2 + 1]);
-            //runLoquesea(fd_in, fd_out, -1, ...);
+            pidToWait = executeCommand(fd_in, fd_out, STDERR, commands[i], isForeground); // TO DO: check foreground value
+            sys_waitpid(pidToWait);                                                       // ??
         }
-        */
     }
 }
