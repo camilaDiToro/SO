@@ -23,12 +23,13 @@ void readAndClosePipe(){
         return;
     }
 
-    char buffer[100];
-
-    if(sys_read(pipeFd[0], buffer, 100) < 0){
+    char buffer[101];
+    ssize_t count = sys_read(pipeFd[0], buffer, 100);
+    if (count < 0) {
         printf("Error while trying to read from pipe");
         return;
     }
+    buffer[count] = '\0';
 
     printf("Process %d read from pipe \"%s\" the content \"%s\" \n",p, pipeName, buffer);
 }
