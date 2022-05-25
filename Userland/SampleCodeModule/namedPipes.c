@@ -105,5 +105,5 @@ void namedPipesProcess(uint64_t argc, char *argv[]){
     sys_waitpid(rpid);
     printf("Process %d finished \n", rpid);
 
-    
+    sys_unlinkPipe(pipeName);
 }
