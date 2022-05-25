@@ -184,9 +184,9 @@ int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
     for (int i = 0; i < count; i++) {
         const char* status = array[i].status == READY ? "READY" : array[i].status == RUNNING ? "RUNNING"
-                                                            : array[i].status == BLOCKED   ? "BLOCKED"
-                                                            : array[i].status == KILLED    ? "KILLED"
-                                                                                           : "UNKNOWN";
+                                                              : array[i].status == BLOCKED   ? "BLOCKED"
+                                                              : array[i].status == KILLED    ? "KILLED"
+                                                                                             : "UNKNOWN";
 
         printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
                array[i].pid, array[i].name, array[i].stackEnd, array[i].stackStart, array[i].isForeground, array[i].priority, status, array[i].currentRSP);

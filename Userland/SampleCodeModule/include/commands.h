@@ -13,6 +13,6 @@ typedef struct {
     const char* description;
 } TCommand;
 
-const TCommand * getCommandByName(const char * name);
+const TCommand* getCommandByName(const char* name);
 
 #endif
