@@ -4,8 +4,6 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
-//#define MAX_INPUT_SIZE 256
-
 #define IS_VOCAL(c) ((c) == 'a' || (c) == 'A' || (c) == 'e' || (c) == 'E' || (c) == 'i' || \
                      (c) == 'I' || (c) == 'o' || (c) == 'O' || (c) == 'u' || (c) == 'U')
 
@@ -320,7 +318,6 @@ int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const 
         return -1;
     }
 
-    // TO DO:...........
     TSemaphoreInfo array[16];
     int count = sys_listSemaphores(array, 16);
     printf("Listing %d semaphore/s: \n", count);
@@ -434,7 +431,6 @@ int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const c
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
         .argv = argv};
-    // TProcessCreateInfo p_wc = {"wc", wc, isForeground, DEFAULT_PRIORITY, argc, argv};
     *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_wc);
     return 1;
 }

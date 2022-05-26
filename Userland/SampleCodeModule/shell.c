@@ -8,7 +8,6 @@
 #include <userstdlib.h>
 
 #define MAX_COMMAND 128
-//#define MAX_ARGS 10
 #define PIPE_CHARACTER '|'
 #define FOREGROUND_CHARACTER '&'
 #define FOREGROUND 0
@@ -80,16 +79,15 @@ void readCommand(char* str) {
         executeCommand(STDIN, STDOUT, STDERR, str, isForeground);
         return;
     } else {
-        // TO DO/FINISH.....
 
-        char* commands[MAX_PIPES] = {NULL};
+        char* commands[MAX_PIPES + 1] = {NULL};
         int cantCommands = parseCommandPipes(str, commands, PIPE_CHARACTER);
         int cantPipes = cantCommands - 1;
 
         // Check if are all valid commands
         for (int i = 0; i < cantPipes; i++) {
             if (!checkCommand(commands[i])) {
-                fprint(STDERR, "Invalid command \n");
+                fprintf(STDERR, "Invalid command %s \n", commands[i]);
                 return;
             }
         }
@@ -99,16 +97,27 @@ void readCommand(char* str) {
         for (int i = 0; i < cantPipes; i++) {
             if (sys_pipe(&pipes[i * 2]) < 0) {
                 fprint(STDERR, "Error opening pipe \n");
+                for (int j = 0; j < i * 2; j++) {
+                    sys_close(pipes[j]);
+                }
                 return;
             }
         }
 
-        TPid pidToWait;
+        TPid pidToWait[MAX_PIPES + 1];
         for (int i = 0; i < cantPipes; i++) {
             int fd_in = (i == 0 ? STDIN : pipes[(i - 1) * 2]);
             int fd_out = (i == (cantPipes - 1) ? STDOUT : pipes[i * 2 + 1]);
-            pidToWait = executeCommand(fd_in, fd_out, STDERR, commands[i], isForeground); // TO DO: check foreground value
-            sys_waitpid(pidToWait);                                                       // ??
+            pidToWait[i] = executeCommand(fd_in, fd_out, STDERR, commands[i], isForeground); // TO DO: check foreground value
+        }
+
+        // Close the pipes
+        for (int i = 0; i < cantPipes * 2; i++) {
+            sys_close(pipes[i]);
+        }
+
+        for (int i = 0; i < cantPipes; i++) {
+            sys_waitpid(pidToWait[i]);
         }
     }
 }
