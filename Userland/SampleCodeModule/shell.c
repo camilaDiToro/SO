@@ -55,7 +55,7 @@ TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str, int isForegrou
     }
 
     // If the command is not built-in, puts in 'pid' the pid of the created process
-    if ((command->function(fd_in, fd_out, fd_err, mode, argc, argv, &pid)) < 0) {
+    if ((command->function(fd_in, fd_out, fd_err, mode, argc, (const char* const*)argv, &pid)) < 0) {
         fprint(STDERR, "Error while executing command.\n");
         return -1;
     }

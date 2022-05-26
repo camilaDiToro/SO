@@ -3,6 +3,7 @@
 #include <string.h>
 #include <syscalls.h>
 #include <userstdlib.h>
+#include <loop.h>
 
 #define IS_VOCAL(c) ((c) == 'a' || (c) == 'A' || (c) == 'e' || (c) == 'E' || (c) == 'i' || \
                      (c) == 'I' || (c) == 'o' || (c) == 'O' || (c) == 'u' || (c) == 'U')
@@ -467,10 +468,6 @@ int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, con
 //------------------------------------------------------------------------------------------------------------
 
 // TO DO/FINISH.....
-
-void loopProcess(void) {
-    //...
-}
 
 int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
