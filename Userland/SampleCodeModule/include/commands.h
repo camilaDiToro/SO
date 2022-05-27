@@ -1,11 +1,10 @@
-#ifndef _COMMNADS_H_
-#define _COMMNADS_H_
+#ifndef _COMMANDS_H_
+#define _COMMANDS_H_
 
 /* Local headers */
 #include <kernelTypes.h>
 
-typedef int (*TCommandFunction)(int stdin, int stdout, int stderr, int isForeground, int argc,
-                                const char* const argv[], TPid* createdProcess);
+typedef int (*TCommandFunction)(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 
 typedef struct {
     TCommandFunction function;
@@ -14,7 +13,5 @@ typedef struct {
 } TCommand;
 
 const TCommand* getCommandByName(const char* name);
-
-int checkCommand(const char* command);
 
 #endif

@@ -60,7 +60,7 @@ void openAndWritePipe(void) {
     }
 }
 
-void namedPipesProcess(uint64_t argc, char* argv[]) {
+void namedPipesProcess(int argc, char* argv[]) {
     TPid p = sys_getPid();
     printf("Main process with pid %d created \n", p);
 

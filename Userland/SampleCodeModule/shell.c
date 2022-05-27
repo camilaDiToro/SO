@@ -7,123 +7,154 @@
 #include <test.h>
 #include <userstdlib.h>
 
-#define MAX_COMMAND 128
-#define PIPE_CHARACTER '|'
-#define FOREGROUND_CHARACTER '&'
-#define FOREGROUND 0
-#define BACKGROUND 1
+#define MAX_COMMAND_LENGTH 128
+#define MAX_ARGS 8
+#define MAX_COMMANDS 8
 
-static void readCommand(char* buffer);
-static TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str, int isForeground);
+#define PIPE_CHARACTER '-'
+#define BACKGROUND_CHARACTER '&'
 
-void welcome_message() {
-    print("Welcome to Userland\n");
-    print("Type 'help' to see all available commands.\n");
+static void interpretCommand(char* buffer);
+static int parseCommandArgs(char* str, int i, int* argc, char* argv[]);
+
+void runShell() {
+    print("Welcome to the Shell!\n");
+    print("Type 'help' to see a list of all available commands.\n");
+
+    char command[MAX_COMMAND_LENGTH + 1];
+    int length;
+
+    fputChar(STDERR, '>');
+    while ((length = fgetLine(STDIN, command, MAX_COMMAND_LENGTH)) >= 0) {
+        putChar('\n');
+        interpretCommand(command);
+        fprint(STDERR, "\n>");
+    }
+
+    fprint(STDERR, "Error: shell failed to read from STDIN. Am I running in foreground?\n");
 }
 
-void wait_command() {
-
-    char command[MAX_COMMAND + 1];
-    int ans = fgetLine(STDIN, command, MAX_COMMAND);
-
-    if (ans != -1) {
-        readCommand(command);
-    } else {
-        fprint(STDERR, "Invalid command \n");
-    }
+static int advanceWhileWhitespace(char* str, int i) {
+    while (str[i] == ' ')
+        i++;
+    return i;
 }
 
-TPid executeCommand(int fd_in, int fd_out, int fd_err, char* str, int isForeground) {
-
-    char* argv[MAX_ARGS] = {NULL};
-    int argc = parseCommandArgs(str, argv);
-    TPid pid = -1;
-    int mode;
-
-    // Check if it's a valid command
-    const TCommand* command = getCommandByName(argv[0]);
-    if (command == NULL) {
-        fprint(STDERR, "Invalid command \n");
-        return -1;
-    }
-
-    if (!isForeground) {
-        mode = BACKGROUND;
-    } else {
-        mode = FOREGROUND;
-    }
-
-    // If the command is not built-in, puts in 'pid' the pid of the created process
-    if ((command->function(fd_in, fd_out, fd_err, mode, argc, (const char* const*)argv, &pid)) < 0) {
-        fprint(STDERR, "Error while executing command.\n");
-        return -1;
-    }
-
-    return pid;
+static int advanceUntilWhitespace(char* str, int i) {
+    while (str[i] != ' ' && str[i] != '\0' && str[i] != BACKGROUND_CHARACTER && str[i] != PIPE_CHARACTER)
+        i++;
+    return i;
 }
 
-void readCommand(char* str) {
+static void interpretCommand(char* str) {
+    int commandCount = 0;
+    const TCommand* commands[MAX_COMMANDS];
+    int commandArgcs[MAX_COMMANDS];
+    char* commandArgvs[MAX_COMMANDS][MAX_ARGS];
 
-    // Check if the command is foreground or background
-    size_t lenght = strlen(str);
-    int k = 1;
+    int i = 0;
+    while (1) {
+        i = advanceWhileWhitespace(str, i);
+        if (str[i] == '\0' || str[i] == BACKGROUND_CHARACTER)
+            break;
 
-    // If there are spaces at the end
-    while (str[lenght - k] == ' ') {
-        k++;
-    }
+        if (commandCount != 0) {
+            if (str[i] != PIPE_CHARACTER) {
+                fprintf(STDERR, "Expected pipe character '%c' at character '%c'.", PIPE_CHARACTER, str[i]);
+                return;
+            }
 
-    int isForeground = (str[lenght - k] != FOREGROUND_CHARACTER);
-    if (!isForeground) {
-        str[lenght - k] = '\0';
-    }
-
-    int pipe = strchr(str, PIPE_CHARACTER);
-
-    // If there isn't a pipe
-    if (!pipe) {
-        executeCommand(STDIN, STDOUT, STDERR, str, isForeground);
-        return;
-    } else {
-
-        char* commands[MAX_PIPES + 1] = {NULL};
-        int cantCommands = parseCommandPipes(str, commands, PIPE_CHARACTER);
-        int cantPipes = cantCommands - 1;
-
-        // Check if are all valid commands
-        for (int i = 0; i < cantPipes; i++) {
-            if (!checkCommand(commands[i])) {
-                fprintf(STDERR, "Invalid command %s \n", commands[i]);
+            i = advanceWhileWhitespace(str, i + 1);
+            if (str[i] == '\0') {
+                fprintf(STDERR, "Unexpected end of line: command expected after pipe character '%c'.", PIPE_CHARACTER);
                 return;
             }
         }
 
-        // Open the pipes
-        int pipes[cantPipes * 2];
-        for (int i = 0; i < cantPipes; i++) {
-            if (sys_pipe(&pipes[i * 2]) < 0) {
-                fprint(STDERR, "Error opening pipe \n");
-                for (int j = 0; j < i * 2; j++) {
-                    sys_close(pipes[j]);
-                }
+        if (commandCount == MAX_COMMANDS) {
+            fprintf(STDERR, "Error: Shell may only execute up to %d piped commands.", MAX_COMMANDS);
+            return;
+        }
+
+        char* commandNameStart = &str[i];
+        i = advanceUntilWhitespace(str, i);
+        char prevChar = str[i];
+        str[i] = '\0';
+        if ((commands[commandCount] = getCommandByName(commandNameStart)) == NULL) {
+            fprintf(STDERR, "Error: command not found: %s.", commandNameStart);
+            return;
+        }
+        str[i] = prevChar;
+
+        i = parseCommandArgs(str, i, &commandArgcs[commandCount], commandArgvs[commandCount]);
+        commandCount++;
+    }
+
+    int isForeground = (str[i] != BACKGROUND_CHARACTER);
+
+    if (!isForeground) {
+        // If there is something other than whitespace after the '&', print an error.
+        i++;
+        while (str[i] != '\0') {
+            if (str[i] != ' ') {
+                fprintf(STDERR, "Unexpected character after &: %c", str[i]);
                 return;
             }
-        }
-
-        TPid pidToWait[MAX_PIPES + 1];
-        for (int i = 0; i < cantPipes; i++) {
-            int fd_in = (i == 0 ? STDIN : pipes[(i - 1) * 2]);
-            int fd_out = (i == (cantPipes - 1) ? STDOUT : pipes[i * 2 + 1]);
-            pidToWait[i] = executeCommand(fd_in, fd_out, STDERR, commands[i], isForeground); // TO DO: check foreground value
-        }
-
-        // Close the pipes
-        for (int i = 0; i < cantPipes * 2; i++) {
-            sys_close(pipes[i]);
-        }
-
-        for (int i = 0; i < cantPipes; i++) {
-            sys_waitpid(pidToWait[i]);
+            i++;
         }
     }
+
+    // Open the pipes
+    int pipeCount = commandCount - 1;
+    int pipes[pipeCount * 2];
+    for (int i = 0; i < pipeCount; i++) {
+        if (sys_pipe(&pipes[i * 2])) {
+            fprintf(STDERR, "Error while opening pipe %d. Aborting commands.", i);
+            for (int j = 0; j < i * 2; j++) {
+                sys_close(pipes[j]);
+            }
+            return;
+        }
+    }
+
+    TPid pidToWait[commandCount];
+    for (int i = 0; i < commandCount; i++) {
+        int fdStdin = (i == 0 ? STDIN : pipes[(i - 1) * 2]);
+        int fdStdout = (i == (commandCount - 1) ? STDOUT : pipes[i * 2 + 1]);
+        pidToWait[i] = -1;
+        commands[i]->function(fdStdin, fdStdout, STDERR, isForeground, commandArgcs[i], (const char* const*)commandArgvs[i], &pidToWait[i]);
+    }
+
+    // Close the pipes
+    for (int i = 0; i < pipeCount * 2; i++)
+        sys_close(pipes[i]);
+
+    // If foreground, wait for all created processes to finish
+    if (isForeground) {
+        for (int i = 0; i < commandCount; i++)
+            if (pidToWait[i] >= 0) {
+                sys_waitpid(pidToWait[i]);
+            }
+    }
+}
+
+static int parseCommandArgs(char* str, int i, int* argc, char* argv[]) {
+    *argc = 0;
+
+    while (str[i] != '\0' && str[i] != BACKGROUND_CHARACTER && str[i] != PIPE_CHARACTER) {
+        if (str[i] == ' ') {
+            i = advanceWhileWhitespace(str, i);
+            continue;
+        }
+        char* argStart = &str[i];
+        i = advanceUntilWhitespace(str, i);
+        argv[(*argc)++] = argStart;
+
+        if (str[i] == '\0')
+            break;
+
+        str[i++] = '\0';
+    }
+
+    return i;
 }

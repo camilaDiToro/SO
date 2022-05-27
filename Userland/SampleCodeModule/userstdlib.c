@@ -76,34 +76,16 @@ int fgetLine(int fd, char* buffer, int maxSize) {
     int count = 0;
     char c;
 
-    while ((c = fgetChar(fd)) != '\n') {
-        if (c != -1) {
-            if (count < maxSize) {
-                if (c == '\b') { // Backspace
-                    if (count == 0) {
-                        continue;
-                    }
-                    count--;
-                } else {
-                    buffer[count++] = c;
-                }
-                putChar(c);
-            } else {
-                if (c == '\b') {
-                    count--;
-                } else {
-                    count++;
-                }
+    while ((c = fgetChar(fd)) >= 0 && c != '\n') {
+        if (c == '\b') {
+            if (count > 0) {
+                count--;
                 putChar(c);
             }
+        } else if (count < maxSize) {
+            buffer[count++] = c;
+            putChar(c);
         }
-    }
-
-    putChar(c);
-
-    if (count > maxSize) {
-        buffer[maxSize] = '\0';
-        return -1;
     }
 
     buffer[count] = '\0';

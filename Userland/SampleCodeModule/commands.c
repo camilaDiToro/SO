@@ -1,34 +1,41 @@
 /* Local headers */
-#include <builtinApps.h>
+#include <commands.h>
+#include <processes.h>
 #include <phylo.h>
 #include <test.h>
-#include <commands.h>
 #include <string.h>
 #include <syscalls.h>
 #include <userstdlib.h>
 
+// General commands
 static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-// Physical memory management
+
+// Physical memory management commands
 static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-// Procesos, context switching y scheduling
+
+// Processe-related commands
 static int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-// Sincronización
+
+// Process synchronization commands
 static int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-// Inter process communication
+
+// Inter process communication commands
 static int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+
 // Tests
 static int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
@@ -37,29 +44,30 @@ static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int 
 static int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 
 static TCommand valid_commands[] = {
-    {(TCommandFunction)runHelp, "help", "Displays a list of all available commands.\n"},
-    {(TCommandFunction)runClear, "clear", "Clear windows' shell.\n"},
-    {(TCommandFunction)runTime, "time", "Displays the system's day and time.\n"},
-    {(TCommandFunction)runDivideByZero, "dividezero", "Throws an exception caused by dividing by 0.\n"},
-    {(TCommandFunction)runInvalidOp, "invalidop", "Throws an exception caused by an invalid operation.\n"},
-    {(TCommandFunction)runMem, "mem", "Displays information about the memory status. \n"},
-    {(TCommandFunction)runPs, "ps", "Displays a list of all the processes with their properties: name, ID, priority, stack, base pointer and foreground.\n"},
-    {(TCommandFunction)runLoop, "loop", "Prints PID once every count of seconds. \n"},
-    {(TCommandFunction)runKill, "kill", "Kill the process with the given ID. \n"},
-    {(TCommandFunction)runNice, "nice", "Changes the priority of the process with the given ID. \n"},
-    {(TCommandFunction)runBlock, "block", "Blocks the process with the given ID. \n"},
-    {(TCommandFunction)runUnblock, "unblock", "Unblocks the process with the given ID. \n"},
-    {(TCommandFunction)runSem, "sem", "Displays a list of all the semaphores with their properties: state and the blocked processes in each.\n"},
-    {(TCommandFunction)runCat, "cat", "Prints the standard input on the standard output. \n"},
-    {(TCommandFunction)runWc, "wc", "Pritns the newlines' count the standard input on the standard output. \n"},
-    {(TCommandFunction)runFilter, "filter", "Filters the vowels of the standard input. \n"},
-    {(TCommandFunction)runPipe, "pipe", "Displays a list of all the pipes with their properties: state and the blocked processes in each.\n"},
-    {(TCommandFunction)runPhylo, "phylo", "Resolve the Dining philosophers problem.\n"},
-    {(TCommandFunction)runNamedPipes, "namedpipes", "Runs a test for names pipes.\n"},
-    {(TCommandFunction)runTestMM, "testmm", "Runs a test for memory manager.\n"},
-    {(TCommandFunction)runTestAsync, "testasync", "Runs a test for ... .\n"},
-    {(TCommandFunction)runTestSync, "testsync", "Runs a test for ... .\n"},
-    {(TCommandFunction)runTestProcesses, "testprocesses", "Runs a test for processes.\n"},
+    {runHelp, "help", "Displays a list of all available commands."},
+    {runClear, "clear", "Clears the window."},
+    {runEcho, "echo", "Prints the parameters passed to it to standard output."},
+    {runTime, "time", "Displays the system's date and time."},
+    {runDivideByZero, "dividezero", "Causes an exception by attempting to dividing by 0."},
+    {runInvalidOp, "invalidop", "Causes an exception by attempting to run an invalid instruction."},
+    {runMem, "mem", "Displays information about the system's memory."},
+    {runPs, "ps", "Displays a list of all the currently running processes with their properties."},
+    {runLoop, "loop", "Creates a process that prints it's PID once every 3 seconds."},
+    {runKill, "kill", "Kills the process with the parameter-specified PID."},
+    {runNice, "nice", "Changes the priority of the process with the parameter-specified PID."},
+    {runBlock, "block", "Blocks the process with the given PID."},
+    {runUnblock, "unblock", "Unblocks the process with the given PID."},
+    {runSem, "sem", "Displays a list of all the currently active semaphores with their properties."},
+    {runCat, "cat", "Creates a process that prints the standard input onto the standard output."},
+    {runWc, "wc", "Creates a process that counts the newlines coming in from standard input and prints that number to standard output."},
+    {runFilter, "filter", "Creates a process that filters the vowels received from standard input and prints them to standard output."},
+    {runPipe, "pipe", "Displays a list of all the currently active pipes with their properties."},
+    {runPhylo, "phylo", "Creates a process that simulates the Dining Philosophers problem."},
+    {runNamedPipes, "namedpipes", "Runs a test for names pipes."},
+    {runTestMM, "testmm", "Runs a test for memory manager."},
+    {runTestAsync, "testasync", "Runs a test for ... ."},
+    {runTestSync, "testsync", "Runs a test for ... ."},
+    {runTestProcesses, "testprocesses", "Runs a test for processes."},
 };
 
 const TCommand* getCommandByName(const char* name) {
@@ -71,142 +79,107 @@ const TCommand* getCommandByName(const char* name) {
     return NULL;
 }
 
-int checkCommand(const char* command) {
-    for (int i = 0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
-        if (!strcmp(command, valid_commands[i].name)) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
 //------------------------------------------------------------------------------------------------------------
 
-int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    print("The available commands are:\n");
+static void helpProcess(int argc, char* argv[]) {
+    fprint(STDOUT, "The available commands are:");
 
     for (int i = 0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
-        printf("\t '%s' \t - %s", valid_commands[i].name, valid_commands[i].description);
+        fprintf(STDOUT, "\n\t '%s' \t - %s", valid_commands[i].name, valid_commands[i].description);
     }
+}
 
+static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo loopInfo = {
+        .name = "help",
+        .entryPoint = helpProcess,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &loopInfo);
+    return *createdProcess >= 0;
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     sys_clearScreen();
-
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
+static int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    for (int i = 0; i < argc; i++) {
+        if (i != 0)
+            fputChar(stdout, ' ');
+        fprintf(stdout, argv[i]);
     }
 
+    return 1;
+}
+
+static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     char time[11];
     sys_time(time);
-    printf(" Time: %s", time);
+    fprintf(stdout, "Time: %s", time);
 
     char date[11];
     sys_date(date);
-    printf("\n Date: %s", date);
+    fprintf(stdout, "\nDate: %s", date);
 
-    printf("\n Millis since startup: %u\n", (unsigned int)sys_millis());
+    fprintf(stdout, "\nMillis since startup: %u", (unsigned int)sys_millis());
 
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     divideByZero();
-
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     invalidOp();
-
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TMemoryState memoryState;
     if (sys_memState(&memoryState)) {
-        print("Failed to get memory state.\n");
+        fprint(stderr, "Failed to get memory state.");
         return -1;
     }
 
-    printf("Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY"
-                                                                                                      : "UNKNOWN");
-    printf("Total memory: %u.", memoryState.total);
-    printf(" Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
-    printf(" Available: %u.\n", memoryState.total - memoryState.used);
-    printf("Total chunks: %u\n", memoryState.chunks);
+    fprintf(stdout, "Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY" : "UNKNOWN");
+    fprintf(stdout, "Total memory: %u.", memoryState.total);
+    fprintf(stdout, "Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
+    fprintf(stdout, "Available: %u.\n", memoryState.total - memoryState.used);
+    fprintf(stdout, "Total chunks: %u", memoryState.chunks);
 
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessInfo array[16];
     int count = sys_listProcesses(array, 16);
-    printf("Listing %d process/es: \n", count);
+    fprintf(stdout, "Listing %d process%s:", count, count == 1 ? "" : "es");
 
     for (int i = 0; i < count; i++) {
-        const char* status = array[i].status == READY ? "READY" : array[i].status == RUNNING ? "RUNNING"
-                                                              : array[i].status == BLOCKED   ? "BLOCKED"
-                                                              : array[i].status == KILLED    ? "KILLED"
-                                                                                             : "UNKNOWN";
+        const char* status = array[i].status == READY ? "READY" : array[i].status == RUNNING ? "RUNNING" : array[i].status == BLOCKED ? "BLOCKED" : array[i].status == KILLED ? "KILLED" : "UNKNOWN";
 
-        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
+        fprintf(stdout, "\npid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x",
                array[i].pid, array[i].name, array[i].stackEnd, array[i].stackStart, array[i].isForeground, array[i].priority, status, array[i].currentRSP);
     }
 
@@ -215,49 +188,43 @@ int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
 //------------------------------------------------------------------------------------------------------------
 
-int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 2) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
+static int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    if (argc != 1) {
+        fprint(stderr, "Usage: kill [PID]");
+        return 0;
     }
 
-    TPid pidToKill = atoi(argv[1]);
+    TPid pidToKill = atoi(argv[0]);
 
-    if (pidToKill == 0) {
-        fprint(STDERR, "Cannot kill the shell.\n");
-        return -1;
+    if (pidToKill == sys_getPid()) {
+        fprint(stderr, "This shell does not commit suicide.");
+        return 0;
     }
 
     int result = sys_killProcess(pidToKill);
     if (result == 0) {
-        fprintf(stdout, "Killed process %d.\n", pidToKill);
-    } else {
-        fprintf(stdout, "Failed to kill process %d. Error: %d.\n", pidToKill, result);
+        fprintf(stdout, "Sucessfully killed process with PID %d.", pidToKill);
+        return 1;
     }
 
-    return 1;
+    fprintf(stderr, "Failed to kill process with PID %d. Error code: %d.", pidToKill, result);
+    return 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 3) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
+static int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    if (argc != 2) {
+        fprint(stderr, "Usage: nice [PID] [PRIORITY]. Priority must be a number between -10 and 10.");
+        return 0;
     }
 
-    TPid pidToChange = atoi(argv[1]);
-    if (pidToChange == 0) {
-        fprint(STDERR, "Cannot change the priority of the shell.\n");
-        return -1;
-    }
+    TPid pidToChange = atoi(argv[0]);
+    TPriority newPriority = atoi(argv[1]);
 
-    TPriority newPriority = atoi(argv[2]);
-    if (newPriority == 0) {
-        fprint(STDERR, "Invalid value of priority.\n");
-        return -1;
+    if (newPriority < MAX_PRIORITY || newPriority > MIN_PRIORITY) {
+        fprint(stderr, "Invalid priority value. Must be in the range -10 to 10.");
+        return 0;
     }
 
     int result = sys_nice(pidToChange, newPriority);
@@ -272,78 +239,73 @@ int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
-int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 2) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
+static int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    if (argc != 1) {
+        fprint(stderr, "Usage: block [PID]");
+        return 0;
     }
 
     TPid pidToBlock = atoi(argv[1]);
-    if (pidToBlock == 0) {
-        fprint(STDERR, "Cannot block the shell.\n");
-        return -1;
+
+    if (pidToBlock == sys_getPid()) {
+        fprint(stderr, "You cannot block this shell!");
+        return 0;
     }
 
     int result = sys_block(pidToBlock);
     if (result == 0) {
-        fprintf(stdout, "Blocked process %d.\n", pidToBlock);
-    } else {
-        fprintf(stdout, "Failed to block process %d. Error: %d.\n", pidToBlock, result);
+        fprintf(stdout, "Successfully blocked process with PID %d.", pidToBlock);
+        return 1;
     }
-
-    return 1;
+    
+    fprintf(stderr, "Failed to block process with PID %d. Error code: %d.", pidToBlock, result);
+    return 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 2) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
+static int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    if (argc != 1) {
+        fprint(STDERR, "Usage: unblock [PID]");
+        return 0;
     }
 
-    TPid pidToUnblock = atoi(argv[1]);
+    TPid pidToUnblock = atoi(argv[0]);
+
     if (pidToUnblock == 0) {
-        fprint(STDERR, "Cannot unblock the shell.\n");
-        return -1;
+        fprint(stderr, "Cannot unblock the shell.");
+        return 0;
     }
 
     int result = sys_unblock(pidToUnblock);
-    if (result == 0) {
-        fprintf(stdout, "Unblocked process %d.\n", pidToUnblock);
-    } else {
-        fprintf(stdout, "Failed to unblock process %d. Error: %d.\n", pidToUnblock, result);
-    }
 
-    return 1;
+    if (result == 0) {
+        fprintf(stdout, "Successfully unblocked process with PID %d.", pidToUnblock);
+        return 1;
+    }
+    
+    fprintf(stdout, "Failed to unblock process with PID %d. Error code: %d.", pidToUnblock, result);
+    return 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TSemaphoreInfo array[16];
     int count = sys_listSemaphores(array, 16);
-    printf("Listing %d semaphore/s: \n", count);
+    fprintf(stdout, "Listing %d semaphore%s:", count, count == 1 ? "" : "s");
 
     for (int i = 0; i < count; i++) {
-        printf("name=%s, value=%d, linkedProcesses=%d", array[i].name, array[i].value, array[i].linkedProcesses);
+        fprintf(stdout, "\nname=%s, value=%d, linkedProcesses=%d", array[i].name, array[i].value, array[i].linkedProcesses);
 
-        printf(", waitingProcesses={");
+        fprintf(stdout, ", waitingProcesses={");
         for (int c = 0; array[i].waitingProcesses[c] >= 0; c++) {
             if (c != 0) {
-                printf(", ");
+                fprintf(stdout, ", ");
             }
-            printf("%d", array[i].waitingProcesses[c]);
+            fprintf(stdout, "%d", array[i].waitingProcesses[c]);
         }
-        printf("}");
+        fprintf(stdout, "}");
     }
 
     return 1;
@@ -351,38 +313,32 @@ int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 
 //------------------------------------------------------------------------------------------------------------
 
-int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TPipeInfo array[16];
     int count = sys_listPipes(array, 16);
-    printf("Listing %d pipe/s: \n", count);
+    fprintf(stdout, "Listing %d pipe%s:", count, count == 1 ? "" : "s");
 
     for (int i = 0; i < count; i++) {
-        printf("bytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount,
+        fprintf(stdout, "\nbytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount,
                (unsigned int)array[i].writerFdCount, array[i].name);
 
-        printf(", readBlocked={");
+        fprintf(stdout, ", readBlocked={");
         for (int c = 0; array[i].readBlockedPids[c] >= 0; c++) {
             if (c != 0) {
-                printf(", ");
+                fprintf(stdout, ", ");
             }
-            printf("%d", array[i].readBlockedPids[c]);
+            fprintf(stdout, "%d", array[i].readBlockedPids[c]);
         }
-        printf("}");
+        fprintf(stdout, "}");
 
-        printf(", writeBlocked={");
+        fprintf(stdout, ", writeBlocked={");
         for (int c = 0; array[i].writeBlockedPids[c] >= 0; c++) {
             if (c != 0) {
-                printf(", ");
+                fprintf(stdout, ", ");
             }
-            printf("%d", array[i].writeBlockedPids[c]);
+            fprintf(stdout, "%d", array[i].writeBlockedPids[c]);
         }
-        printf("}\n");
+        fprintf(stdout, "}");
     }
 
     return 1;
@@ -390,197 +346,160 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
-int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    TProcessCreateInfo p_cat = {
+static int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo catInfo = {
         .name = "cat",
-        .entryPoint = (TProcessEntryPoint)catProcess,
+        .entryPoint = catProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
-        .argv = argv};
-    *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_cat);
-    return 1;
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &catInfo);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    TProcessCreateInfo p_wc = {
+static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo wcInfo = {
         .name = "wc",
-        .entryPoint = (TProcessEntryPoint)wcProcess,
+        .entryPoint = wcProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
-        .argv = argv};
-    *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_wc);
-    return 1;
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &wcInfo);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    TProcessCreateInfo p_filter = {
+static int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo filterInfo = {
         .name = "filter",
-        .entryPoint = (TProcessEntryPoint)filterProcess,
+        .entryPoint = filterProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
-        .argv = argv};
-    *createdProcess = sys_createProcess(stdin, stdout, stderr, &p_filter);
-    return 1;
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &filterInfo);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    TProcessCreateInfo p_loop = {
+static int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo loopInfo = {
         .name = "loop",
-        .entryPoint = (TProcessEntryPoint)loopProcess,
+        .entryPoint = loopProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
-        .argv = argv};
-    return sys_createProcess(stdin, stdout, stderr, &p_loop);
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &loopInfo);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 2) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    TProcessCreateInfo p_phylo = {
+static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo phyloInfo = {
         .name = "phylo",
-        .entryPoint = (TProcessEntryPoint)phyloProcess,
+        .entryPoint = phyloProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
-        .argv = argv};
-    return sys_createProcess(stdin, stdout, stderr, &p_phylo);
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &phyloInfo);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    TProcessCreateInfo pci = {
+static int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo namedpipesInfo = {
         .name = "namedPipes",
-        .entryPoint = (TProcessEntryPoint)namedPipesProcess,
-        .isForeground = isForeground, // 1
+        .entryPoint = namedPipesProcess,
+        .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
-        .argc = argc,  // 0
-        .argv = argv}; // NULL
-    return sys_createProcess(stdin, stdout, stderr, &pci);
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &namedpipesInfo);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testMM",
-        .entryPoint = (TProcessEntryPoint)test_mm,
-        .isForeground = isForeground, // 1
+        .entryPoint = test_mm,
+        .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
-        .argc = argc,  // 0
-        .argv = argv}; // NULL
-    return sys_createProcess(stdin, stdout, stderr, &pci);
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &pci);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 3) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    // TODO check if the 5 could be asked to the user
-    printf("Async testing... \n");
+static int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testAsync",
-        .entryPoint = (TProcessEntryPoint)test_sync,
-        .isForeground = isForeground, // 1
+        .entryPoint = test_sync,
+        .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
-        .argc = argc,  // 2
-        .argv = argv}; // char* argv[] = {"5", "0", NULL};
-    return sys_createProcess(stdin, stdout, stderr, &pci);
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &pci);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 3) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
-    // TODO check if the 5 could be asked to the user
-    printf("Sync testing... \n");
+static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testSync",
-        .entryPoint = (TProcessEntryPoint)test_sync,
-        .isForeground = isForeground, // 1
+        .entryPoint = test_sync,
+        .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
-        .argc = argc,  // 2
-        .argv = argv}; // char* argv[] = {"5", "1", NULL};
-    return sys_createProcess(stdin, stdout, stderr, &pci);
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &pci);
+    return *createdProcess >= 0;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-
-    if (argc != 1) {
-        fprint(STDERR, "Invalid amount of arguments\n");
-        return -1;
-    }
-
+static int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testSync",
-        .entryPoint = (TProcessEntryPoint)test_processes,
-        .isForeground = isForeground, // 0
+        .entryPoint = test_processes,
+        .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
-        .argc = argc,  // 0
-        .argv = argv}; // NULL
-    return sys_createProcess(stdin, stdout, stderr, &pci);
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &pci);
+    return *createdProcess >= 0;
 }
