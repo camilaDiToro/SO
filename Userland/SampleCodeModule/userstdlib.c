@@ -93,7 +93,7 @@ int fgetLine(int fd, char* buffer, int maxSize) {
 }
 
 char* convert(unsigned int num, unsigned int base, char* buff) {
-    static char representation[] = "0123456789ABCDEF";
+    const char* representation = "0123456789ABCDEF";
     char* ptr;
 
     ptr = &buff[sizeof(buff) - 1];

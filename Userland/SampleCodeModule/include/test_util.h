@@ -3,6 +3,7 @@
 
 /* Standard library */
 #include <stdint.h>
+#include <stddef.h>
 
 uint32_t GetUint();
 uint32_t GetUniform(uint32_t max);

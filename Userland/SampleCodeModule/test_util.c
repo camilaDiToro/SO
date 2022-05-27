@@ -1,6 +1,6 @@
-#include "syscalls.h"
+#include <syscalls.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <userstdlib.h>
 
 // Random
 static uint32_t m_z = 362436069;
@@ -23,8 +23,10 @@ uint8_t memcheck(void* start, uint8_t value, uint32_t size) {
     uint32_t i;
 
     for (i = 0; i < size; i++, p++)
-        if (*p != value)
+        if (*p != value) {
+            fprintf(STDERR, "[memcheck]at %x found %d expected %d.", (unsigned int)(size_t)p, (int)*p, (int)value);
             return 0;
+        }
 
     return 1;
 }
