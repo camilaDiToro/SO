@@ -194,17 +194,15 @@ int pipe_free(TPipe pipe) {
 }
 
 static ssize_t pipeWriteInternal(TPipeInternal* pipe, const void* buf, size_t count) {
-    if (pipe->bufferSize < count && pipe->bufferSize < PIPE_MAX_BUFFER_SIZE) {
+    size_t requiredBufferSize = pipe->remainingBytes + count;
+    if (pipe->bufferSize < requiredBufferSize && pipe->bufferSize < PIPE_MAX_BUFFER_SIZE) {
         // Expand this pipe's buffer to a size of min(count, PIPE_MAX_BUFFER_SIZE) rounded up.
-        size_t newBufferSize = count;
-        if (newBufferSize > PIPE_MAX_BUFFER_SIZE)
-            newBufferSize = PIPE_MAX_BUFFER_SIZE;
+        size_t newBufferSize = requiredBufferSize < PIPE_MAX_BUFFER_SIZE ? requiredBufferSize : PIPE_MAX_BUFFER_SIZE;
         newBufferSize = PIPE_ROUND_BUFFER_SIZE(newBufferSize);
-
         void* newBuf = mm_malloc(newBufferSize);
         if (newBuf != NULL) {
             size_t x = pipe->bufferSize - pipe->readOffset;
-            if (x <= pipe->remainingBytes) {
+            if (x > pipe->remainingBytes) {
                 memcpy(newBuf, pipe->buffer + pipe->readOffset, pipe->remainingBytes);
             } else {
                 memcpy(newBuf, pipe->buffer + pipe->readOffset, x);
