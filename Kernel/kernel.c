@@ -55,7 +55,7 @@ void* initializeKernelBinary() {
 }
 
 void initializeShell() {
-    TProcessCreateInfo info = {"shell", (TProcessEntryPoint)sampleCodeModuleAddress, 1, DEFAULT_PRIORITY, 0, NULL};
+    TProcessCreateInfo info = {"shell", (TProcessEntryPoint)sampleCodeModuleAddress, 1, MAX_PRIORITY, 0, NULL};
     TPid pid = prc_create(&info);
 
     kbd_mapToProcessFd(pid, STDIN);          // Map STDIN

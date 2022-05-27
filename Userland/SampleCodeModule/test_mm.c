@@ -3,8 +3,8 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
-#define MAX_BLOCKS 64
-#define MAX_MEMORY 8192
+#define MAX_BLOCKS 128
+#define MAX_MEMORY (2 * 1024 * 1024)
 
 typedef struct MM_rq {
     void* address;

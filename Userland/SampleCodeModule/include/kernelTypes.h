@@ -38,6 +38,7 @@ typedef int8_t TPriority;
 #define DEFAULT_PRIORITY 0
 #define MIN_PRIORITY 10
 #define MAX_PRIORITY -10
+#define PRIORITY_REALTIME -5
 
 /**
  * @brief Represents a process' entrypoint function.

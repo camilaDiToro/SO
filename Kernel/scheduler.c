@@ -24,6 +24,7 @@ static void* mainRSP;
 
 static TProcessState processStates[MAX_PROCESSES];
 static TPid currentRunningPID;
+static TPid forceRunNextPID;
 static uint8_t quantums;
 
 extern void* _createProcessContext(int argc, const char* const argv[], void* rsp, TProcessEntryPoint entryPoint);
@@ -67,6 +68,7 @@ static int tryGetProcessState(TPid pid, TProcessState** outState) {
 }
 
 void sch_init() {
+    forceRunNextPID = PSEUDOPID_NONE;
     currentRunningPID = PSEUDOPID_KERNEL;
     quantums = 0;
 }
@@ -120,6 +122,9 @@ int sch_unblockProcess(TPid pid) {
     if (processState->status == READY || processState->status == RUNNING)
         return 0;
 
+    if (processState->priority <= PRIORITY_REALTIME)
+        forceRunNextPID = pid;
+
     processState->status = READY;
 
     return 0;
@@ -156,7 +161,11 @@ void* sch_switchProcess(void* currentRSP) {
     else if (currentRunningPID == PSEUDOPID_KERNEL)
         mainRSP = currentRSP;
 
-    if (!isReady(currentRunningPID) || quantums == 0) {
+    if (isReady(forceRunNextPID)) {
+        currentRunningPID = forceRunNextPID;
+        forceRunNextPID = PSEUDOPID_NONE;
+        quantums = getQuantums(currentRunningPID);
+    } else if (!isReady(currentRunningPID) || quantums == 0) {
         currentRunningPID = getNextReadyPid();
 
         if (currentRunningPID == PSEUDOPID_KERNEL) {
