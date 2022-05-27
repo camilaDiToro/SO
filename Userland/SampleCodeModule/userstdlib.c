@@ -92,16 +92,15 @@ int fgetLine(int fd, char* buffer, int maxSize) {
     return count;
 }
 
-char* convert(unsigned int num, unsigned int base) {
-    static char Representation[] = "0123456789ABCDEF";
-    static char buff[33];
+char* convert(unsigned int num, unsigned int base, char* buff) {
+    static char representation[] = "0123456789ABCDEF";
     char* ptr;
 
     ptr = &buff[sizeof(buff) - 1];
     *ptr = '\0';
 
     do {
-        *--ptr = Representation[num % base];
+        *--ptr = representation[num % base];
         num /= base;
     } while (num != 0);
 
@@ -119,6 +118,7 @@ void fprintf(int fd, const char* frmt, ...) {
     uint64_t i;
     unsigned u;
     char* s;
+    char tmpBuff[33];
 
     for (aux = frmt; *aux != '\0'; aux++) {
         while (*aux != '%') {
@@ -146,12 +146,12 @@ void fprintf(int fd, const char* frmt, ...) {
                     i = -i;
                     fputChar(fd, '-');
                 }
-                fprint(fd, convert(i, 10));
+                fprint(fd, convert(i, 10, tmpBuff));
                 break;
 
             case 'o':
                 i = va_arg(arg, unsigned int); // Fetch Octal representation
-                fprint(fd, convert(i, 8));
+                fprint(fd, convert(i, 8, tmpBuff));
                 break;
 
             case 's':
@@ -161,12 +161,12 @@ void fprintf(int fd, const char* frmt, ...) {
 
             case 'u':
                 u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
-                fprint(fd, convert(u, 10));
+                fprint(fd, convert(u, 10, tmpBuff));
                 break;
 
             case 'x':
                 u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
-                fprint(fd, convert(u, 16));
+                fprint(fd, convert(u, 16, tmpBuff));
                 break;
 
             case '%':
@@ -190,6 +190,7 @@ void printf(const char* frmt, ...) {
     uint64_t i;
     unsigned u;
     char* s;
+    char tmpBuff[33];
 
     for (aux = frmt; *aux != '\0'; aux++) {
         while (*aux != '%') {
@@ -217,12 +218,12 @@ void printf(const char* frmt, ...) {
                     i = -i;
                     fputChar(STDOUT, '-');
                 }
-                fprint(STDOUT, convert(i, 10));
+                fprint(STDOUT, convert(i, 10, tmpBuff));
                 break;
 
             case 'o':
                 i = va_arg(arg, unsigned int); // Fetch Octal representation
-                fprint(STDOUT, convert(i, 8));
+                fprint(STDOUT, convert(i, 8, tmpBuff));
                 break;
 
             case 's':
@@ -232,12 +233,12 @@ void printf(const char* frmt, ...) {
 
             case 'u':
                 u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
-                fprint(STDOUT, convert(u, 10));
+                fprint(STDOUT, convert(u, 10, tmpBuff));
                 break;
 
             case 'x':
                 u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
-                fprint(STDOUT, convert(u, 16));
+                fprint(STDOUT, convert(u, 16, tmpBuff));
                 break;
 
             case '%':

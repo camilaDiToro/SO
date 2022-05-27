@@ -43,7 +43,7 @@ static int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int
 static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 
-static TCommand valid_commands[] = {
+static TCommand validCommands[] = {
     {runHelp, "help", "Displays a list of all available commands."},
     {runClear, "clear", "Clears the window."},
     {runEcho, "echo", "Prints the parameters passed to it to standard output."},
@@ -71,9 +71,9 @@ static TCommand valid_commands[] = {
 };
 
 const TCommand* getCommandByName(const char* name) {
-    for (int i = 0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
-        if (!strcmp(name, valid_commands[i].name)) {
-            return &valid_commands[i];
+    for (int i = 0; i < (sizeof(validCommands) / sizeof(validCommands[0])); i++) {
+        if (!strcmp(name, validCommands[i].name)) {
+            return &validCommands[i];
         }
     }
     return NULL;
@@ -81,26 +81,12 @@ const TCommand* getCommandByName(const char* name) {
 
 //------------------------------------------------------------------------------------------------------------
 
-static void helpProcess(int argc, char* argv[]) {
-    fprint(STDOUT, "The available commands are:");
-
-    for (int i = 0; i < (sizeof(valid_commands) / sizeof(valid_commands[0])); i++) {
-        fprintf(STDOUT, "\n\t '%s' \t - %s", valid_commands[i].name, valid_commands[i].description);
-    }
-}
-
 static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
-    TProcessCreateInfo loopInfo = {
-        .name = "help",
-        .entryPoint = helpProcess,
-        .isForeground = isForeground,
-        .priority = DEFAULT_PRIORITY,
-        .argc = argc,
-        .argv = argv
-    };
+    fprint(stdout, "The available commands are:");
 
-    *createdProcess = sys_createProcess(stdin, stdout, stderr, &loopInfo);
-    return *createdProcess >= 0;
+    for (int i = 0; i < (sizeof(validCommands) / sizeof(validCommands[0])); i++)
+        fprintf(stdout, "\n\t '%s' \t - %s", validCommands[i].name, validCommands[i].description);
+
     return 1;
 }
 
@@ -122,6 +108,8 @@ static int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc
 
     return 1;
 }
+
+//------------------------------------------------------------------------------------------------------------
 
 static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     char time[11];
@@ -161,8 +149,8 @@ static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc,
     }
 
     fprintf(stdout, "Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY" : "UNKNOWN");
-    fprintf(stdout, "Total memory: %u.", memoryState.total);
-    fprintf(stdout, "Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
+    fprintf(stdout, "Total memory: %u.\n", memoryState.total);
+    fprintf(stdout, "Used: %u (%u%%).\n", memoryState.used, (memoryState.used * 100 / memoryState.total));
     fprintf(stdout, "Available: %u.\n", memoryState.total - memoryState.used);
     fprintf(stdout, "Total chunks: %u", memoryState.chunks);
 

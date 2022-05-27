@@ -196,6 +196,7 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
         if (newFdTable == NULL)
             return -1;
 
+        memset(&newFdTable[process->fdTableSize], 0, sizeof(TFileDescriptorTableEntry) * (newFdTableSize - process->fdTableSize));
         process->fdTable = newFdTable;
         process->fdTableSize = newFdTableSize;
     }

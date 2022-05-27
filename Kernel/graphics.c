@@ -63,8 +63,7 @@ static char buffer[64] = {'0'};
 static const struct vbe_mode_info_structure* graphicModeInfo = (struct vbe_mode_info_structure*)0x5C00;
 
 static void getNextPosition();
-static void checkSpace();
-static void scrollUp();
+static void scrollIfNecessary();
 
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count);
 static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
@@ -107,7 +106,7 @@ void scr_printCharFormat(char c, const TColor* charColor, const TColor* bgColor)
         return;
     }
 
-    checkSpace();
+    scrollIfNecessary();
 
     // scr_printLine
     if (c == '\n') {
@@ -205,23 +204,17 @@ static void getNextPosition() {
     current_j = (current_j + 1) % width;
 }
 
-static void checkSpace() {
-    if (current_i == height) {
-        scrollUp();
-    }
-}
+static void scrollIfNecessary() {
+    if (current_i < height)
+        return;
 
-static void scrollUp() {
-    for (int i = 1; i < height * CHAR_HEIGHT; ++i) {
+    void* dst = (void*)((size_t)graphicModeInfo->framebuffer);
+    void* src = (void*)(dst + 3 * (CHAR_HEIGHT * (size_t)graphicModeInfo->width));
+    size_t len = 3 * ((size_t)graphicModeInfo->width * (graphicModeInfo->height - CHAR_HEIGHT));
+    memcpy(dst, src, len);
+    memset(dst+len, 0, 3 * (size_t)graphicModeInfo->width * CHAR_HEIGHT);
 
-        uint8_t* start = getPixelAddress(i, 0);
-        uint8_t* next = getPixelAddress(CHAR_HEIGHT + i, 0);
-
-        for (int j = 0; j < width * CHAR_WIDTH * 3; ++j) {
-            start[j] = next[j];
-        }
-    }
-    current_i -= 1;
+    current_i--;
 }
 
 int scr_mapToProcessFd(TPid pid, int fd, const TColor* color) {
@@ -233,8 +226,8 @@ int scr_mapToProcessFd(TPid pid, int fd, const TColor* color) {
 
 static ssize_t fdWriteHandler(TPid pid, int fd, void* resource, const char* buf, size_t count) {
     // Only foreground processes are allowed to write to the screen.
-    if (!prc_isForeground(pid))
-        return -1;
+    // if (!prc_isForeground(pid))
+    //    return -1;
 
     for (size_t i = 0; i < count; i++)
         scr_printCharFormat(buf[i], (const TColor*)&resource, &BLACK);

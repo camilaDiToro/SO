@@ -146,6 +146,7 @@ static int parseCommandArgs(char* str, int i, int* argc, char* argv[]) {
             i = advanceWhileWhitespace(str, i);
             continue;
         }
+
         char* argStart = &str[i];
         i = advanceUntilWhitespace(str, i);
         argv[(*argc)++] = argStart;

@@ -86,7 +86,7 @@ static int getFirstFreeIndexOfLevel(unsigned int level) {
 }
 
 static void setAsOccupied(int idx, int occupied) {
-    if (idx >= MAX_NODES)
+    if (idx < 0 || idx >= MAX_NODES)
         return;
 
     nodes[idx].occupied = occupied;
