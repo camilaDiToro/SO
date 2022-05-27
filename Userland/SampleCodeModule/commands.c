@@ -1,12 +1,11 @@
 /* Local headers */
+#include <builtinApps.h>
+#include <phylo.h>
+#include <test.h>
 #include <commands.h>
 #include <string.h>
 #include <syscalls.h>
 #include <userstdlib.h>
-#include <loop.h>
-
-#define IS_VOCAL(c) ((c) == 'a' || (c) == 'A' || (c) == 'e' || (c) == 'E' || (c) == 'i' || \
-                     (c) == 'I' || (c) == 'o' || (c) == 'O' || (c) == 'u' || (c) == 'U')
 
 static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
@@ -30,6 +29,12 @@ static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, 
 static int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+// Tests
+static int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
+static int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
 
 static TCommand valid_commands[] = {
     {(TCommandFunction)runHelp, "help", "Displays a list of all available commands.\n"},
@@ -50,6 +55,11 @@ static TCommand valid_commands[] = {
     {(TCommandFunction)runFilter, "filter", "Filters the vowels of the standard input. \n"},
     {(TCommandFunction)runPipe, "pipe", "Displays a list of all the pipes with their properties: state and the blocked processes in each.\n"},
     {(TCommandFunction)runPhylo, "phylo", "Resolve the Dining philosophers problem.\n"},
+    {(TCommandFunction)runNamedPipes, "namedpipes", "Runs a test for names pipes.\n"},
+    {(TCommandFunction)runTestMM, "testmm", "Runs a test for memory manager.\n"},
+    {(TCommandFunction)runTestAsync, "testasync", "Runs a test for ... .\n"},
+    {(TCommandFunction)runTestSync, "testsync", "Runs a test for ... .\n"},
+    {(TCommandFunction)runTestProcesses, "testprocesses", "Runs a test for processes.\n"},
 };
 
 const TCommand* getCommandByName(const char* name) {
@@ -380,13 +390,6 @@ int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
-void catProcess(int argc, char* argv[]) {
-    int c;
-    while ((c = getChar()) >= 0) {
-        putChar(c);
-    }
-}
-
 int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
     if (argc != 1) {
@@ -406,17 +409,6 @@ int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const 
 }
 
 //------------------------------------------------------------------------------------------------------------
-
-void wcProcess(int argc, char* argv[]) {
-    int c;
-    int cantLines = 0;
-    while ((c = getChar()) >= 0) {
-        if (c == '\n') {
-            cantLines++;
-        }
-    }
-    printf("%d", cantLines);
-}
 
 int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
@@ -438,15 +430,6 @@ int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const c
 
 //------------------------------------------------------------------------------------------------------------
 
-void filterProcess(int argc, char* argv[]) {
-    int c;
-    while ((c = getChar()) >= 0) {
-        if (!IS_VOCAL(c)) {
-            putChar(c);
-        }
-    }
-}
-
 int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
 
     if (argc != 1) {
@@ -467,9 +450,12 @@ int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, con
 
 //------------------------------------------------------------------------------------------------------------
 
-// TO DO/FINISH.....
-
 int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
 
     TProcessCreateInfo p_loop = {
         .name = "loop",
@@ -483,13 +469,12 @@ int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const
 
 //------------------------------------------------------------------------------------------------------------
 
-// TO DO/FINISH.....
-
-void phyloProcess(void) {
-    //...
-}
-
 int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 2) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
 
     TProcessCreateInfo p_phylo = {
         .name = "phylo",
@@ -499,4 +484,103 @@ int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, cons
         .argc = argc,
         .argv = argv};
     return sys_createProcess(stdin, stdout, stderr, &p_phylo);
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
+    TProcessCreateInfo pci = {
+        .name = "namedPipes",
+        .entryPoint = (TProcessEntryPoint)namedPipesProcess,
+        .isForeground = isForeground, // 1
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,  // 0
+        .argv = argv}; // NULL
+    return sys_createProcess(stdin, stdout, stderr, &pci);
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
+    TProcessCreateInfo pci = {
+        .name = "testMM",
+        .entryPoint = (TProcessEntryPoint)test_mm,
+        .isForeground = isForeground, // 1
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,  // 0
+        .argv = argv}; // NULL
+    return sys_createProcess(stdin, stdout, stderr, &pci);
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 3) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
+    // TODO check if the 5 could be asked to the user
+    printf("Async testing... \n");
+    TProcessCreateInfo pci = {
+        .name = "testAsync",
+        .entryPoint = (TProcessEntryPoint)test_sync,
+        .isForeground = isForeground, // 1
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,  // 2
+        .argv = argv}; // char* argv[] = {"5", "0", NULL};
+    return sys_createProcess(stdin, stdout, stderr, &pci);
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 3) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
+    // TODO check if the 5 could be asked to the user
+    printf("Sync testing... \n");
+    TProcessCreateInfo pci = {
+        .name = "testSync",
+        .entryPoint = (TProcessEntryPoint)test_sync,
+        .isForeground = isForeground, // 1
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,  // 2
+        .argv = argv}; // char* argv[] = {"5", "1", NULL};
+    return sys_createProcess(stdin, stdout, stderr, &pci);
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+
+    if (argc != 1) {
+        fprint(STDERR, "Invalid amount of arguments\n");
+        return -1;
+    }
+
+    TProcessCreateInfo pci = {
+        .name = "testSync",
+        .entryPoint = (TProcessEntryPoint)test_processes,
+        .isForeground = isForeground, // 0
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,  // 0
+        .argv = argv}; // NULL
+    return sys_createProcess(stdin, stdout, stderr, &pci);
 }

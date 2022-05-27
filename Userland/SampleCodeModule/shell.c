@@ -24,7 +24,6 @@ void welcome_message() {
 void wait_command() {
 
     char command[MAX_COMMAND + 1];
-
     int ans = fgetLine(STDIN, command, MAX_COMMAND);
 
     if (ans != -1) {
@@ -67,9 +66,16 @@ void readCommand(char* str) {
 
     // Check if the command is foreground or background
     size_t lenght = strlen(str);
-    int isForeground = (str[lenght - 1] != FOREGROUND_CHARACTER);
+    int k = 1;
+
+    // If there are spaces at the end
+    while (str[lenght - k] == ' ') {
+        k++;
+    }
+
+    int isForeground = (str[lenght - k] != FOREGROUND_CHARACTER);
     if (!isForeground) {
-        str[lenght - 1] = '\0';
+        str[lenght - k] = '\0';
     }
 
     int pipe = strchr(str, PIPE_CHARACTER);

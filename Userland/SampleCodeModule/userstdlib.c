@@ -10,6 +10,13 @@
 
 #define IS_DIGIT(x) (((x) >= '0' && (x) <= '9'))
 
+void sleep(unsigned long millis) {
+    unsigned long start = sys_millis();
+    do {
+        sys_yield();
+    } while (sys_millis() - start < millis);
+}
+
 int getChar() {
     char c;
     if (sys_read(STDIN, &c, 1) <= 0) {
@@ -59,13 +66,6 @@ int atoi(const char* str) {
         str++;
     }
     return neg * answer;
-}
-
-void sleep(unsigned long millis) {
-    unsigned long start = sys_millis();
-    do {
-         sys_yield();
-    } while (sys_millis() - start < millis);
 }
 
 int getLine(char* buffer, int maxSize) {
