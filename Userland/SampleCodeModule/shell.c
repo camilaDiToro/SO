@@ -110,9 +110,8 @@ static void interpretCommand(char* str) {
     for (int i = 0; i < pipeCount; i++) {
         if (sys_pipe(&pipes[i * 2])) {
             fprintf(STDERR, "Error while opening pipe %d. Aborting commands.", i);
-            for (int j = 0; j < i * 2; j++) {
+            for (int j = 0; j < i * 2; j++)
                 sys_close(pipes[j]);
-            }
             return;
         }
     }
@@ -122,7 +121,18 @@ static void interpretCommand(char* str) {
         int fdStdin = (i == 0 ? STDIN : pipes[(i - 1) * 2]);
         int fdStdout = (i == (commandCount - 1) ? STDOUT : pipes[i * 2 + 1]);
         pidToWait[i] = -1;
-        commands[i]->function(fdStdin, fdStdout, STDERR, isForeground, commandArgcs[i], (const char* const*)commandArgvs[i], &pidToWait[i]);
+
+        int success = commands[i]->function(fdStdin, fdStdout, STDERR, isForeground, commandArgcs[i], (const char* const*)commandArgvs[i], &pidToWait[i]);
+        if (!success) {
+            fprintf(STDERR, "Error while executing command %s. Aborting commands.", commands[i]->name);
+            for (int j = 0; j < i; j++)
+                if (pidToWait[j] >= 0)
+                    sys_killProcess(pidToWait[j]);
+
+            for (int c = 0; c < pipeCount * 2; c++)
+                sys_close(pipes[c]);
+            return;
+        }
     }
 
     // Close the pipes
@@ -132,9 +142,8 @@ static void interpretCommand(char* str) {
     // If foreground, wait for all created processes to finish
     if (isForeground) {
         for (int i = 0; i < commandCount; i++)
-            if (pidToWait[i] >= 0) {
+            if (pidToWait[i] >= 0)
                 sys_waitpid(pidToWait[i]);
-            }
     }
 }
 
@@ -149,7 +158,9 @@ static int parseCommandArgs(char* str, int i, int* argc, char* argv[]) {
 
         char* argStart = &str[i];
         i = advanceUntilWhitespace(str, i);
-        argv[(*argc)++] = argStart;
+
+        if (*argc < MAX_ARGS)
+            argv[(*argc)++] = argStart;
 
         if (str[i] == '\0')
             break;
