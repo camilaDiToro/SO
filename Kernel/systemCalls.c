@@ -52,15 +52,15 @@ static int sys_date_handler(char* buffer) {
 }
 
 static void* sys_malloc_handler(size_t size) {
-    return mm_malloc(size);
+    return prc_handleMalloc(sch_getCurrentPID(), size);
 }
 
 static int sys_free_handler(void* ptr) {
-    return mm_free(ptr);
+    return prc_handleFree(sch_getCurrentPID(), ptr);
 }
 
 static void* sys_realloc_handler(void* ptr, size_t size) {
-    return mm_realloc(ptr, size);
+    return prc_handleRealloc(sch_getCurrentPID(), ptr, size);
 }
 
 static int sys_memState_handler(TMemoryState* memoryState) {

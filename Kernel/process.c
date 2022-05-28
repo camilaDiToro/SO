@@ -14,6 +14,8 @@
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
 
+#define MEM_TABLE_CHUNK_SIZE 16
+
 #define MAX_NAME_LENGTH 16
 
 /**
@@ -44,6 +46,9 @@ typedef struct {
 
     TFileDescriptorTableEntry* fdTable;
     unsigned int fdTableSize;
+
+    void** memory;
+    unsigned int memoryCount, memoryBufSize;
 
     char** argv;
     int argc;
@@ -121,15 +126,13 @@ TPid prc_create(const TProcessCreateInfo* createInfo) {
         strcpy(nameCopy, createInfo->name);
 
     TProcessContext* process = &processes[pid];
+    memset(process, 0, sizeof(TProcessContext));
     process->stackEnd = stackEnd;
     process->stackStart = stackEnd + PROCESS_STACK_SIZE;
     process->isForeground = createInfo->isForeground;
     process->name = nameCopy;
-    process->fdTable = NULL;
-    process->fdTableSize = 0;
     process->argv = argvCopy;
     process->argc = createInfo->argc;
-    process->waitpidQueue = NULL;
 
     sch_onProcessCreated(pid, createInfo->entryPoint, createInfo->priority, process->stackStart, createInfo->argc, (const char* const*)argvCopy);
 
@@ -146,6 +149,10 @@ int prc_kill(TPid pid) {
         if (process->fdTable[fd].resource != NULL)
             handleUnmapFdUnchecked(process, pid, fd);
 
+    for (int i = 0; i < process->memoryCount; i++)
+        mm_free(process->memory[i]);
+    mm_free(process->memory);
+
     sch_onProcessKilled(pid);
 
     if (process->waitpidQueue != NULL) {
@@ -161,12 +168,81 @@ int prc_kill(TPid pid) {
     mm_free(process->name);
     mm_free(process->stackEnd);
     mm_free(process->fdTable);
-    process->stackEnd = NULL;
-    process->stackStart = NULL;
-    process->fdTable = NULL;
-    process->fdTableSize = 0;
+
+    memset(process, 0, sizeof(TProcessContext));
 
     return 0;
+}
+
+void* prc_handleMalloc(TPid pid, size_t size) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pid, &process))
+        return NULL;
+
+    // Ensure the process' memory table has enough space for another pointer
+    if (process->memoryBufSize == process->memoryCount) {
+        size_t newBufSize = process->memoryBufSize + MEM_TABLE_CHUNK_SIZE;
+        void** newMemory = mm_realloc(process->memory, newBufSize * sizeof(TProcessContext));
+        if (newMemory == NULL)
+            return NULL;
+
+        process->memory = newMemory;
+        process->memoryBufSize = newBufSize;
+    }
+
+    void* ptr = mm_malloc(size);
+
+    if (ptr != NULL)
+        process->memory[process->memoryCount++] = ptr;
+
+    return ptr;
+}
+
+int prc_handleFree(TPid pid, void* ptr) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pid, &process))
+        return 1;
+
+    int index = -1;
+    for (int i = 0; i < process->memoryCount; i++) {
+        if (process->memory[i] == ptr) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1)
+        return 1;
+
+    process->memoryCount--;
+    for (int i = index; i < process->memoryCount; i++)
+        process->memory[i] = process->memory[i + 1];
+
+    return mm_free(ptr);
+}
+
+void* prc_handleRealloc(TPid pid, void* ptr, size_t size) {
+    TProcessContext* process;
+    if (!tryGetProcessFromPid(pid, &process))
+        return NULL;
+
+    int index = -1;
+    for (int i = 0; i < process->memoryCount; i++) {
+        if (process->memory[i] == ptr) {
+            index = i;
+            break;
+        }
+    }
+
+    if (index == -1)
+        return NULL;
+
+    void* newPtr = mm_realloc(ptr, size);
+
+    if (newPtr != NULL)
+        process->memory[index] = newPtr;
+
+    return newPtr;
 }
 
 int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdWriteHandler writeHandler, TFdCloseHandler closeHandler, TFdDupHandler dupHandler) {

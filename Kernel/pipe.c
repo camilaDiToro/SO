@@ -202,7 +202,7 @@ static ssize_t pipeWriteInternal(TPipeInternal* pipe, const void* buf, size_t co
         void* newBuf = mm_malloc(newBufferSize);
         if (newBuf != NULL) {
             size_t x = pipe->bufferSize - pipe->readOffset;
-            if (x > pipe->remainingBytes) {
+            if (x >= pipe->remainingBytes) {
                 memcpy(newBuf, pipe->buffer + pipe->readOffset, pipe->remainingBytes);
             } else {
                 memcpy(newBuf, pipe->buffer + pipe->readOffset, x);
@@ -411,6 +411,8 @@ static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* re
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
     return pipe_mapToProcessFd(pidTo, fdTo, mapping->pipe, mapping->allowRead, mapping->allowWrite);
 }
+
+
 
 
 
