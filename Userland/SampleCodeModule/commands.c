@@ -7,42 +7,6 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
-// General commands
-static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-
-// Physical memory management commands
-static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-
-// Processe-related commands
-static int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-
-// Process synchronization commands
-static int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-
-// Inter process communication commands
-static int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-
-// Tests
-static int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-static int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess);
-
 static TCommand validCommands[] = {
     {runHelp, "help", "Displays a list of all available commands."},
     {runClear, "clear", "Clears the window."},
@@ -81,7 +45,7 @@ const TCommand* getCommandByName(const char* name) {
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     fprint(stdout, "The available commands are:");
 
     for (int i = 0; i < (sizeof(validCommands) / sizeof(validCommands[0])); i++)
@@ -92,14 +56,14 @@ static int runHelp(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runClear(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     sys_clearScreen();
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     for (int i = 0; i < argc; i++) {
         if (i != 0)
             fputChar(stdout, ' ');
@@ -111,7 +75,7 @@ static int runEcho(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runTime(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     char time[11];
     sys_time(time);
     fprintf(stdout, "Time: %s", time);
@@ -127,21 +91,21 @@ static int runTime(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runDivideByZero(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     divideByZero();
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runInvalidOp(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     invalidOp();
     return 1;
 }
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runMem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TMemoryState memoryState;
     if (sys_memState(&memoryState)) {
         fprint(stderr, "Failed to get memory state.");
@@ -159,7 +123,7 @@ static int runMem(int stdin, int stdout, int stderr, int isForeground, int argc,
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessInfo array[16];
     int count = sys_listProcesses(array, 16);
     fprintf(stdout, "Listing %d process%s:", count, count == 1 ? "" : "es");
@@ -176,7 +140,7 @@ static int runPs(int stdin, int stdout, int stderr, int isForeground, int argc, 
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runKill(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     if (argc != 1) {
         fprint(stderr, "Usage: kill [PID]");
         return 0;
@@ -201,7 +165,7 @@ static int runKill(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runNice(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     if (argc != 2) {
         fprint(stderr, "Usage: nice [PID] [PRIORITY]. Priority must be a number between -10 and 10.");
         return 0;
@@ -227,7 +191,7 @@ static int runNice(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     if (argc != 1) {
         fprint(stderr, "Usage: block [PID]");
         return 0;
@@ -252,7 +216,7 @@ static int runBlock(int stdin, int stdout, int stderr, int isForeground, int arg
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runUnblock(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     if (argc != 1) {
         fprint(STDERR, "Usage: unblock [PID]");
         return 0;
@@ -278,7 +242,7 @@ static int runUnblock(int stdin, int stdout, int stderr, int isForeground, int a
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runSem(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TSemaphoreInfo array[16];
     int count = sys_listSemaphores(array, 16);
     fprintf(stdout, "Listing %d semaphore%s:", count, count == 1 ? "" : "s");
@@ -301,7 +265,7 @@ static int runSem(int stdin, int stdout, int stderr, int isForeground, int argc,
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TPipeInfo array[16];
     int count = sys_listPipes(array, 16);
     fprintf(stdout, "Listing %d pipe%s:", count, count == 1 ? "" : "s");
@@ -334,7 +298,7 @@ static int runPipe(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runCat(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo catInfo = {
         .name = "cat",
         .entryPoint = catProcess,
@@ -350,7 +314,7 @@ static int runCat(int stdin, int stdout, int stderr, int isForeground, int argc,
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo wcInfo = {
         .name = "wc",
         .entryPoint = wcProcess,
@@ -366,7 +330,7 @@ static int runWc(int stdin, int stdout, int stderr, int isForeground, int argc, 
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runFilter(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo filterInfo = {
         .name = "filter",
         .entryPoint = filterProcess,
@@ -382,7 +346,7 @@ static int runFilter(int stdin, int stdout, int stderr, int isForeground, int ar
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo loopInfo = {
         .name = "loop",
         .entryPoint = loopProcess,
@@ -398,7 +362,7 @@ static int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo phyloInfo = {
         .name = "phylo",
         .entryPoint = phyloProcess,
@@ -414,7 +378,7 @@ static int runPhylo(int stdin, int stdout, int stderr, int isForeground, int arg
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo namedpipesInfo = {
         .name = "namedPipes",
         .entryPoint = namedPipesProcess,
@@ -430,7 +394,7 @@ static int runNamedPipes(int stdin, int stdout, int stderr, int isForeground, in
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testMM",
         .entryPoint = test_mm,
@@ -446,7 +410,7 @@ static int runTestMM(int stdin, int stdout, int stderr, int isForeground, int ar
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testAsync",
         .entryPoint = test_sync,
@@ -462,7 +426,7 @@ static int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runTestSync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testSync",
         .entryPoint = test_sync,
@@ -478,7 +442,7 @@ static int runTestSync(int stdin, int stdout, int stderr, int isForeground, int 
 
 //------------------------------------------------------------------------------------------------------------
 
-static int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testSync",
         .entryPoint = test_processes,
