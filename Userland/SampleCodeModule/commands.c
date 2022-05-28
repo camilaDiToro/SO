@@ -365,7 +365,7 @@ int runLoop(int stdin, int stdout, int stderr, int isForeground, int argc, const
 int runPhylo(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo phyloInfo = {
         .name = "phylo",
-        .entryPoint = phyloProcess,
+        .entryPoint = initPhyloProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
