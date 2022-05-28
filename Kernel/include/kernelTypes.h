@@ -17,9 +17,6 @@ typedef struct {
 #define MAX_NAME_LENGTH 16
 #define MAX_PID_ARRAY_LENGTH 8
 
-#define MAX_NAME_LENGTH 16
-#define MAX_PID_ARRAY_LENGTH 8
-
 /**
  * @brief Represents a process status.
  */
