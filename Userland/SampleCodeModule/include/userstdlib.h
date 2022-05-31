@@ -2,16 +2,16 @@
 #define _USERSTDLIB_H_
 
 /* Standard library */
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+
+void sleep(unsigned long millis);
 
 int getChar();
 
 int putChar(char c);
 
 int fgetChar(int fd);
-
-void sleep(unsigned long millis);
 
 int fputChar(int fd, char c);
 
@@ -24,6 +24,10 @@ void printf(const char* frmt, ...);
 void fprintf(int fd, const char* frmt, ...);
 
 int atoi(const char* str);
+
+int getLine(char* buffer, int maxSize);
+
+int fgetLine(int fd, char* buffer, int maxSize);
 
 void invalidOp();
 

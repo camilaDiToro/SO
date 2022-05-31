@@ -3,6 +3,7 @@
 #include <syscalls.h>
 #include <test.h>
 #include <userstdlib.h>
+#include <commands.h>
 
 #define pipeName "testingPipe"
 
@@ -22,6 +23,12 @@ void readAndClosePipe() {
         printf("Error while trying to close pipe fd");
         return;
     }
+
+    printf("Unlinking pipe...\n");
+    sys_unlinkPipe(pipeName);
+    TPid createdPid;
+    runPipe(STDIN, STDOUT, STDERR, 1, 0, NULL, &createdPid);
+    print("\n");
 
     char buffer[101];
     ssize_t count = sys_read(pipeFd[0], buffer, 100);
@@ -60,7 +67,7 @@ void openAndWritePipe(void) {
     }
 }
 
-void namedPipesProcess(uint64_t argc, char* argv[]) {
+void namedPipesProcess(int argc, char* argv[]) {
     TPid p = sys_getPid();
     printf("Main process with pid %d created \n", p);
 
@@ -82,8 +89,8 @@ void namedPipesProcess(uint64_t argc, char* argv[]) {
     sys_waitpid(wpid);
     printf("Process %d finished \n", wpid);
 
-    // print processes
-    // print pids
+    TPid createdPid;
+    runPipe(STDIN, STDOUT, STDERR, 1, 0, NULL, &createdPid);
 
     TProcessCreateInfo pci2 = {
         .name = "readingProcess",
@@ -93,7 +100,7 @@ void namedPipesProcess(uint64_t argc, char* argv[]) {
         .argc = 0,
         .argv = NULL};
 
-    printf("Process %d creating the process that will read and close the pipe \n", p);
+    printf("\nProcess %d creating the process that will read and close the pipe \n", p);
     TPid rpid = sys_createProcess(-1, -1, -1, &pci2);
     if (rpid < 0) {
         printf("Error while trying to create the reading process");
@@ -101,7 +108,7 @@ void namedPipesProcess(uint64_t argc, char* argv[]) {
     }
 
     sys_waitpid(rpid);
-    printf("Process %d finished \n", rpid);
+    printf("Process %d finished.\n", rpid);
+    runPipe(STDIN, STDOUT, STDERR, 1, 0, NULL, &createdPid);
 
-    sys_unlinkPipe(pipeName);
 }

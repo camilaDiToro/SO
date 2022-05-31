@@ -1,26 +1,23 @@
-/* Standard library */
-#include <string.h>
-
 /* Local headers */
-#include "syscalls.h"
-#include "test_util.h"
+#include <test_util.h>
+#include <syscalls.h>
 #include <userstdlib.h>
 
-#define MAX_BLOCKS (4 * 1024)
+#define MAX_BLOCKS 128
+#define MAX_MEMORY (2 * 1024 * 1024)
 
 typedef struct MM_rq {
     void* address;
     uint32_t size;
 } mm_rq;
 
-uint64_t test_mm(uint64_t argc, char* argv[]) {
-
+void test_mm(int argc, char* argv[]) {
     mm_rq mm_rqs[MAX_BLOCKS];
     uint8_t rq;
     uint32_t total;
     uint64_t max_memory;
 
-    max_memory = 4 * 1024 * 1024;
+    max_memory = MAX_MEMORY;
 
     while (1) {
         rq = 0;
@@ -47,8 +44,8 @@ uint64_t test_mm(uint64_t argc, char* argv[]) {
         for (i = 0; i < rq; i++)
             if (mm_rqs[i].address)
                 if (!memcheck(mm_rqs[i].address, i, mm_rqs[i].size)) {
-                    printf("test_mm ERROR\n");
-                    return -1;
+                    fprintf(STDERR, "test_mm ERROR\n");
+                    return;
                 }
 
         // Free

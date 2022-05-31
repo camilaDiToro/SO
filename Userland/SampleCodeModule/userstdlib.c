@@ -1,18 +1,27 @@
 /* Standard library */
-#include <stdint.h>
-#include <stddef.h>
 #include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 /* Local headers */
-#include <userstdlib.h>
 #include <syscalls.h>
+#include <userstdlib.h>
 
 #define IS_DIGIT(x) (((x) >= '0' && (x) <= '9'))
 
+void sleep(unsigned long millis) {
+    unsigned long start = sys_millis();
+    do {
+        sys_yield();
+    } while (sys_millis() - start < millis);
+}
+
 int getChar() {
     char c;
-    sys_read(STDIN, &c, 1);
+    if (sys_read(STDIN, &c, 1) <= 0) {
+        return -1;
+    }
     return c;
 }
 
@@ -22,7 +31,9 @@ int putChar(char c) {
 
 int fgetChar(int fd) {
     char c;
-    sys_read(fd, &c, 1);
+    if (sys_read(fd, &c, 1) <= 0) {
+        return -1;
+    }
     return c;
 }
 
@@ -57,23 +68,39 @@ int atoi(const char* str) {
     return neg * answer;
 }
 
-void sleep(unsigned long millis) {
-    unsigned long start = sys_millis();
-    do {
-         sys_yield();
-    } while (sys_millis() - start < millis);
+int getLine(char* buffer, int maxSize) {
+    return fgetLine(STDIN, buffer, maxSize);
 }
 
-char* convert(unsigned int num, unsigned int base) {
-    static char Representation[] = "0123456789ABCDEF";
-    static char buff[33];
+int fgetLine(int fd, char* buffer, int maxSize) {
+    int count = 0;
+    char c;
+
+    while ((c = fgetChar(fd)) >= 0 && c != '\n') {
+        if (c == '\b') {
+            if (count > 0) {
+                count--;
+                putChar(c);
+            }
+        } else if (count < maxSize) {
+            buffer[count++] = c;
+            putChar(c);
+        }
+    }
+
+    buffer[count] = '\0';
+    return count;
+}
+
+char* convert(unsigned int num, unsigned int base, char* buff) {
+    const char* representation = "0123456789ABCDEF";
     char* ptr;
 
     ptr = &buff[sizeof(buff) - 1];
     *ptr = '\0';
 
     do {
-        *--ptr = Representation[num % base];
+        *--ptr = representation[num % base];
         num /= base;
     } while (num != 0);
 
@@ -91,6 +118,7 @@ void fprintf(int fd, const char* frmt, ...) {
     uint64_t i;
     unsigned u;
     char* s;
+    char tmpBuff[33];
 
     for (aux = frmt; *aux != '\0'; aux++) {
         while (*aux != '%') {
@@ -107,43 +135,43 @@ void fprintf(int fd, const char* frmt, ...) {
         // va_arg() fetches the next argument from the argument list, where the 2nd parameter is the data type expected
         // ONLY accept char*, unsigned int, int or double
         switch (*aux) {
-        case 'c':
-            i = va_arg(arg, int); // Fetch char argument
-            fputChar(fd, i);
-            break;
+            case 'c':
+                i = va_arg(arg, int); // Fetch char argument
+                fputChar(fd, i);
+                break;
 
-        case 'd':
-            i = va_arg(arg, int); // Fetch Decimal/Integer argument
-            if (i < 0) {
-                i = -i;
-                fputChar(fd, '-');
-            }
-            fprint(fd, convert(i, 10));
-            break;
+            case 'd':
+                i = va_arg(arg, int); // Fetch Decimal/Integer argument
+                if (i < 0) {
+                    i = -i;
+                    fputChar(fd, '-');
+                }
+                fprint(fd, convert(i, 10, tmpBuff));
+                break;
 
-        case 'o':
-            i = va_arg(arg, unsigned int); // Fetch Octal representation
-            fprint(fd, convert(i, 8));
-            break;
+            case 'o':
+                i = va_arg(arg, unsigned int); // Fetch Octal representation
+                fprint(fd, convert(i, 8, tmpBuff));
+                break;
 
-        case 's':
-            s = va_arg(arg, char*); // Fetch string
-            fprint(fd, s == NULL ? "(NULL)" : s);
-            break;
+            case 's':
+                s = va_arg(arg, char*); // Fetch string
+                fprint(fd, s == NULL ? "(NULL)" : s);
+                break;
 
-        case 'u':
-            u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
-            fprint(fd, convert(u, 10));
-            break;
+            case 'u':
+                u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
+                fprint(fd, convert(u, 10, tmpBuff));
+                break;
 
-        case 'x':
-            u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
-            fprint(fd, convert(u, 16));
-            break;
+            case 'x':
+                u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
+                fprint(fd, convert(u, 16, tmpBuff));
+                break;
 
-        case '%':
-            fputChar(fd, '%');
-            break;
+            case '%':
+                fputChar(fd, '%');
+                break;
         }
     }
 
@@ -162,6 +190,7 @@ void printf(const char* frmt, ...) {
     uint64_t i;
     unsigned u;
     char* s;
+    char tmpBuff[33];
 
     for (aux = frmt; *aux != '\0'; aux++) {
         while (*aux != '%') {
@@ -178,43 +207,43 @@ void printf(const char* frmt, ...) {
         // va_arg() fetches the next argument from the argument list, where the 2nd parameter is the data type expected
         // ONLY accept char*, unsigned int, int or double
         switch (*aux) {
-        case 'c':
-            i = va_arg(arg, int); // Fetch char argument
-            fputChar(STDOUT, i);
-            break;
+            case 'c':
+                i = va_arg(arg, int); // Fetch char argument
+                fputChar(STDOUT, i);
+                break;
 
-        case 'd':
-            i = va_arg(arg, int); // Fetch Decimal/Integer argument
-            if (i < 0) {
-                i = -i;
-                fputChar(STDOUT, '-');
-            }
-            fprint(STDOUT, convert(i, 10));
-            break;
+            case 'd':
+                i = va_arg(arg, int); // Fetch Decimal/Integer argument
+                if (i < 0) {
+                    i = -i;
+                    fputChar(STDOUT, '-');
+                }
+                fprint(STDOUT, convert(i, 10, tmpBuff));
+                break;
 
-        case 'o':
-            i = va_arg(arg, unsigned int); // Fetch Octal representation
-            fprint(STDOUT, convert(i, 8));
-            break;
+            case 'o':
+                i = va_arg(arg, unsigned int); // Fetch Octal representation
+                fprint(STDOUT, convert(i, 8, tmpBuff));
+                break;
 
-        case 's':
-            s = va_arg(arg, char*); // Fetch string
-            fprint(STDOUT, s == NULL ? "(NULL)" : s);
-            break;
+            case 's':
+                s = va_arg(arg, char*); // Fetch string
+                fprint(STDOUT, s == NULL ? "(NULL)" : s);
+                break;
 
-        case 'u':
-            u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
-            fprint(STDOUT, convert(u, 10));
-            break;
+            case 'u':
+                u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
+                fprint(STDOUT, convert(u, 10, tmpBuff));
+                break;
 
-        case 'x':
-            u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
-            fprint(STDOUT, convert(u, 16));
-            break;
+            case 'x':
+                u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
+                fprint(STDOUT, convert(u, 16, tmpBuff));
+                break;
 
-        case '%':
-            fputChar(STDOUT, '%');
-            break;
+            case '%':
+                fputChar(STDOUT, '%');
+                break;
         }
     }
 

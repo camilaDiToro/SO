@@ -60,6 +60,21 @@ TPid prc_create(const TProcessCreateInfo* createInfo);
 int prc_kill(TPid pid);
 
 /**
+ * @brief Handles a malloc operation for a process.
+ */
+void* prc_handleMalloc(TPid pid, size_t size);
+
+/**
+ * @brief Handles a memory free operation for a process.
+ */
+int prc_handleFree(TPid pid, void* ptr);
+
+/**
+ * @brief Handles a realloc operation for a process.
+ */
+void* prc_handleRealloc(TPid pid, void* ptr, size_t size);
+
+/**
  * @brief Maps a resource onto a process' I/O table. "resource" may not be NULL.
  * A resource can be requested to be mapped to a specific fd (if available), or -1 to
  * let the mapper decide.

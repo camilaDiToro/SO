@@ -1,241 +1,172 @@
-/* Standard library */
-#include <string.h>
-
 /* Local headers */
-#include <loop.h>
+#include <commands.h>
+#include <kernelTypes.h>
 #include <shell.h>
+#include <string.h>
 #include <syscalls.h>
 #include <test.h>
 #include <userstdlib.h>
 
-typedef void (*TVoidFunction)(void);
+#define MAX_COMMAND_LENGTH 128
+#define MAX_ARGS 8
+#define MAX_COMMANDS 8
 
-typedef struct {
-    TVoidFunction action;
-    const char* name;
-} TCommand;
+#define PIPE_CHARACTER '-'
+#define BACKGROUND_CHARACTER '&'
 
-static int execute_command(char* command);
-static void help();
-static void time();
-static void ps();
-static void pipe();
-static void mem();
-static TCommand valid_commands[] = {
-    {&help, "help"},
-    {&time, "time"},
-    {&divideByZero, "dividezero"},
-    {&invalidOp, "invalidop"},
-    {&ps, "ps"},
-    {&pipe, "pipe"},
-    {&mem, "mem"},
-    {0, 0}};
+static void interpretCommand(char* buffer);
+static int parseCommandArgs(char* str, int i, int* argc, char* argv[]);
 
-void welcome_message() {
-    print("Bienvenido a Userland\n");
-    help();
+void runShell() {
+    print("Welcome to the Shell!\n");
+    print("Type 'help' to see a list of all available commands.\n");
+
+    char command[MAX_COMMAND_LENGTH + 1];
+    int length;
+
+    fputChar(STDERR, '>');
+    while ((length = fgetLine(STDIN, command, MAX_COMMAND_LENGTH)) >= 0) {
+        putChar('\n');
+        interpretCommand(command);
+        fprint(STDERR, "\n>");
+    }
+
+    fprint(STDERR, "Error: shell failed to read from STDIN. Am I running in foreground?\n");
 }
 
-void wait_command() {
-    char c = 0;
-    char command[128];
+static int advanceWhileWhitespace(char* str, int i) {
+    while (str[i] == ' ')
+        i++;
+    return i;
+}
+
+static int advanceUntilWhitespace(char* str, int i) {
+    while (str[i] != ' ' && str[i] != '\0' && str[i] != BACKGROUND_CHARACTER && str[i] != PIPE_CHARACTER)
+        i++;
+    return i;
+}
+
+static void interpretCommand(char* str) {
+    int commandCount = 0;
+    const TCommand* commands[MAX_COMMANDS];
+    int commandArgcs[MAX_COMMANDS];
+    char* commandArgvs[MAX_COMMANDS][MAX_ARGS];
+
     int i = 0;
+    while (1) {
+        i = advanceWhileWhitespace(str, i);
+        if (str[i] == '\0' || str[i] == BACKGROUND_CHARACTER)
+            break;
 
-    // Read the command until the user presses enter
-    while ((c = getChar()) != '\n') {
-        // Just delete what the user has written
-        if (c == '\b' && i > 0) {
-            putChar(c);
-            command[--i] = 0;
-        } else if (c != '\b') {
-            putChar(c);
-            command[i++] = c;
+        if (commandCount != 0) {
+            if (str[i] != PIPE_CHARACTER) {
+                fprintf(STDERR, "Expected pipe character '%c' at character '%c'.", PIPE_CHARACTER, str[i]);
+                return;
+            }
+
+            i = advanceWhileWhitespace(str, i + 1);
+            if (str[i] == '\0') {
+                fprintf(STDERR, "Unexpected end of line: command expected after pipe character '%c'.", PIPE_CHARACTER);
+                return;
+            }
+        }
+
+        if (commandCount == MAX_COMMANDS) {
+            fprintf(STDERR, "Error: Shell may only execute up to %d piped commands.", MAX_COMMANDS);
+            return;
+        }
+
+        char* commandNameStart = &str[i];
+        i = advanceUntilWhitespace(str, i);
+        char prevChar = str[i];
+        str[i] = '\0';
+        if ((commands[commandCount] = getCommandByName(commandNameStart)) == NULL) {
+            fprintf(STDERR, "Error: command not found: %s.", commandNameStart);
+            return;
+        }
+        str[i] = prevChar;
+
+        i = parseCommandArgs(str, i, &commandArgcs[commandCount], commandArgvs[commandCount]);
+        commandCount++;
+    }
+
+    int isForeground = (str[i] != BACKGROUND_CHARACTER);
+
+    if (!isForeground) {
+        // If there is something other than whitespace after the '&', print an error.
+        i++;
+        while (str[i] != '\0') {
+            if (str[i] != ' ') {
+                fprintf(STDERR, "Unexpected character after &: %c", str[i]);
+                return;
+            }
+            i++;
         }
     }
-    fprint(STDERR, "\n");
-    command[i] = 0;
 
-    // Check if de command is valid.
-    // Execute it if its valid
-    if (!execute_command(command)) {
-        // If not valid, show mensage
-        fprint(STDERR, "Comando invalido \n");
-        fprint(STDERR, command);
-        fprint(STDERR, "\n");
-    }
-}
-
-int execute_command(char* command) {
-    for (int i = 0; valid_commands[i].name; i++) {
-        if (strcmp(command, valid_commands[i].name) == 0) {
-            valid_commands[i].action();
-            return 1;
+    // Open the pipes
+    int pipeCount = commandCount - 1;
+    int pipes[pipeCount * 2];
+    for (int i = 0; i < pipeCount; i++) {
+        if (sys_pipe(&pipes[i * 2])) {
+            fprintf(STDERR, "Error while opening pipe %d. Aborting commands.", i);
+            for (int j = 0; j < i * 2; j++)
+                sys_close(pipes[j]);
+            return;
         }
     }
 
-    return 0;
-}
+    TPid pidToWait[commandCount];
+    for (int i = 0; i < commandCount; i++) {
+        int fdStdin = (i == 0 ? STDIN : pipes[(i - 1) * 2]);
+        int fdStdout = (i == (commandCount - 1) ? STDOUT : pipes[i * 2 + 1]);
+        pidToWait[i] = -1;
 
-void ps(void) {
-    TProcessInfo arr[16];
-    int count = sys_listProcesses(arr, 16);
-    printf("Listing %d process/es: \n", count);
-    for (int i = 0; i < count; i++) {
-        const char* status = arr[i].status == READY ? "READY" : arr[i].status == RUNNING ? "RUNNING"
-                                                            : arr[i].status == BLOCKED   ? "BLOCKED"
-                                                            : arr[i].status == KILLED    ? "KILLED"
-                                                                                         : "UNKNOWN";
+        int success = commands[i]->function(fdStdin, fdStdout, STDERR, isForeground, commandArgcs[i], (const char* const*)commandArgvs[i], &pidToWait[i]);
+        if (!success) {
+            fprintf(STDERR, "Error while executing command %s. Aborting commands.", commands[i]->name);
+            for (int j = 0; j < i; j++)
+                if (pidToWait[j] >= 0)
+                    sys_killProcess(pidToWait[j]);
 
-        printf("pid=%d, name=%s, stackEnd=%x, stackStart=%x, isForeground=%d, priority=%d, status=%s, rsp=%x\n",
-               arr[i].pid, arr[i].name, arr[i].stackEnd, arr[i].stackStart, arr[i].isForeground, arr[i].priority, status, arr[i].currentRSP);
-    }
-}
-
-void help(void) {
-    printf("Los comandos disponibles son:\n");
-
-    // help
-    printf("   'help'       - Despliega un listado de todos los comandos disponibles.\n");
-
-    // time
-    printf("   'time'       - Despliega el dia y hora del sistema.\n");
-
-    // inforeg
-    printf("   'inforeg'    - Imprime el valor de todos los registros. \n");
-    printf("                  Se debe presionar '-' para guardar el estado de los reistros. \n");
-
-    // printmem
-    printf("   'printmem'   - Realiza un volcado de memoria de 32 bytes a partir de la direccion recibida como parametro.\n");
-
-    // Division by 0
-    printf("   'dividezero' - Genera una excepcion causada por dividir por 0.\n");
-
-    // Invalid operation
-    printf("   'invalidop'  - Genera una excepcion causada por una operacion invalida.\n");
-}
-
-void loop(void) {
-    TProcessCreateInfo pci = {
-        .name = "loop",
-        .isForeground = 1,
-        .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint)loopProcess,
-        .argc = 0,
-        .argv = NULL};
-    sys_createProcess(-1, -1, -1, &pci);
-}
-
-void namedPipes(void) {
-    TProcessCreateInfo pci = {
-        .name = "namedPipes",
-        .isForeground = 1,
-        .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint)namedPipesProcess,
-        .argc = 0,
-        .argv = NULL};
-    sys_createProcess(-1, -1, -1, &pci);
-}
-
-void testMM(void) {
-    TProcessCreateInfo pci = {
-        .name = "testMM",
-        .isForeground = 1,
-        .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint)test_mm,
-        .argc = 0,
-        .argv = NULL};
-    sys_createProcess(-1, -1, -1, &pci);
-}
-
-void testAsync(void) {
-    // TODO check if the 5 could be asked to the user
-    printf("Async testing... \n");
-    char* argv[] = {"5", "0", NULL};
-    TProcessCreateInfo pci = {
-        .name = "testAsync",
-        .isForeground = 1,
-        .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint)test_sync,
-        .argc = 2,
-        .argv = (const char* const*)argv};
-    sys_createProcess(-1, -1, -1, &pci);
-}
-
-void testSync(void) {
-    // TODO check if the 5 could be asked to the user
-    printf("Sync testing... \n");
-    char* argv[] = {"5", "1", NULL};
-    TProcessCreateInfo pci = {
-        .name = "testSync",
-        .isForeground = 1,
-        .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint)test_sync,
-        .argc = 2,
-        .argv = (const char* const*)argv};
-    sys_createProcess(-1, -1, -1, &pci);
-}
-
-void testProcesses(void) {
-    TProcessCreateInfo pci = {
-        .name = "testSync",
-        .isForeground = 0,
-        .priority = DEFAULT_PRIORITY,
-        .entryPoint = (TProcessEntryPoint)test_processes,
-        .argc = 0,
-        .argv = NULL};
-    sys_createProcess(-1, -1, -1, &pci);
-}
-
-void time(void) {
-    char time[11];
-    sys_time(time);
-    printf("\n Time: %s", time);
-
-    char date[11];
-    sys_date(date);
-    printf("\n Date: %s", date);
-
-    printf("\n Millis since startup: %u\n", (unsigned int)sys_millis());
-}
-
-static void pipe() {
-    print("Listing pipes: ");
-    TPipeInfo array[16];
-    int count = sys_listPipes(array, 16);
-    printf("%d\n", count);
-
-    for (int i = 0; i < count; i++) {
-        printf("bytes=%u, readers=%u, writers=%u, name=%s", (unsigned int)array[i].remainingBytes, (unsigned int)array[i].readerFdCount, (unsigned int)array[i].writerFdCount, array[i].name);
-
-        printf(", readBlocked={");
-        for (int c = 0; array[i].readBlockedPids[c] >= 0; c++) {
-            if (c != 0)
-                printf(", ");
-            printf("%d", array[i].readBlockedPids[c]);
+            for (int c = 0; c < pipeCount * 2; c++)
+                sys_close(pipes[c]);
+            return;
         }
-        printf("}");
+    }
 
-        printf(", writeBlocked={");
-        for (int c = 0; array[i].writeBlockedPids[c] >= 0; c++) {
-            if (c != 0)
-                printf(", ");
-            printf("%d", array[i].writeBlockedPids[c]);
-        }
-        printf("}\n");
+    // Close the pipes
+    for (int i = 0; i < pipeCount * 2; i++)
+        sys_close(pipes[i]);
+
+    // If foreground, wait for all created processes to finish
+    if (isForeground) {
+        for (int i = 0; i < commandCount; i++)
+            if (pidToWait[i] >= 0)
+                sys_waitpid(pidToWait[i]);
     }
 }
 
-static void mem() {
-    TMemoryState memoryState;
-    if (sys_memState(&memoryState)) {
-        print("Failed to get memory state.\n");
-        return;
+static int parseCommandArgs(char* str, int i, int* argc, char* argv[]) {
+    *argc = 0;
+
+    while (str[i] != '\0' && str[i] != BACKGROUND_CHARACTER && str[i] != PIPE_CHARACTER) {
+        if (str[i] == ' ') {
+            i = advanceWhileWhitespace(str, i);
+            continue;
+        }
+
+        char* argStart = &str[i];
+        i = advanceUntilWhitespace(str, i);
+
+        if (*argc < MAX_ARGS)
+            argv[(*argc)++] = argStart;
+
+        if (str[i] == '\0')
+            break;
+
+        str[i++] = '\0';
     }
 
-    printf("Memory Manager Type: %s\n", memoryState.type == NODE ? "NODE" : memoryState.type == BUDDY ? "BUDDY"
-                                                                                                      : "UNKNOWN");
-    printf("Total memory: %u.", memoryState.total);
-    printf(" Used: %u (%u%%).", memoryState.used, (memoryState.used * 100 / memoryState.total));
-    printf(" Available: %u.\n", memoryState.total - memoryState.used);
-    printf("Total chunks: %u\n", memoryState.chunks);
+    return i;
 }

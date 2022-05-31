@@ -13,7 +13,7 @@ typedef struct P_rq {
     enum State state;
 } p_rq;
 
-int64_t test_processes(uint64_t argc, char* argv[]) {
+void test_processes(int argc, char* argv[]) {
     uint8_t rq;
     uint8_t alive = 0;
     uint8_t action;
@@ -37,7 +37,7 @@ int64_t test_processes(uint64_t argc, char* argv[]) {
             p_rqs[rq].pid = sys_createProcess(-1, -1, -1, &pci);
             if (p_rqs[rq].pid == -1) {
                 printf("test_processes: ERROR creating process\n");
-                return -1;
+                return;
             } else {
                 p_rqs[rq].state = RUNNING_TEST;
                 alive++;
@@ -55,7 +55,7 @@ int64_t test_processes(uint64_t argc, char* argv[]) {
                         if (p_rqs[rq].state == RUNNING_TEST || p_rqs[rq].state == BLOCKED_TEST) {
                             if (sys_killProcess(p_rqs[rq].pid) != 0) {
                                 printf("test_processes: ERROR killing process\n");
-                                return -1;
+                                return;
                             }
                             p_rqs[rq].state = KILLED_TEST;
                             alive--;
@@ -66,7 +66,7 @@ int64_t test_processes(uint64_t argc, char* argv[]) {
                         if (p_rqs[rq].state == RUNNING_TEST) {
                             if (sys_block(p_rqs[rq].pid) != 0) {
                                 printf("test_processes: ERROR blocking process\n");
-                                return -1;
+                                return;
                             }
                             p_rqs[rq].state = BLOCKED_TEST;
                         }
@@ -79,7 +79,7 @@ int64_t test_processes(uint64_t argc, char* argv[]) {
                 if (p_rqs[rq].state == BLOCKED_TEST && GetUniform(100) % 2) {
                     if (sys_unblock(p_rqs[rq].pid) != 0) {
                         printf("test_processes: ERROR unblocking process\n");
-                        return -1;
+                        return;
                     }
                     p_rqs[rq].state = RUNNING_TEST;
                 }
