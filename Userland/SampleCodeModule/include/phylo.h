@@ -3,6 +3,8 @@
 
 #include <kernelTypes.h>
 
+#define PHYLO_PRIORITY DEFAULT_PRIORITY
+
 #define MAX_PHYLOSOPHERS 10
 #define MIN_PHYLOSOPHERS 5
 #define MAX_CHOPSTICKS MAX_PHYLOSOPHERS
@@ -13,17 +15,19 @@
 #define ADD 'a'
 #define REMOVE 'r'
 #define QUIT 'q'
-#define STATE 's'
 
-#define EATING_TIME 5000
-#define THINKING_TIME 5000
-#define SLEEPING_TIME 5000
+#define EATING_TIME_MIN 2000
+#define EATING_TIME_MAX 5000
+#define THINKING_TIME_MIN 2000
+#define THINKING_TIME_MAX 5000
+#define SLEEPING_TIME_MIN 2000
+#define SLEEPING_TIME_MAX 5000
 
-typedef enum phyloState {EATING = 0, SLEEPING, THINKING, DEAD} phyloState;
+typedef enum phyloState {EATING = 0, WAITINGTOEAT, SLEEPING, THINKING, DEAD} TPhyloState;
 
 typedef struct phylo {
     char* phyloName;
-    phyloState phyloState;
+    TPhyloState phyloState;
     TPid phyloPid;
 } TPhylo;
 

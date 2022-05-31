@@ -14,12 +14,12 @@
 
 // phylosophers names just for having some fun
 static char* phyloName[MAX_PHYLOSOPHERS] = {"Aristoteles", "Socrates", "Platon", "Pitagoras", "Kant",
-                                            "Heraclito", "Sofocles", "Tales de Mileto", "Diogenes",
+                                            "Heraclito", "Sofocles", "TalesDeMileto", "Diogenes",
                                             "Democrito"};
 
 // phylosophers array to store status, its name (for printing reasons), and its pid.
 static TPhylo phylos[MAX_PHYLOSOPHERS];
-static int currentIdx = 0;
+static int phyloCount = 0;
 
 // Semaphores
 static TSem chopsticks[MAX_CHOPSTICKS];
@@ -42,16 +42,42 @@ static void terminateChopsticks();
 
 static void printState();
 
+// Rand functions taken from:
+// https://stackoverflow.com/questions/4768180/rand-implementation
+static unsigned long int nextRand = 1;
+
+static int rand(void) {
+    nextRand = nextRand * 1103515245 + 12345;
+    return (unsigned int)(nextRand / 65536) % 32768;
+}
+
+static inline int getThinkingTime() {
+    return THINKING_TIME_MIN + rand() % (THINKING_TIME_MAX - THINKING_TIME_MIN + 1);
+}
+
+static inline int getEatingTime() {
+    return EATING_TIME_MIN + rand() % (EATING_TIME_MAX - EATING_TIME_MIN + 1);
+}
+
+static inline int getSleepingTime() {
+    return SLEEPING_TIME_MIN + rand() % (SLEEPING_TIME_MAX - SLEEPING_TIME_MIN + 1);
+}
+
 // Initialize a minimun amount of phylosophers.
 void initPhyloProcess(int argc, char* argv[]) {
 
+    nextRand = (unsigned int)sys_millis();
     printf("A minimun quantity of phylosophers are beign created, please stand by\n");
-    printf("Press %c for quiting, %c for adding a new phylosopher\n", QUIT, ADD);
-    printf("%c for removing a phylosopher, %c for checking the state of each phylosopher \n", REMOVE, STATE);
-    sleep(2000);
-    
+    printf("Press %c for quiting, %c for adding a new phylosopher, and %c for removing a phylosopher.\n", QUIT, ADD, REMOVE);
+    sleep(500);
+
+    for (int i = 0; i < MAX_PHYLOSOPHERS; ++i) {
+        phylos[i].phyloPid = -1;
+        chopsticks[i] = -1;
+    }
+
     // Prepare the table for a minimun amount of phylosophers
-    for (int i=0; i < MIN_PHYLOSOPHERS; ++i)
+    for (int i = 0; i < MIN_PHYLOSOPHERS; ++i)
         addPhylo();
 
     // Initialize semaphore
@@ -74,132 +100,141 @@ static void waitForKey() {
             terminatePhylos();
             terminateChopsticks();
             sys_exit();
-
         } else if (c == ADD) {
 
-            if (currentIdx >= MAX_PHYLOSOPHERS)
-                printf("There's no more space in the table! Remove a phylosopher!\n");
-            else 
+            if (phyloCount >= MAX_PHYLOSOPHERS)
+                printf("\nThere's no more space in the table! Remove a phylosopher!\n");
+            else
                 addPhylo();
 
         } else if (c == REMOVE) {
 
-            if (currentIdx <= MIN_PHYLOSOPHERS)
-                printf("Dont be selfish! Invite more phylosophers to the table!\n");
-            else 
+            if (phyloCount <= MIN_PHYLOSOPHERS)
+                printf("\nDont be selfish! Invite more phylosophers to the table!\n");
+            else
                 removePhylo();
-
-        } else if (c == STATE) 
-            printState();
+        }
     }
 }
 
-// TO DO: adding all and removing them instantly produces a deadlock.
-// TO DO: what if the last created phylo is eating and a new one is added, the chopstick id will be inconsistent.
-// TO DO: avoid adding and removing instantly the same phylo 
 static void phylosopher(int argc, char* argv[]) {
 
     int phyloIdx = atoi(argv[0]);
 
     while (1) {
         phyloThink(phyloIdx);
+        if (phyloCount <= phyloIdx)
+            break;
         phyloEat(phyloIdx);
-        phyloSleep(phyloIdx);   
+        if (phyloCount <= phyloIdx)
+            break;
+        phyloSleep(phyloIdx);
+        if (phyloCount <= phyloIdx)
+            break;
     }
+
+    phylos[phyloIdx].phyloState = DEAD;
+    phylos[phyloIdx].phyloPid = -1;
 }
 
 static void phyloThink(int phyloIdx) {
-    printf("%s is thinking ....\n", phylos[phyloIdx].phyloName);
     phylos[phyloIdx].phyloState = THINKING;
-    sleep(THINKING_TIME);
+    printState();
+    sleep(getThinkingTime());
 }
 
 static void phyloEat(int phyloIdx) {
+    phylos[phyloIdx].phyloState = WAITINGTOEAT;
+    printState();
+
+    int otherSemIdx = (phyloIdx + 1) % phyloCount;
     sys_waitSem(semPickChopsticks);
-    sys_waitSem(chopsticks[phyloIdx]);                    // Left chopstick
-    sys_waitSem(chopsticks[(phyloIdx + 1) % currentIdx]); // Right chopstick
+    sys_waitSem(chopsticks[phyloIdx]);    // Left chopstick
+    sys_waitSem(chopsticks[otherSemIdx]); // Right chopstick
     sys_postSem(semPickChopsticks);
 
-    printf("%s is eating ....\n", phylos[phyloIdx].phyloName);
+    printState();
     phylos[phyloIdx].phyloState = EATING;
-    sleep(EATING_TIME);
+    sleep(getEatingTime());
 
-    sys_postSem(chopsticks[(phyloIdx + 1) % currentIdx]); // Right chopstick
-    sys_postSem(chopsticks[phyloIdx]);                    // Left chopstick
+    sys_postSem(chopsticks[otherSemIdx]); // Right chopstick
+    sys_postSem(chopsticks[phyloIdx]);    // Left chopstick
 }
 
 static void phyloSleep(int phyloIdx) {
-    printf("%s is sleeping .... zzzz\n", phylos[phyloIdx].phyloName);
     phylos[phyloIdx].phyloState = SLEEPING;
-    sleep(SLEEPING_TIME);
+    printState();
+    sleep(getSleepingTime());
 }
 
 static void addPhylo() {
 
-    addChopstick();
-    phylos[currentIdx].phyloName = phyloName[currentIdx];
-    phylos[currentIdx].phyloState = THINKING;
+    if (phylos[phyloCount].phyloPid != -1) {
+        fprintf(STDERR, "Please wait a bit before trying to add again.\n");
+        return;
+    }
 
-    char idxToString[] = {currentIdx + '0', 0};
+    addChopstick();
+    phylos[phyloCount].phyloName = phyloName[phyloCount];
+    phylos[phyloCount].phyloState = THINKING;
+
+    char idxToString[] = {phyloCount + '0', 0};
     char* auxi[] = {idxToString};
     TProcessCreateInfo phyloContexInfo = {
-        .name = phyloName[currentIdx],
+        .name = phyloName[phyloCount],
         .entryPoint = (void*)phylosopher,
         .isForeground = 0,
-        .priority = MAX_PRIORITY,
+        .priority = PHYLO_PRIORITY,
         .argc = 1,
-        .argv = (const char* const*) auxi,
+        .argv = (const char* const*)auxi,
     };
 
-    phylos[currentIdx].phyloPid = sys_createProcess(-1, -1, -1, &phyloContexInfo);
-    currentIdx++;
+    phyloCount++;
+    phylos[phyloCount - 1].phyloPid = sys_createProcess(-1, -1, -1, &phyloContexInfo);
 }
 
 static void removePhylo() {
-    phylos[currentIdx].phyloState = DEAD;
-    sys_killProcess(phylos[currentIdx].phyloPid);
     removeChopstick();
 }
 
 static void addChopstick() {
-    char aux[] = {currentIdx + '0', 0};
-    char length = strlen(CHOPSTICKS_SEM_NAME);
-    char* semName = sys_malloc(sizeof(char) * (length + 2));
+    if (chopsticks[phyloCount] >= 0)
+        return;
+
+    char aux[] = {phyloCount + '0', 0};
+    char semName[strlen(CHOPSTICKS_SEM_NAME) + 2];
     strcpy(semName, CHOPSTICKS_SEM_NAME);
     strcat(semName, aux);
-    chopsticks[currentIdx] = sys_openSem(semName, 1);
-    if (chopsticks[currentIdx] < 0) {
+    chopsticks[phyloCount] = sys_openSem(semName, 1);
+    if (chopsticks[phyloCount] < 0) {
         fprint(STDERR, "sys_openSem failed\n");
-        sys_free(semName);
         terminatePhylos();
         terminateChopsticks();
         sys_exit();
     }
-
-    sys_free(semName);
 }
 
 static void removeChopstick() {
-    sys_closeSem(chopsticks[currentIdx]);
-    currentIdx--;
+    phyloCount--;
 }
 
-static void terminatePhylos(){
-    for(int i = 0; i < currentIdx; ++i)
+static void terminatePhylos() {
+    for (int i = 0; i < phyloCount; ++i)
         sys_killProcess(phylos[i].phyloPid);
 }
 
 static void terminateChopsticks() {
-    for(int i = 0; i < currentIdx; ++i)
+    for (int i = 0; i < MAX_CHOPSTICKS && chopsticks[i] >= -1; ++i)
         sys_closeSem(chopsticks[i]);
-    
+
     sys_closeSem(semPickChopsticks);
 }
 
 static void printState() {
-    for (int i = 0; i < currentIdx; ++i) {
-        printf(" %s: %s\n", phylos[i].phyloName, phylos[i].phyloState == EATING ? "Eating" :
-                                                 phylos[i].phyloState == SLEEPING ? "Sleeping" :
-                                                 phylos[i].phyloState == THINKING ? "Thinking" : "Dead" );
-    }
+    print("\n");
+    for (int i = 0; i < phyloCount; ++i)
+        printf("%c ", phylos[i].phyloState == WAITINGTOEAT ? 'e' : phylos[i].phyloState == EATING ? 'E'
+                                                               : phylos[i].phyloState == SLEEPING ? 's'
+                                                               : phylos[i].phyloState == THINKING ? 't'
+                                                                                                  : 'x');
 }
