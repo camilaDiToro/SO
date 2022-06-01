@@ -1,8 +1,8 @@
-#include "kernelTypes.h"
-#include "syscalls.h"
-#include "test_util.h"
+#include <kernelTypes.h>
+#include <syscalls.h>
+#include <test_util.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <userstdlib.h>
 
 #define SEM_ID "sem"
 #define TOTAL_PAIR_PROCESSES 2
@@ -21,8 +21,10 @@ void my_process_inc(int argc, char* argv[]) {
     int8_t inc;
     int8_t use_sem;
 
-    if (argc != 3)
+    if (argc != 3) {
+        fprintf(STDERR, "Must receive three arguments: n, inc, useSem\n");
         return;
+    }
 
     if ((n = satoi(argv[0])) <= 0)
         return;
@@ -53,14 +55,16 @@ void my_process_inc(int argc, char* argv[]) {
         sys_closeSem(sem);
 }
 
-void test_sync(int argc, char* argv[]) { //{n, use_sem, 0}
+static void run_test_sync(int argc, char* argv[], const char* useSem) {
     uint64_t pids[2 * TOTAL_PAIR_PROCESSES];
 
-    if (argc != 2)
+    if (argc != 1) {
+        fprintf(STDERR, "Must receive 1 parameters: inc\n");
         return;
+    }
 
-    char* argvDec[] = {argv[0], "-1", argv[1], NULL};
-    char* argvInc[] = {argv[0], "1", argv[1], NULL};
+    const char* argvDec[] = {argv[0], "-1", useSem};
+    const char* argvInc[] = {argv[0], "1", useSem};
 
     TProcessCreateInfo pciDec = {
         .name = "processDec",
@@ -68,7 +72,8 @@ void test_sync(int argc, char* argv[]) { //{n, use_sem, 0}
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)my_process_inc,
         .argc = 3,
-        .argv = (const char* const*)argvDec};
+        .argv = (const char* const*)argvDec
+    };
 
     TProcessCreateInfo pciInc = {
         .name = "processInc",
@@ -76,7 +81,8 @@ void test_sync(int argc, char* argv[]) { //{n, use_sem, 0}
         .priority = DEFAULT_PRIORITY,
         .entryPoint = (TProcessEntryPoint)my_process_inc,
         .argc = 3,
-        .argv = (const char* const*)argvInc};
+        .argv = (const char* const*)argvInc
+    };
 
     global = 0;
 
@@ -92,4 +98,12 @@ void test_sync(int argc, char* argv[]) { //{n, use_sem, 0}
     }
 
     printf("Final value: %d\n", global);
+}
+
+void test_sync(int argc, char* argv[]) {
+    run_test_sync(argc, argv, "1");
+}
+
+void test_async(int argc, char* argv[]) {
+    run_test_sync(argc, argv, "0");
 }

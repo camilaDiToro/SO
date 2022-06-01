@@ -413,7 +413,7 @@ int runTestMM(int stdin, int stdout, int stderr, int isForeground, int argc, con
 int runTestAsync(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
     TProcessCreateInfo pci = {
         .name = "testAsync",
-        .entryPoint = test_sync,
+        .entryPoint = test_async,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
