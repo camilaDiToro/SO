@@ -1,13 +1,12 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+/* Local headers */
 #include <semaphores.h>
-#include <graphics.h>
 #include <lib.h>
 #include <memoryManager.h>
 #include <resourceNamerADT.h>
 #include <scheduler.h>
-#include <semaphores.h>
 #include <string.h>
 #include <waitQueueADT.h>
 
@@ -56,24 +55,6 @@ static int adquireSem(TSem sem) {
 
     _spin_lock(&(semaphores[sem]->lock));
     _unlock(&generalLock);
-    return SEM_SUCCES;
-}
-
-int sem_printDebug() {
-
-    for (int sem = 0; sem < MAX_SEMAPHORES; ++sem) {
-        if (semaphores[sem] != NULL) {
-            scr_print("Id: ");
-            scr_printDec(sem);
-            scr_print(", \t Value: ");
-            scr_printDec(semaphores[sem]->value);
-            scr_print(", \t Linked processes: ");
-            scr_printDec(semaphores[sem]->linkedProcesses);
-            scr_print(", \t Name: ");
-            scr_print(semaphores[sem]->name);
-            scr_printChar('\n');
-        }
-    }
     return SEM_SUCCES;
 }
 

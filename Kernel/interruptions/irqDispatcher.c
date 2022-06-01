@@ -10,11 +10,11 @@
 
 typedef void (*TVoidFunction)(void);
 
-static TVoidFunction interruptions[255] = {&rtc_interruptHandler, &kbd_interruptHandler};
+static const TVoidFunction interruptions[] = {&rtc_interruptHandler, &kbd_interruptHandler};
 
 void irqDispatcher(uint64_t irq) {
-    TVoidFunction interruption = interruptions[irq];
-    if (interruption != 0) {
-        interruption();
+    TVoidFunction intFunction;
+    if (irq < (sizeof(interruptions) / sizeof(interruptions[0])) && (intFunction = interruptions[irq]) != NULL) {
+        intFunction();
     }
 }

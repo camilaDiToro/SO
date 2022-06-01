@@ -2,12 +2,11 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 /* Standard library */
-#include <stdint.h>
-#include <stddef.h>
 #include <sys/types.h>
 
 /* Local headers */
 #include <process.h>
+#include <kernelTypes.h>
 #include <memoryManager.h>
 #include <scheduler.h>
 #include <lib.h>

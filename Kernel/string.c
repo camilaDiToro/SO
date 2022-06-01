@@ -1,7 +1,7 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-/* Standard library */
+/* Local headers */
 #include <string.h>
 
 size_t strlen(const char* s) {
@@ -18,9 +18,19 @@ int strcmp(const char* s1, const char* s2) {
 
 char* strcpy(char* dest, const char* src) {
     char* w;
-    for (w = dest; *src != '\0'; *(w++) = *(src++));
+    for (w = dest; *src != '\0'; *(w++) = *(src++))
+        ;
     *w = '\0';
     return dest;
+}
+
+char* strcat(char* dest, const char* src) {
+    char *rdest = dest;
+
+	while (*dest)
+		dest++;
+	while ((*dest++ = *src++));
+	return rdest;
 }
 
 char* strncpy(char* dest, const char* src, size_t size) {

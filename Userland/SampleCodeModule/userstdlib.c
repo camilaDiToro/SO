@@ -118,8 +118,8 @@ void fprintf(int fd, const char* frmt, ...) {
 
     const char* aux;
 
-    uint64_t i;
-    unsigned u;
+    int i;
+    unsigned int u;
     char* s;
     char tmpBuff[33];
 
@@ -153,8 +153,8 @@ void fprintf(int fd, const char* frmt, ...) {
                 break;
 
             case 'o':
-                i = va_arg(arg, unsigned int); // Fetch Octal representation
-                fprint(fd, convert(i, 8, tmpBuff));
+                u = va_arg(arg, unsigned int); // Fetch Octal representation
+                fprint(fd, convert(u, 8, tmpBuff));
                 break;
 
             case 's':
@@ -190,8 +190,8 @@ void printf(const char* frmt, ...) {
 
     const char* aux;
 
-    uint64_t i;
-    unsigned u;
+    int i;
+    unsigned int u;
     char* s;
     char tmpBuff[33];
 
@@ -225,8 +225,8 @@ void printf(const char* frmt, ...) {
                 break;
 
             case 'o':
-                i = va_arg(arg, unsigned int); // Fetch Octal representation
-                fprint(STDOUT, convert(i, 8, tmpBuff));
+                u = va_arg(arg, unsigned int); // Fetch Octal representation
+                fprint(STDOUT, convert(u, 8, tmpBuff));
                 break;
 
             case 's':

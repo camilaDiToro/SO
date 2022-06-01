@@ -3,9 +3,6 @@
 
 #ifdef USE_BUDDY
 
-/* Standard library */
-#include <stdint.h>
-
 /* Local headers */
 #include <memoryManager.h>
 #include <lib.h>

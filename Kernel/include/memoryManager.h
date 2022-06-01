@@ -1,9 +1,6 @@
 #ifndef _MEMORY_MANAGER_H_
 #define _MEMORY_MANAGER_H_
 
-/* Standard library */
-#include <stddef.h>
-
 /* Local headers */
 #include <kernelTypes.h>
 

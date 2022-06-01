@@ -12,8 +12,6 @@ char* strncpy(char* dest, const char* src, size_t size);
 
 int strcmp(const char* s1, const char* s2);
 
-int strchr(char* str, char c);
-
 char* strcat(char* dest, const char* src);
 
 #endif

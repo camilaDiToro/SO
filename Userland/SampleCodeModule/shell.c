@@ -1,16 +1,11 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-/* Standard library */
-#include <string.h>
-
 /* Local headers */
+#include <shell.h>
 #include <commands.h>
 #include <kernelTypes.h>
-#include <shell.h>
-#include <string.h>
 #include <syscalls.h>
-#include <test.h>
 #include <userstdlib.h>
 
 #define MAX_COMMAND_LENGTH 128
@@ -28,10 +23,9 @@ void runShell() {
     print("Type 'help' to see a list of all available commands.\n");
 
     char command[MAX_COMMAND_LENGTH + 1];
-    int length;
 
     fputChar(STDERR, '>');
-    while ((length = fgetLine(STDIN, command, MAX_COMMAND_LENGTH)) >= 0) {
+    while (fgetLine(STDIN, command, MAX_COMMAND_LENGTH) >= 0) {
         putChar('\n');
         interpretCommand(command);
         fprint(STDERR, "\n>");

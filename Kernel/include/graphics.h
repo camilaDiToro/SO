@@ -1,9 +1,6 @@
 #ifndef _GRAPHICS_H_
 #define _GRAPHICS_H_
 
-/* Standard Library */
-#include <stdint.h>
-
 /* Local headers */
 #include <kernelTypes.h>
 

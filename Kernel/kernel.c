@@ -1,12 +1,9 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-/* Standard library */
-#include <stdint.h>
-#include <stddef.h>
-#include <string.h>
-
 /* Local headers */
+#include <kernel.h>
+#include <kernelTypes.h>
 #include <lib.h>
 #include <moduleLoader.h>
 #include <graphics.h>
@@ -17,8 +14,6 @@
 #include <scheduler.h>
 #include <keyboard.h>
 #include <systemCalls.h>
-#include <kernelTypes.h>
-#include <kernel.h>
 #include <semaphores.h>
 
 extern uint8_t text;

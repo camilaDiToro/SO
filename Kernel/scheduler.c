@@ -4,7 +4,6 @@
 /* Local Headers */
 #include <scheduler.h>
 #include <process.h>
-#include <time.h>
 #include <memoryManager.h>
 #include <interrupts.h>
 
