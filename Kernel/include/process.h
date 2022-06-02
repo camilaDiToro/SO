@@ -31,7 +31,8 @@ typedef ssize_t (*TFdWriteHandler)(TPid pid, int fd, void* resource, const char*
  * @brief Represents a function that will handle a file descriptor dup operation.
  * Handlers need not check that pidFrom or fdFrom are valid.
  * 
- * @returns 0 if the operation succeeded, != 0 if not.
+ * @returns The file descriptor on which the resource was mapped for the process,
+ * or -1 if an error occurred.
  */
 typedef int (*TFdDupHandler)(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
 
@@ -122,7 +123,7 @@ ssize_t prc_handleWriteFd(TPid pid, int fd, const char* buf, size_t count);
 /**
  * @brief Gets the information of up to maxProcesses processes.
  * 
- * @returns the amount of processes read.
+ * @returns The amount of processes read.
  */
 int prc_listProcesses(TProcessInfo* array, int maxProcesses);
 
@@ -130,7 +131,8 @@ int prc_listProcesses(TProcessInfo* array, int maxProcesses);
  * @brief Maps the resource on a file descriptor from a process to a file descriptor
  * on another process. fdTo may be -1 to let the I/O table decide a file descriptor.
  * 
- * @returns 0 if the operation succeeded, != 0 if not.
+ * @returns The file descriptor on which the resource was mapped for the process,
+ * or -1 if an error occurred.
  */
 int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo);
 
