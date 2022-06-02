@@ -16,6 +16,8 @@
 #include <resourceNamerADT.h>
 #include <string.h>
 
+/* Constants */
+
 /** The maximum amount of pipes the system can have at a given moment. */
 #define MAX_PIPES 64
 

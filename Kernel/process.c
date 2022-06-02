@@ -13,11 +13,10 @@
 #include <string.h>
 #include <waitQueueADT.h>
 
+/* Constants */
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
-
 #define MEM_TABLE_CHUNK_SIZE 16
-
 #define MAX_NAME_LENGTH 16
 
 /**

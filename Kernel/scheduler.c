@@ -7,6 +7,7 @@
 #include <memoryManager.h>
 #include <interrupts.h>
 
+/* Constants */
 #define QUANTUM 4
 
 // These are "Pseudo PIDs". That is, PID numbers that do not represent actual processes.

@@ -10,6 +10,7 @@
 #include <memoryManager.h>
 #include <string.h>
 
+/* Constants */
 #define BUFFER_CHUNK_SIZE 8
 
 typedef struct {

@@ -4,6 +4,9 @@
 /* Local headers */
 #include <kernelTypes.h>
 
+/**
+ * @brief Initialize keyboard
+ */
 void kbd_init();
 
 /**

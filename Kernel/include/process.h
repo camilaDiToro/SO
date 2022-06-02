@@ -7,6 +7,7 @@
 /* Local headers */
 #include <kernelTypes.h>
 
+/* Constants */
 #define PROCESS_STACK_SIZE 4096
 #define MAX_PROCESSES 16
 
@@ -30,7 +31,7 @@ typedef ssize_t (*TFdWriteHandler)(TPid pid, int fd, void* resource, const char*
  * @brief Represents a function that will handle a file descriptor dup operation.
  * Handlers need not check that pidFrom or fdFrom are valid.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 typedef int (*TFdDupHandler)(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* resource);
 
@@ -38,7 +39,7 @@ typedef int (*TFdDupHandler)(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, voi
  * @brief Represents a function that will handle a file descriptor close operation.
  * Handlers need not check that the pid or fd is valid.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 typedef int (*TFdCloseHandler)(TPid pid, int fd, void* resource);
 
@@ -53,7 +54,7 @@ TPid prc_create(const TProcessCreateInfo* createInfo);
  * @brief Kills a process and frees associated resources. Using a process after
  * it has been killed results in undefined behaviour.
  *
- * @returns 0 if the operation was successful.
+ * @returns 0 if the operation was successful, != 0 if not.
  */
 int prc_kill(TPid pid);
 
@@ -85,7 +86,7 @@ int prc_mapFd(TPid pid, int fd, void* resource, TFdReadHandler readHandler, TFdW
 /**
  * @brief Unmaps a file descriptor from a process' I/O table.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int prc_unmapFd(TPid pid, int fd);
 
@@ -129,7 +130,7 @@ int prc_listProcesses(TProcessInfo* array, int maxProcesses);
  * @brief Maps the resource on a file descriptor from a process to a file descriptor
  * on another process. fdTo may be -1 to let the I/O table decide a file descriptor.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo);
 
@@ -137,7 +138,7 @@ int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo);
  * @brief Adds a process to another process' "unblock on killed" list.
  * This will not change the state of any of the involved processes.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int prc_unblockOnKilled(TPid pidToUnblock, TPid pidToWait);
 

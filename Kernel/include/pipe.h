@@ -27,7 +27,7 @@ TPipe pipe_open(const char* name);
  * @brief Unnames a named pipe, making the name available for future pipes.
  * The pipe is not disposed until no more processes are using it.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int pipe_unlink(const char* name);
 
@@ -35,7 +35,7 @@ int pipe_unlink(const char* name);
  * @brief Frees all resources used by a pipe. Using a pipe after it was
  * freed results in undefined behaviour.
  * 
- * @returns 0 if the operation was successful.
+ * @returns 0 if the operation was successful, != 0 if not.
  */
 int pipe_free(TPipe pipe);
 
