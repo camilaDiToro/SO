@@ -2,8 +2,6 @@
 #define _PROCESS_H_
 
 /* Standard library */
-#include <stdint.h>
-#include <stddef.h>
 #include <sys/types.h>
 
 /* Local headers */

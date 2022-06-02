@@ -1,10 +1,6 @@
 #ifndef _USERSTDLIB_H_
 #define _USERSTDLIB_H_
 
-/* Standard library */
-#include <stddef.h>
-#include <stdint.h>
-
 void sleep(unsigned long millis);
 
 int getChar();

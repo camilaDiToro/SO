@@ -1,11 +1,14 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 /* Local headers */
 #include <commands.h>
-#include <processes.h>
-#include <phylo.h>
-#include <test.h>
-#include <string.h>
 #include <syscalls.h>
 #include <userstdlib.h>
+#include <processes.h>
+#include <string.h>
+#include <phylo.h>
+#include <test.h>
 
 static TCommand validCommands[] = {
     {runHelp, "help", "Displays a list of all available commands."},
@@ -32,6 +35,7 @@ static TCommand validCommands[] = {
     {runTestAsync, "testasync", "Runs a test for ... ."},
     {runTestSync, "testsync", "Runs a test for ... ."},
     {runTestProcesses, "testprocesses", "Runs a test for processes."},
+    {runTestPrio, "testprio", "Runs a test on process priorities."},
 };
 
 const TCommand* getCommandByName(const char* name) {
@@ -446,6 +450,22 @@ int runTestProcesses(int stdin, int stdout, int stderr, int isForeground, int ar
     TProcessCreateInfo pci = {
         .name = "testSync",
         .entryPoint = test_processes,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &pci);
+    return *createdProcess >= 0;
+}
+
+//------------------------------------------------------------------------------------------------------------
+
+int runTestPrio(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo pci = {
+        .name = "testPrio",
+        .entryPoint = test_prio,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,

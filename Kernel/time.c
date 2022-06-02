@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 /* Standard library */
 #include <stdint.h>
 
@@ -23,10 +26,6 @@ void rtc_interruptHandler() {
 
 unsigned long rtc_getElapsedTicks() {
     return ticks;
-}
-
-unsigned long rtc_getElapsedSeconds() {
-    return TICKS_TO_SECONDS(ticks);
 }
 
 uint8_t rtc_getCurrentSeconds() {

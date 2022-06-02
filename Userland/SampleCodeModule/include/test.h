@@ -1,5 +1,5 @@
-#ifndef _TESTING_H_
-#define _TESTING_H_
+#ifndef _TEST_H_
+#define _TEST_H_
 
 void test_mm(int argc, char* argv[]);
 

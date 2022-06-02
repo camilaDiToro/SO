@@ -1,17 +1,18 @@
-/* Standard library */
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/* Local headers */
 #include <string.h>
 
 size_t strlen(const char* s) {
     size_t l;
-    for (l = 0; *s != 0; s++, l++)
-        ;
+    for (l = 0; *s != 0; s++, l++);
     return l;
 }
 
 int strcmp(const char* s1, const char* s2) {
     int i;
-    for (i = 0; s1[i] && s1[i] == s2[i]; i++)
-        ;
+    for (i = 0; s1[i] && s1[i] == s2[i]; i++);
     return s1[i] - s2[i];
 }
 
@@ -41,14 +42,4 @@ char* strncpy(char* dest, const char* src, size_t size) {
     }
     *dest = '\0';
     return ret;
-}
-
-int strchr(char* str, char token) {
-    while (*str) {
-        if (*str == token) {
-            return 1;
-        }
-        str++;
-    }
-    return 0;
 }

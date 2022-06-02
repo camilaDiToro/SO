@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 /* Standard library */
 #include <stdarg.h>
 #include <stddef.h>
@@ -115,8 +118,8 @@ void fprintf(int fd, const char* frmt, ...) {
 
     const char* aux;
 
-    uint64_t i;
-    unsigned u;
+    int i;
+    unsigned int u;
     char* s;
     char tmpBuff[33];
 
@@ -150,8 +153,8 @@ void fprintf(int fd, const char* frmt, ...) {
                 break;
 
             case 'o':
-                i = va_arg(arg, unsigned int); // Fetch Octal representation
-                fprint(fd, convert(i, 8, tmpBuff));
+                u = va_arg(arg, unsigned int); // Fetch Octal representation
+                fprint(fd, convert(u, 8, tmpBuff));
                 break;
 
             case 's':
@@ -187,8 +190,8 @@ void printf(const char* frmt, ...) {
 
     const char* aux;
 
-    uint64_t i;
-    unsigned u;
+    int i;
+    unsigned int u;
     char* s;
     char tmpBuff[33];
 
@@ -222,8 +225,8 @@ void printf(const char* frmt, ...) {
                 break;
 
             case 'o':
-                i = va_arg(arg, unsigned int); // Fetch Octal representation
-                fprint(STDOUT, convert(i, 8, tmpBuff));
+                u = va_arg(arg, unsigned int); // Fetch Octal representation
+                fprint(STDOUT, convert(u, 8, tmpBuff));
                 break;
 
             case 's':

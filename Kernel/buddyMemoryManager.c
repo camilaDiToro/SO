@@ -1,7 +1,7 @@
-#ifdef USE_BUDDY
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-/* Standard library */
-#include <stdint.h>
+#ifdef USE_BUDDY
 
 /* Local headers */
 #include <memoryManager.h>

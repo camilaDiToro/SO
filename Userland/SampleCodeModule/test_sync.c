@@ -1,7 +1,14 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/* Standard library */
+#include <stdint.h>
+
+/* Local headers */
+#include <test.h>
+#include <test_util.h>
 #include <kernelTypes.h>
 #include <syscalls.h>
-#include <test_util.h>
-#include <stdint.h>
 #include <userstdlib.h>
 
 #define SEM_ID "sem"
@@ -97,7 +104,7 @@ static void run_test_sync(int argc, char* argv[], const char* useSem) {
         sys_waitpid(pids[i + TOTAL_PAIR_PROCESSES]);
     }
 
-    printf("Final value: %d\n", global);
+    printf("Final value: %d\n", (int)global);
 }
 
 void test_sync(int argc, char* argv[]) {

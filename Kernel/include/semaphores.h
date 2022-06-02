@@ -1,7 +1,7 @@
 #ifndef _SEMAPHORE_H_
 #define _SEMAPHORE_H_
 
-#include <stddef.h>
+/* Local headers */
 #include <kernelTypes.h>
 
 #define MAX_SEMAPHORES 127
@@ -35,10 +35,6 @@ TSem sem_open(const char * name, uint8_t initialValue);
  * does not exist.
  */
 int sem_close(TSem sem);
-
-
-// will be deleted soon
-int sem_printDebug();
 
 /**
  * @brief Decrements or locks the semaphore pointed to by sem. If the semaphore's 

@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 // One or more phylosophers are sitting at a round table doing one of three things: eating, thinking, or sleeping.
 // The phylosophers sit at a circular table with a big bowl of spaghetti in the center.
 // There are the same number of chopsticks on the table as there are phylosophers.

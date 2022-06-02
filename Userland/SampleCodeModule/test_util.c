@@ -1,5 +1,12 @@
-#include <syscalls.h>
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+/* Standard library */
 #include <stdint.h>
+
+/* Local headers */
+#include <test_util.h>
+#include <syscalls.h>
 #include <userstdlib.h>
 
 // Random
@@ -60,12 +67,12 @@ void bussy_wait(uint64_t n) {
     for (i = 0; i < n; i++);
 }
 
-void endless_loop(uint64_t argc, char* argv[]) {
+void endless_loop(int argc, char* argv[]) {
     while (1);
 }
 
-void endless_loop_print(uint64_t argc, char* argv[]) {
-    int64_t pid = sys_getPid();
+void endless_loop_print(int argc, char* argv[]) {
+    TPid pid = sys_getPid();
 
     while (1) {
         printf("%d ", pid);

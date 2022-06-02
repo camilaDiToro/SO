@@ -1,10 +1,12 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 /* Standard library */
-#include <stdint.h>
-#include <stddef.h>
 #include <sys/types.h>
 
 /* Local headers */
 #include <process.h>
+#include <kernelTypes.h>
 #include <memoryManager.h>
 #include <scheduler.h>
 #include <lib.h>
@@ -70,7 +72,7 @@ static int tryGetProcessFromPid(TPid pid, TProcessContext** outProcess) {
 
 static int isNameValid(const char* name) {
     if (name == NULL)
-        return 1;
+        return 0;
 
     for (int i = 0; i <= MAX_NAME_LENGTH; i++) {
         char c = name[i];
@@ -98,7 +100,7 @@ TPid prc_create(const TProcessCreateInfo* createInfo) {
     char* nameCopy = NULL;
     char** argvCopy = NULL;
     if ((stackEnd = mm_malloc(PROCESS_STACK_SIZE)) == NULL
-        || (createInfo->name != NULL && (nameCopy = mm_malloc(strlen(createInfo->name) + 1)) == NULL)
+        || (nameCopy = mm_malloc(strlen(createInfo->name) + 1)) == NULL
         || (createInfo->argc != 0 && (argvCopy = mm_malloc(sizeof(char*) * createInfo->argc)) == NULL)) {
         mm_free(stackEnd);
         mm_free(nameCopy);
@@ -122,8 +124,7 @@ TPid prc_create(const TProcessCreateInfo* createInfo) {
         memcpy(argvCopy[i], createInfo->argv[i], length);
     }
 
-    if (createInfo->name != NULL)
-        strcpy(nameCopy, createInfo->name);
+    strcpy(nameCopy, createInfo->name);
 
     TProcessContext* process = &processes[pid];
     memset(process, 0, sizeof(TProcessContext));
@@ -158,7 +159,6 @@ int prc_kill(TPid pid) {
     if (process->waitpidQueue != NULL) {
         wq_unblockAll(process->waitpidQueue);
         wq_free(process->waitpidQueue);
-        process->waitpidQueue = NULL;
     }
 
     for (int i = 0; i < process->argc; i++) {
@@ -168,7 +168,6 @@ int prc_kill(TPid pid) {
     mm_free(process->name);
     mm_free(process->stackEnd);
     mm_free(process->fdTable);
-
     memset(process, 0, sizeof(TProcessContext));
 
     return 0;

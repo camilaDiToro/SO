@@ -1,15 +1,11 @@
 #ifndef _SCHEDULER_H_
 #define _SCHEDULER_H_
 
-/* Standard library */
-#include <stdint.h>
-
 /* Local headers */
 #include <kernelTypes.h>
 
 /**
- * @brief Initialize Scheduler
- *
+ * @brief Initialize the Scheduler.
  */
 void sch_init();
 

@@ -2,7 +2,6 @@
 #define _SYSCALLS_H_
 
 /* Standard library */
-#include <stddef.h>
 #include <sys/types.h>
 
 /* Local headers */

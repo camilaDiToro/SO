@@ -23,7 +23,7 @@
 #define SLEEPING_TIME_MIN 2000
 #define SLEEPING_TIME_MAX 5000
 
-typedef enum phyloState {EATING = 0, WAITINGTOEAT, SLEEPING, THINKING, DEAD} TPhyloState;
+typedef enum {EATING = 0, WAITINGTOEAT, SLEEPING, THINKING, DEAD} TPhyloState;
 
 typedef struct phylo {
     char* phyloName;
