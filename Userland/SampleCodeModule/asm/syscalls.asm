@@ -1,18 +1,14 @@
 GLOBAL sys_read
 GLOBAL sys_write
 GLOBAL sys_close
-
 GLOBAL sys_clearScreen
-
 GLOBAL sys_millis
 GLOBAL sys_time
 GLOBAL sys_date
-
 GLOBAL sys_malloc
 GLOBAL sys_free
 GLOBAL sys_realloc
 GLOBAL sys_memState
-
 GLOBAL sys_getPid
 GLOBAL sys_createProcess
 GLOBAL sys_exit
@@ -23,15 +19,12 @@ GLOBAL sys_killProcess
 GLOBAL sys_nice
 GLOBAL sys_listProcesses
 GLOBAL sys_waitpid
-
 GLOBAL sys_pipe
 GLOBAL sys_openPipe
 GLOBAL sys_unlinkPipe
 GLOBAL sys_listPipes
-
 GLOBAL sys_openSem
 GLOBAL sys_closeSem
-GLOBAL sys_unlinkSem
 GLOBAL sys_postSem
 GLOBAL sys_waitSem
 GLOBAL sys_listSemaphores

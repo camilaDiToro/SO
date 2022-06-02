@@ -17,15 +17,15 @@ TWaitQueue wq_new();
  * @brief Frees all resources used by a wait queue. Attempting to use a
  * wait queue after it has been freed results in undefined behavior.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, !=0 if not.
  */
 int wq_free(TWaitQueue queue);
 
 /**
  * @brief Adds a PID to the waiting queue. If the PID was already in the queue,
  * this operation will add a new entry and have the PID multiple times on the queue.
- * 
- * @returns 0 if the operation succeeded.
+ *  
+ * @returns 0 if the operation succeeded, !=0 if not.
  */
 int wq_add(TWaitQueue queue, TPid pid);
 

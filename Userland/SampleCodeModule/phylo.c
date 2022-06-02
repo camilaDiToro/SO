@@ -6,7 +6,6 @@
 // There are the same number of chopsticks on the table as there are phylosophers.
 // A phylosopher needs two chopsticks to eat. Whenever a phylosopher is done eating, he will drop his chopsticks and start sleeping.
 // When a phylosopher is done sleeping, he will start thinking.
-// The simulation will finish when user press exit button. Minwhile, user can add or remove a phylosopher from the table.
 
 /* Local headers */
 #include <phylo.h>
@@ -15,16 +14,13 @@
 #include <kernelTypes.h>
 #include <string.h>
 
-// phylosophers names just for having some fun
 static char* phyloName[MAX_PHYLOSOPHERS] = {"Aristoteles", "Socrates", "Platon", "Pitagoras", "Kant",
                                             "Heraclito", "Sofocles", "TalesDeMileto", "Diogenes",
                                             "Democrito"};
 
-// phylosophers array to store status, its name (for printing reasons), and its pid.
 static TPhylo phylos[MAX_PHYLOSOPHERS];
 static int phyloCount = 0;
 
-// Semaphores
 static TSem chopsticks[MAX_CHOPSTICKS];
 static TSem semPickChopsticks;
 
@@ -79,11 +75,9 @@ void initPhyloProcess(int argc, char* argv[]) {
         chopsticks[i] = -1;
     }
 
-    // Prepare the table for a minimun amount of phylosophers
     for (int i = 0; i < MIN_PHYLOSOPHERS; ++i)
         addPhylo();
 
-    // Initialize semaphore
     if ((semPickChopsticks = sys_openSem("semPickSticks", 1)) == -1) {
         fprint(STDERR, "sys_openSem failed\n");
         terminatePhylos();
@@ -93,7 +87,6 @@ void initPhyloProcess(int argc, char* argv[]) {
     waitForKey();
 }
 
-// With this function, we manage STDIN
 static void waitForKey() {
 
     while (1) {

@@ -1,5 +1,4 @@
-target remote 172.22.78.173:1234
-# 172.22.78.173 -> Ivan
+target remote some_ip:1234
 add-symbol-file Kernel/kernel.elf 0x100000
 add-symbol-file Userland/0000-sampleCodeModule.elf 0x400000
 

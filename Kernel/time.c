@@ -8,6 +8,7 @@
 #include <time.h>
 #include <lib.h>
 
+/* Constants */
 #define SECONDS 0x00
 #define MINUTES 0x02
 #define HOURS 0x04
@@ -15,7 +16,6 @@
 #define MONTH 0x08
 #define YEAR 0x09
 
-/** Defined in time.asm */
 extern uint8_t rtc_readValue(uint8_t mode);
 
 static unsigned long ticks = 0;

@@ -14,7 +14,7 @@ TResourceNamer rnm_new();
  * @brief Frees all resources used by a resource namer. Attempting to use a
  * resource namer after it has been freed results in undefined behavior.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int rnm_free(TResourceNamer namer);
 

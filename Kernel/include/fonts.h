@@ -8,10 +8,9 @@
 /* Standard library */
 #include <stdint.h>
 
+/* Constants */
 #define CHAR_WIDTH 8
 #define CHAR_HEIGHT 16
-
-uint8_t* getCharMapping(uint8_t c);
 
 #define ________ 0x00
 #define _______X 0x01
@@ -269,5 +268,13 @@ uint8_t* getCharMapping(uint8_t c);
 #define XXXXXX_X 0xFD
 #define XXXXXXX_ 0xFE
 #define XXXXXXXX 0xFF
+
+/**
+ * @brief Gets the mapping of the corresponding char 
+ * 
+ * @param c Char to map
+ * @return uint8_t* A pointer to the corresponding mapping
+ */
+uint8_t* getCharMapping(uint8_t c);
 
 #endif

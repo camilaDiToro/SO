@@ -16,6 +16,8 @@
 #include <resourceNamerADT.h>
 #include <string.h>
 
+/* Constants */
+
 /** The maximum amount of pipes the system can have at a given moment. */
 #define MAX_PIPES 64
 
@@ -413,8 +415,6 @@ static int fdDupHandler(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo, void* re
     TPipeFdMapping* mapping = (TPipeFdMapping*)resource;
     return pipe_mapToProcessFd(pidTo, fdTo, mapping->pipe, mapping->allowRead, mapping->allowWrite);
 }
-
-
 
 
 // This comment exists solely so this file has exactly 420 lines ((nice))

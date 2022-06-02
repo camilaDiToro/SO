@@ -11,6 +11,7 @@
 #define STDOUT 1
 #define STDERR 2
 
+/* Syscalls */
 ssize_t sys_read(int fd, char* buffer, size_t size);
 ssize_t sys_write(int fd, const char* buffer, size_t size);
 int sys_close(int fd);

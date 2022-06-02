@@ -6,7 +6,6 @@ entrypointWrapper:
     mov rax, 0x42
     int 80h
 
-;                                 rdi                 rsi          rdx                      rcx
 ; void* _createProcessContext(int argc, const char* argv[], void * rsp, TProcessEntryPoint entryPoint);
 _createProcessContext:
     push rbp

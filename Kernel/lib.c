@@ -15,18 +15,6 @@ void* memset(void* destination, int32_t c, size_t length) {
 }
 
 void* memcpy(void* destination, const void* source, size_t length) {
-    /*
-     * memcpy does not support overlapping buffers, so always do it
-     * forwards. (Don't change this without adjusting memmove.)
-     *
-     * For speedy copying, optimize the common case where both pointers
-     * and the length are word-aligned, and copy word-at-a-time instead
-     * of byte-at-a-time. Otherwise, copy by bytes.
-     *
-     * The alignment logic below should be portable. We rely on
-     * the compiler to be reasonably intelligent about optimizing
-     * the divides and modulos out. Fortunately, it is.
-     */
 
     uint64_t i;
 
@@ -55,16 +43,14 @@ uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base) {
     char* p2;
     uint32_t digits = 0;
 
-    // Calculate characters for each digit
     do {
         uint32_t remainder = value % base;
         *p++ = (remainder < 10) ? remainder + '0' : remainder + 'A' - 10;
         digits++;
     } while (value /= base);
 
-    // Terminate string in buffer.
     *p = 0;
-    // Reverse string in buffer.
+    
     p1 = buffer;
     p2 = p - 1;
     while (p1 < p2) {

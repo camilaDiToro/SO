@@ -13,11 +13,11 @@
 #include <scheduler.h>
 #include <waitQueueADT.h>
 
+/* Constants */
 #define LEFT_SHIFT 0x2A
 #define RIGHT_SHIFT 0x36
 #define BUFFER_MAX_SIZE 256
 
-// libasm.asm
 extern unsigned int kbd_readKey();
 
 static uint8_t keyMapRow = 0;
@@ -29,7 +29,6 @@ static uint16_t bufferSize = 0;
 // Us International QWERTY
 // https://stanislavs.org/helppc/make_codes.html
 // https://stanislavs.org/helppc/scan_codes.html
-
 static uint8_t scancodeLToAscii[] = {
     0,   27, '1', '2', '3', '4', '5', '6', '7', '8', '9',  '0', '-', '=',
    '\b', '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  '[', ']',

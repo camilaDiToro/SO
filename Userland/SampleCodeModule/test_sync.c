@@ -11,6 +11,7 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
+/* Constants */
 #define SEM_ID "sem"
 #define TOTAL_PAIR_PROCESSES 2
 

@@ -12,7 +12,7 @@ void sch_init();
 /**
  * @brief Called by process.c whenever a new process is created.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, TPriority priority, void* currentRSP, int argc, const char* const argv[]);
 
@@ -21,7 +21,7 @@ int sch_onProcessCreated(TPid pid, TProcessEntryPoint entryPoint, TPriority prio
  * If the caller is said process, it is not immediatelly stopped. For this to occur,
  * sch_yieldProcess() must be called.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int sch_onProcessKilled(TPid pid);
 
@@ -30,14 +30,14 @@ int sch_onProcessKilled(TPid pid);
  * If the caller is said process, it is not immediately blocked. For this to occur,
  * sch_yieldProcess() must be called afterwards.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int sch_blockProcess(TPid pid);
 
 /**
  * @brief Instructs the scheduler that a process may be marked as ready and run.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int sch_unblockProcess(TPid pid);
 
@@ -51,7 +51,7 @@ TPid sch_getCurrentPID();
 /**
  * @brief Sets a process' priority.
  *
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int sch_setProcessPriority(TPid pid, TPriority newPriority);
 
@@ -72,7 +72,7 @@ void sch_yieldProcess();
 /**
  * @brief Fills the given struct with the scheduler-related data of the requested process.
  * 
- * @returns 0 if the operation succeeded.
+ * @returns 0 if the operation succeeded, != 0 if not.
  */
 int sch_getProcessInfo(TPid pid, TProcessInfo* info);
 

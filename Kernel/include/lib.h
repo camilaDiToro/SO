@@ -42,8 +42,23 @@ void* memcpy(void* dest, const void* src, size_t n);
  */
 char* cpuVendor(char* result);
 
+/**
+ * @brief Transforms the value to a number in the base recived as parameter, and stores the result in the buffer. 
+ *
+ * @param value the number to transform.
+ * @param buffer memory area destination, where the number will be stored.
+ * @param base base to convert the numbre to.
+ *
+ * @return the digits of the number. 
+ */
 uint32_t uintToBase(uint64_t value, char* buffer, uint32_t base);
 
+
+
+/**
+ * @brief Converts a binary-coded decimal number into a decimal number in terms of representation.
+ * https://stackoverflow.com/questions/28133020/how-to-convert-bcd-to-decimal
+ */
 uint8_t bcdToDec(uint8_t time);
 
 #endif

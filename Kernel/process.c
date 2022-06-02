@@ -13,11 +13,10 @@
 #include <string.h>
 #include <waitQueueADT.h>
 
+/* Constants */
 #define FD_TABLE_CHUNK_SIZE 8
 #define FD_TABLE_MAX_ENTRIES 64
-
 #define MEM_TABLE_CHUNK_SIZE 16
-
 #define MAX_NAME_LENGTH 16
 
 /**
@@ -326,7 +325,7 @@ int prc_setIsForeground(TPid pid, int isForeground) {
 int prc_dupFd(TPid pidFrom, TPid pidTo, int fdFrom, int fdTo) {
     TProcessContext* processFrom;
     if (fdFrom < 0 || !tryGetProcessFromPid(pidFrom, &processFrom) || processFrom->fdTableSize <= fdFrom || processFrom->fdTable[fdFrom].resource == NULL || processFrom->fdTable[fdFrom].dupHandler == NULL)
-        return 1;
+        return -1;
 
     return processFrom->fdTable[fdFrom].dupHandler(pidFrom, pidTo, fdFrom, fdTo, processFrom->fdTable[fdFrom].resource);
 }

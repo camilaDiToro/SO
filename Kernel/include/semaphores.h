@@ -4,6 +4,7 @@
 /* Local headers */
 #include <kernelTypes.h>
 
+/* Constants */
 #define MAX_SEMAPHORES 127
 #define SEM_SUCCES 0
 #define SEM_FAILED -1
@@ -39,7 +40,7 @@ int sem_close(TSem sem);
 /**
  * @brief Decrements or locks the semaphore pointed to by sem. If the semaphore's 
  * value is greater than zero, then the decrement proceeds, and the function returns, 
- * immediately.  If the semaphore currently has the value zero, then the call blocks
+ * immediately. If the semaphore currently has the value zero, then the call blocks
  * until the semaphore value rises above zero.
  * 
  * @return SEM_SUCCES (0) if the operation succeded or SEM_NOTEXISTS (-2) if the requested semaphore 

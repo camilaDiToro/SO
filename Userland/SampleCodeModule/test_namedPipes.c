@@ -8,6 +8,7 @@
 #include <userstdlib.h>
 #include <commands.h>
 
+/* Constants */
 #define pipeName "testingPipe"
 
 void readAndClosePipe() {

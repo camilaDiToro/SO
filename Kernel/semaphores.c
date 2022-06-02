@@ -10,15 +10,12 @@
 #include <string.h>
 #include <waitQueueADT.h>
 
-// A list might be implemented to track de asociated processes to a semaphore
-// Now just are being counted the number of processes, but this could lead to an inconsistency if,
-// for example, a process tries to close the same semaphore twice
 typedef struct {
     uint8_t value;
     TLock lock;
     uint8_t linkedProcesses;
     const char* name;
-    TWaitQueue waitingProcesses; // Tracks the processes waiting for a post in this semaphore
+    TWaitQueue waitingProcesses; 
 } TSemaphore;
 
 static TSemaphore* semaphores[MAX_SEMAPHORES] = {NULL};

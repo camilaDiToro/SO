@@ -8,6 +8,7 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
+/* Constants */
 #define MAX_COMMAND_LENGTH 128
 #define MAX_ARGS 8
 #define MAX_COMMANDS 8

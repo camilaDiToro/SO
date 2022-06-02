@@ -7,6 +7,7 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
+/* Constants */
 #define MAX_PROCESSES 10
 
 enum State { RUNNING_TEST,

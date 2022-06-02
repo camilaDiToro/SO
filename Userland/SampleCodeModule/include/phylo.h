@@ -1,8 +1,10 @@
 #ifndef __PHYLO_H__
 #define __PHYLO_H__
 
+/* Local headers */
 #include <kernelTypes.h>
 
+/* Constants */
 #define PHYLO_PRIORITY DEFAULT_PRIORITY
 
 #define MAX_PHYLOSOPHERS 10
@@ -31,6 +33,9 @@ typedef struct phylo {
     TPid phyloPid;
 } TPhylo;
 
+/**
+ * @brief Initialize phylos program 
+ */
 void initPhyloProcess(int argc, char * argv[]);
 
 #endif

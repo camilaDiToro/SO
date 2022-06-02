@@ -1,3 +1,4 @@
+#!/bin/bash
 docker run -d -v ${PWD}:/root --security-opt seccomp:unconfined -ti --name dockerSO agodio/itba-so:1.0
 
 docker exec -u root -it dockerSO wget -q -O - https://files.pvs-studio.com/etc/pubkey.txt | apt-key add - &&
