@@ -110,11 +110,10 @@ char* convert(unsigned int num, unsigned int base, char* buff) {
     return ptr;
 }
 
-// https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c
+// Retrieved from: https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c
 void fprintf(int fd, const char* frmt, ...) {
-    // Module 1: Initializing Myprintf's arguments using stdarg.h
-    va_list arg;         // declares a variable which we use to manipulating the argument list contaning variable arugments
-    va_start(arg, frmt); // initialize arg with function's last fixed argument, i.e. format
+    va_list arg;         
+    va_start(arg, frmt); 
 
     const char* aux;
 
@@ -134,17 +133,14 @@ void fprintf(int fd, const char* frmt, ...) {
         }
         aux++;
 
-        // Module 2: Fetching and executing arguments
-        // va_arg() fetches the next argument from the argument list, where the 2nd parameter is the data type expected
-        // ONLY accept char*, unsigned int, int or double
         switch (*aux) {
             case 'c':
-                i = va_arg(arg, int); // Fetch char argument
+                i = va_arg(arg, int); 
                 fputChar(fd, i);
                 break;
 
             case 'd':
-                i = va_arg(arg, int); // Fetch Decimal/Integer argument
+                i = va_arg(arg, int); 
                 if (i < 0) {
                     i = -i;
                     fputChar(fd, '-');
@@ -153,22 +149,22 @@ void fprintf(int fd, const char* frmt, ...) {
                 break;
 
             case 'o':
-                u = va_arg(arg, unsigned int); // Fetch Octal representation
+                u = va_arg(arg, unsigned int);
                 fprint(fd, convert(u, 8, tmpBuff));
                 break;
 
             case 's':
-                s = va_arg(arg, char*); // Fetch string
+                s = va_arg(arg, char*);
                 fprint(fd, s == NULL ? "(NULL)" : s);
                 break;
 
             case 'u':
-                u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
+                u = va_arg(arg, unsigned int);
                 fprint(fd, convert(u, 10, tmpBuff));
                 break;
 
             case 'x':
-                u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
+                u = va_arg(arg, unsigned int); 
                 fprint(fd, convert(u, 16, tmpBuff));
                 break;
 
@@ -178,15 +174,13 @@ void fprintf(int fd, const char* frmt, ...) {
         }
     }
 
-    // Module 3: Closing argument list to necessary clean-up
     va_end(arg);
 }
 
-// https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c
+// Retrieved from: https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c
 void printf(const char* frmt, ...) {
-    // Module 1: Initializing Myprintf's arguments using stdarg.h
-    va_list arg;         // declares a variable which we use to manipulating the argument list contaning variable arugments
-    va_start(arg, frmt); // initialize arg with function's last fixed argument, i.e. format
+    va_list arg;        
+    va_start(arg, frmt); 
 
     const char* aux;
 
@@ -206,17 +200,14 @@ void printf(const char* frmt, ...) {
         }
         aux++;
 
-        // Module 2: Fetching and executing arguments
-        // va_arg() fetches the next argument from the argument list, where the 2nd parameter is the data type expected
-        // ONLY accept char*, unsigned int, int or double
         switch (*aux) {
             case 'c':
-                i = va_arg(arg, int); // Fetch char argument
+                i = va_arg(arg, int); 
                 fputChar(STDOUT, i);
                 break;
 
             case 'd':
-                i = va_arg(arg, int); // Fetch Decimal/Integer argument
+                i = va_arg(arg, int); 
                 if (i < 0) {
                     i = -i;
                     fputChar(STDOUT, '-');
@@ -225,22 +216,22 @@ void printf(const char* frmt, ...) {
                 break;
 
             case 'o':
-                u = va_arg(arg, unsigned int); // Fetch Octal representation
+                u = va_arg(arg, unsigned int);
                 fprint(STDOUT, convert(u, 8, tmpBuff));
                 break;
 
             case 's':
-                s = va_arg(arg, char*); // Fetch string
+                s = va_arg(arg, char*); 
                 fprint(STDOUT, s == NULL ? "(NULL)" : s);
                 break;
 
             case 'u':
-                u = va_arg(arg, unsigned int); // Fetch Unsigned decimal integer
+                u = va_arg(arg, unsigned int); 
                 fprint(STDOUT, convert(u, 10, tmpBuff));
                 break;
 
             case 'x':
-                u = va_arg(arg, unsigned int); // Fetch Hexadecimal representation
+                u = va_arg(arg, unsigned int); 
                 fprint(STDOUT, convert(u, 16, tmpBuff));
                 break;
 
@@ -249,7 +240,6 @@ void printf(const char* frmt, ...) {
                 break;
         }
     }
-
-    // Module 3: Closing argument list to necessary clean-up
+    
     va_end(arg);
 }

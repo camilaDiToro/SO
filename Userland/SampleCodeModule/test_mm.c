@@ -7,6 +7,7 @@
 #include <syscalls.h>
 #include <userstdlib.h>
 
+/* Constants */
 #define MAX_BLOCKS 128
 #define MAX_MEMORY (2 * 1024 * 1024)
 
