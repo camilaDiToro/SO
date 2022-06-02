@@ -2,7 +2,7 @@
 
 x64BareBones is a basic setup to develop operating systems for the Intel 64 bits architecture.
 
-The final goal of the project is to provide an entry point for a kernel and the possibility to load extra binary modules separated from the main kernel.
+This project is based on a UNIX based operating system where we implement many key OS features.
 
 ## Environment setup: 
 
@@ -12,7 +12,7 @@ The final goal of the project is to provide an entry point for a kernel and the 
 
 2- Compile the kernel
 
-Execute the following commands on the x64BareBones project directory. This will compile the proyect inside the following docker: agodio/itba-so:1.0 
+Execute the following commands on the x64BareBones project directory. This will compile the proyect inside the following docker container: `agodio/itba-so:1.0`
 
     user@linux:~/SO/$ ./compile.sh
 
