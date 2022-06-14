@@ -16,6 +16,7 @@
 #include <scheduler.h>
 #include <pipe.h>
 #include <semaphores.h>
+#include <sharedMemory.h>
 
 typedef size_t (*TSyscallHandlerFunction)(size_t rdi, size_t rsi, size_t rdx, size_t r10, size_t r8);
 
@@ -67,6 +68,14 @@ static void* sys_realloc_handler(void* ptr, size_t size) {
 
 static int sys_memState_handler(TMemoryState* memoryState) {
     return mm_getState(memoryState);
+}
+
+static void* sys_openShm_handler(const char* name, size_t requestedSize, size_t* size){
+    return shm_openShm(name, requestedSize, size);
+}
+
+static int sys_closeShm_handler(const char* name){
+    return shm_closeShm(name);
 }
 
 static TPid sys_getPid_handler() {
@@ -232,7 +241,9 @@ static TSyscallHandlerFunction syscallHandlers[] = {
     /* 0x31 */ (TSyscallHandlerFunction)sys_free_handler,
     /* 0x32 */ (TSyscallHandlerFunction)sys_realloc_handler,
     /* 0x33 */ (TSyscallHandlerFunction)sys_memState_handler,
-    /* 0x34 -> 0x3F */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    /* 0x34 */ (TSyscallHandlerFunction)sys_openShm_handler,
+    /* 0x35 */ (TSyscallHandlerFunction)sys_closeShm_handler,
+    /* 0x36 -> 0x3F */ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 
     /* Process-related syscalls */
     /* 0x40 */ (TSyscallHandlerFunction)sys_getPid_handler,

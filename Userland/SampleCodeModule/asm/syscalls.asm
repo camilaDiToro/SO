@@ -9,6 +9,8 @@ GLOBAL sys_malloc
 GLOBAL sys_free
 GLOBAL sys_realloc
 GLOBAL sys_memState
+GLOBAL sys_openShm
+GLOBAL sys_closeShm
 GLOBAL sys_getPid
 GLOBAL sys_createProcess
 GLOBAL sys_exit
@@ -50,6 +52,8 @@ sys_malloc: syscall 0x30
 sys_free: syscall 0x31
 sys_realloc: syscall 0x32
 sys_memState: syscall 0x33
+sys_openShm: syscall 0x34
+sys_closeShm: syscall 0x35
 
 sys_getPid: syscall 0x40
 sys_createProcess: syscall 0x41

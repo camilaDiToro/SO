@@ -26,6 +26,8 @@ void* sys_malloc(size_t size);
 int sys_free(void* ptr);
 void* sys_realloc(void* ptr, size_t size);
 int sys_memState(TMemoryState* memoryState);
+void* sys_openShm(const char* name, size_t requestedSize, size_t* size);
+int sys_closeShm(const char* name);
 
 TPid sys_getPid();
 TPid sys_createProcess(int stdinMapFd, int stdoutMapFd, int stderrMapFd, const TProcessCreateInfo* createInfo);

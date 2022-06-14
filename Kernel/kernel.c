@@ -15,6 +15,7 @@
 #include <keyboard.h>
 #include <systemCalls.h>
 #include <semaphores.h>
+#include <sharedMemory.h>
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -71,6 +72,7 @@ int main() {
     kbd_init();
     sch_init();
     sem_init();
+    shm_init();
 
     initializeShell();
 

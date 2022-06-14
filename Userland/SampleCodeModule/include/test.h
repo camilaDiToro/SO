@@ -8,5 +8,6 @@ void test_async(int argc, char* argv[]);
 void test_processes(int argc, char* argv[]);
 void test_prio(int argc, char* argv[]);
 void namedPipesProcess(int argc, char* argv[]);
+void sharedMemoryProcess(int argc, char* argv[]);
 
 #endif

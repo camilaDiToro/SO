@@ -36,6 +36,7 @@ static TCommand validCommands[] = {
     {runTestSync, "testsync", "Runs a synchronization test with multiple processes with semaphores."},
     {runTestProcesses, "testprocesses", "Runs a test for processes."},
     {runTestPrio, "testprio", "Runs a test on process priorities."},
+    {runTestShm, "testshm", "Runs a test for shared memory"},
 };
 
 const TCommand* getCommandByName(const char* name) {
@@ -179,10 +180,10 @@ int runBlock(int stdin, int stdout, int stderr, int isForeground, int argc, cons
         return 0;
     }
 
-    TPid pidToBlock = atoi(argv[1]);
+    TPid pidToBlock = atoi(argv[0]);
 
     if (pidToBlock == sys_getPid()) {
-        fprint(stderr, "You cannot block this shell!");
+        fprintf(stderr, "You cannot block this shell!");
         return 0;
     }
 
@@ -416,6 +417,20 @@ int runTestPrio(int stdin, int stdout, int stderr, int isForeground, int argc, c
     TProcessCreateInfo pci = {
         .name = "testPrio",
         .entryPoint = test_prio,
+        .isForeground = isForeground,
+        .priority = DEFAULT_PRIORITY,
+        .argc = argc,
+        .argv = argv
+    };
+
+    *createdProcess = sys_createProcess(stdin, stdout, stderr, &pci);
+    return *createdProcess >= 0;
+}
+
+int runTestShm(int stdin, int stdout, int stderr, int isForeground, int argc, const char* const argv[], TPid* createdProcess) {
+    TProcessCreateInfo pci = {
+        .name = "testShm",
+        .entryPoint = sharedMemoryProcess,
         .isForeground = isForeground,
         .priority = DEFAULT_PRIORITY,
         .argc = argc,
